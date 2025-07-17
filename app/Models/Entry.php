@@ -46,6 +46,5 @@ class Entry extends Model
     public function toggleCompleted(): void
     {
         $this->completed = !$this->completed;
-        $this->save();
     }
 }

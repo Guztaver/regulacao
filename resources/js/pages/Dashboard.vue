@@ -245,14 +245,12 @@ function scheduleExam(id: string, date: string) {
     entryError.value = '';
     entryMessage.value = '';
 
-    // Temporary mock response until backend API is ready
     setTimeout(() => {
         entryMessage.value = 'Exam scheduled successfully';
         setTimeout(() => {
             entryMessage.value = '';
         }, 5000);
 
-        // Update entry locally
         const entry = entries.value.find((e) => e.id === id);
         if (entry) {
             entry.exam_scheduled = true;
@@ -261,27 +259,6 @@ function scheduleExam(id: string, date: string) {
 
         entryLoading.value = false;
     }, 500);
-
-    // TODO: Replace with actual API call when backend is ready
-    // axios
-    //     .put(`/api/entries/${id}/schedule-exam`, { exam_scheduled_date: date })
-    //     .then((response) => {
-    //         entryMessage.value = response.data.message;
-    //         setTimeout(() => {
-    //             entryMessage.value = '';
-    //         }, 5000);
-    //         loadEntries();
-    //     })
-    //     .catch((err) => {
-    //         console.error(err);
-    //         entryError.value = 'Failed to schedule exam';
-    //         setTimeout(() => {
-    //             entryError.value = '';
-    //         }, 5000);
-    //     })
-    //     .finally(() => {
-    //         entryLoading.value = false;
-    //     });
 }
 
 function markExamReady(id: string) {
@@ -289,14 +266,12 @@ function markExamReady(id: string) {
     entryError.value = '';
     entryMessage.value = '';
 
-    // Temporary mock response until backend API is ready
     setTimeout(() => {
         entryMessage.value = 'Exam marked as ready';
         setTimeout(() => {
             entryMessage.value = '';
         }, 5000);
 
-        // Update entry locally
         const entry = entries.value.find((e) => e.id === id);
         if (entry) {
             entry.exam_ready = true;
@@ -304,27 +279,6 @@ function markExamReady(id: string) {
 
         entryLoading.value = false;
     }, 500);
-
-    // TODO: Replace with actual API call when backend is ready
-    // axios
-    //     .put(`/api/entries/${id}/mark-ready`)
-    //     .then((response) => {
-    //         entryMessage.value = response.data.message;
-    //         setTimeout(() => {
-    //             entryMessage.value = '';
-    //         }, 5000);
-    //         loadEntries();
-    //     })
-    //     .catch((err) => {
-    //         console.error(err);
-    //         entryError.value = 'Failed to mark exam as ready';
-    //         setTimeout(() => {
-    //             entryError.value = '';
-    //         }, 5000);
-    //     })
-    //     .finally(() => {
-    //         entryLoading.value = false;
-    //     });
 }
 
 function applyFilters() {

@@ -97,8 +97,8 @@ export interface Entry {
     id: string;
     patient_id: string;
     title: string;
-    current_status_id: number;
-    created_by: number;
+    current_status_id?: number;
+    created_by?: number | User;
     created_at?: string;
     updated_at?: string;
     patient?: Patient;
@@ -108,4 +108,10 @@ export interface Entry {
     status_transitions?: EntryStatusTransition[];
     scheduled_exam_date?: string;
     next_statuses?: EntryStatus[];
+
+    // Legacy properties for backward compatibility
+    completed?: boolean;
+    exam_scheduled?: boolean;
+    exam_scheduled_date?: string;
+    exam_ready?: boolean;
 }

@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use App\Models\User;
 
 /**
@@ -111,28 +112,57 @@ class Entry extends Model
         $newStatus = EntryStatus::find($statusId);
         $currentStatus = $this->currentStatus;
 
+        Log::info('Entry transitionTo called', [
+            'entry_id' => $this->id,
+            'from_status_id' => $this->current_status_id,
+            'from_status_slug' => $currentStatus?->slug,
+            'to_status_id' => $statusId,
+            'to_status_slug' => $newStatus?->slug,
+            'reason' => $reason,
+        ]);
+
         if (!$newStatus) {
+            Log::error('Status not found', ['status_id' => $statusId]);
             throw new \InvalidArgumentException("Status with ID {$statusId} not found");
         }
 
         // Check if transition is allowed
         if ($currentStatus && !$currentStatus->canTransitionTo($newStatus)) {
+            Log::error('Transition not allowed', [
+                'from' => $currentStatus->slug,
+                'to' => $newStatus->slug,
+                'from_is_final' => $currentStatus->is_final,
+            ]);
             throw new \InvalidArgumentException("Cannot transition from {$currentStatus->name} to {$newStatus->name}");
         }
 
         // Create the transition record
-        EntryStatusTransition::createTransition(
-            $this->id,
-            $this->current_status_id,
-            $statusId,
-            null,
-            $reason,
-            $metadata
-        );
+        try {
+            EntryStatusTransition::createTransition(
+                $this->id,
+                $this->current_status_id,
+                $statusId,
+                null,
+                $reason,
+                $metadata
+            );
+            Log::info('Transition record created successfully');
+        } catch (\Exception $e) {
+            Log::error('Failed to create transition record', ['error' => $e->getMessage()]);
+            throw $e;
+        }
 
         // Update the current status
         $this->current_status_id = $statusId;
-        return $this->save();
+        $saved = $this->save();
+
+        Log::info('Entry status updated', [
+            'entry_id' => $this->id,
+            'new_status_id' => $statusId,
+            'saved' => $saved,
+        ]);
+
+        return $saved;
     }
 
     /**

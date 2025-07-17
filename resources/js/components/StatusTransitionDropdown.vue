@@ -59,12 +59,22 @@ const iconSize = computed(() => {
 async function loadNextStatuses() {
     if (!props.entry.id) return;
 
+    console.log('StatusTransitionDropdown: Loading next statuses for entry', {
+        entryId: props.entry.id,
+        currentStatus: props.entry.current_status?.slug,
+    });
+
     try {
         isLoading.value = true;
         const response = await entryApi.getNextStatuses(props.entry.id);
         nextStatuses.value = response.next_statuses || [];
+
+        console.log('StatusTransitionDropdown: Next statuses loaded', {
+            count: nextStatuses.value.length,
+            statuses: nextStatuses.value.map((s) => ({ id: s.id, slug: s.slug, name: s.name })),
+        });
     } catch (error) {
-        console.error('Failed to load next statuses:', error);
+        console.error('StatusTransitionDropdown: Failed to load next statuses:', error);
         emit('error', handleApiError(error));
     } finally {
         isLoading.value = false;
@@ -74,9 +84,19 @@ async function loadNextStatuses() {
 async function transitionToStatus(statusId: number, reason?: string) {
     if (!props.entry.id) return;
 
+    console.log('StatusTransitionDropdown: Starting transition', {
+        entryId: props.entry.id,
+        currentStatus: props.entry.current_status?.slug,
+        targetStatusId: statusId,
+        targetStatus: nextStatuses.value.find((s) => s.id === statusId)?.slug,
+        reason,
+    });
+
     try {
         isLoading.value = true;
-        await entryApi.transitionStatus(props.entry.id, statusId, reason);
+        const response = await entryApi.transitionStatus(props.entry.id, statusId, reason);
+
+        console.log('StatusTransitionDropdown: Transition successful', response);
 
         // Update the entry object
         const updatedEntry = { ...props.entry };
@@ -89,8 +109,15 @@ async function transitionToStatus(statusId: number, reason?: string) {
         emit('status-changed', updatedEntry);
         closeDropdown();
     } catch (error) {
-        console.error('Failed to transition status:', error);
-        emit('error', handleApiError(error));
+        console.error('StatusTransitionDropdown: Failed to transition status:', error);
+        console.error('StatusTransitionDropdown: Error details:', {
+            status: error.response?.status,
+            data: error.response?.data,
+            message: error.message,
+        });
+
+        const errorMessage = error.response?.data?.error || error.response?.data?.message || handleApiError(error);
+        emit('error', errorMessage);
     } finally {
         isLoading.value = false;
     }

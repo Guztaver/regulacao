@@ -139,7 +139,7 @@ class EntryStatus extends Model
     public function getNextStatuses(): \Illuminate\Database\Eloquent\Collection
     {
         if ($this->is_final) {
-            return collect();
+            return new \Illuminate\Database\Eloquent\Collection();
         }
 
         $allowedTransitions = [

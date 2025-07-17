@@ -131,6 +131,18 @@ export function useEntryApi() {
             api.get('/api/entries', params),
 
         /**
+         * Get active entries with optional filters
+         */
+        getActiveEntries: (params?: { date_from?: string; date_to?: string; patient_name?: string; entry_id?: string; limit?: number }) =>
+            api.get('/api/entries/active', params),
+
+        /**
+         * Get scheduled entries with optional filters
+         */
+        getScheduledEntries: (params?: { date_from?: string; date_to?: string; patient_name?: string; entry_id?: string; limit?: number }) =>
+            api.get('/api/entries/scheduled', params),
+
+        /**
          * Get completed entries with optional filters
          */
         getCompletedEntries: (params?: { date_from?: string; date_to?: string; patient_name?: string; entry_id?: string; limit?: number }) =>

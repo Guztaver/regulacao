@@ -1,43 +1,16 @@
 <script setup lang="ts">
 import EntryInfoModal from '@/components/EntryInfoModal.vue';
+import PatientSearch from '@/components/PatientSearch.vue';
+import StatusTransitionDropdown from '@/components/StatusTransitionDropdown.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
 import { handleApiError, useEntryApi, usePatientApi } from '@/composables/useApi';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
+import type { BreadcrumbItem, Entry, Patient } from '@/types';
 import { Head } from '@inertiajs/vue3';
-import { onMounted, reactive, ref } from 'vue';
-
-interface User {
-    id: number;
-    name: string;
-    email: string;
-}
-
-interface Patient {
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
-    sus_number?: string;
-    created_by?: User;
-}
-
-interface Entry {
-    id: string;
-    patient_id: string;
-    title: string;
-    patient?: Patient;
-    created_at?: string;
-    completed: boolean;
-    created_by?: User;
-    exam_scheduled: boolean;
-    exam_scheduled_date?: string;
-    exam_ready: boolean;
-}
+import { onMounted, reactive, ref, watch } from 'vue';
 
 interface Filters {
     date_from: string;
@@ -48,126 +21,91 @@ interface Filters {
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Dashboard',
-        href: '/dashboard',
-    },
+    { title: 'Início', href: '/' },
+    { title: 'Dashboard', href: '/dashboard' },
 ];
-
-const patient: Patient = reactive({
-    id: '',
-    name: '',
-    email: '',
-    phone: '',
-    sus_number: '',
-});
 
 const entry = reactive({
     patient_id: '',
     title: '',
 });
 
-const filters: Filters = reactive({
+const filters = reactive<Filters>({
     date_from: '',
     date_to: '',
     patient_name: '',
     entry_id: '',
-    limit: 10,
+    limit: 50,
 });
 
-const tempFilters: Filters = reactive({
+const tempFilters = reactive<Filters>({
     date_from: '',
     date_to: '',
     patient_name: '',
     entry_id: '',
-    limit: 10,
+    limit: 50,
 });
 
-// State management
+// Messages and loading states
 const message = ref('');
 const error = ref('');
-const loading = ref(false);
 const entryMessage = ref('');
 const entryError = ref('');
 const entryLoading = ref(false);
-const isPatientModalOpen = ref(false);
+
+// Modal states
+
 const isEntryModalOpen = ref(false);
 const isFilterDialogOpen = ref(false);
 const isEntryInfoModalOpen = ref(false);
 const selectedEntry = ref<Entry | null>(null);
 
+// Data
 const patients = ref<Patient[]>([]);
 const entries = ref<Entry[]>([]);
-const limitOptions = [5, 10, 25, 50, 100];
+const limitOptions = [10, 25, 50, 100, 200];
 
-// Patient functions
-async function createPatient() {
-    loading.value = true;
-    error.value = '';
-    message.value = '';
+// Patient search functionality
+const selectedPatient = ref<Patient | null>(null);
 
-    // Validate SUS number
-    if (patient.sus_number && patient.sus_number.length < 15) {
-        alert('SUS number must be exactly 15 digits long');
-        loading.value = false;
-        return;
-    }
+const onPatientSelected = (patient: Patient) => {
+    selectedPatient.value = patient;
+    entry.patient_id = patient.id;
+};
 
-    const patientData = {
-        name: patient.name,
-        email: patient.email,
-        phone: patient.phone,
-        sus_number: patient.sus_number,
-    };
-
-    const patientApi = usePatientApi();
-
-    try {
-        const response = await patientApi.createPatient(patientData);
-        message.value = response.message;
-        patient.name = '';
-        patient.email = '';
-        patient.phone = '';
-        patient.sus_number = '';
-        isPatientModalOpen.value = false;
-        loadPatients();
-    } catch (err) {
-        console.error(err);
-        error.value = handleApiError(err);
-    } finally {
-        loading.value = false;
-    }
-}
+const onPatientCleared = () => {
+    selectedPatient.value = null;
+    entry.patient_id = '';
+};
 
 async function loadPatients() {
     const patientApi = usePatientApi();
-
     try {
-        patients.value = await patientApi.getPatients({ limit: 10 });
+        const response = await patientApi.getPatients({ limit: 1000 });
+        patients.value = Array.isArray(response) ? response : response.data || [];
     } catch (err) {
-        console.error('Error loading patients:', err);
+        console.error('Erro ao carregar pacientes:', err);
+        error.value = handleApiError(err);
     }
 }
 
-// Entry functions
 async function loadEntries() {
     const entryApi = useEntryApi();
     entryLoading.value = true;
     entryError.value = '';
 
     try {
-        const params: any = {
-            limit: filters.limit,
-        };
-
+        const params: any = {};
         if (filters.date_from) params.date_from = filters.date_from;
         if (filters.date_to) params.date_to = filters.date_to;
         if (filters.patient_name) params.patient_name = filters.patient_name;
         if (filters.entry_id) params.entry_id = filters.entry_id;
+        if (filters.limit) params.limit = filters.limit;
 
-        entries.value = await entryApi.getEntries(params);
+        const response = await entryApi.getEntries(params);
+        entries.value = Array.isArray(response) ? response : response.data || [];
     } catch (err) {
-        console.error('Error loading entries:', err);
+        console.error('Erro ao carregar entradas:', err);
         entryError.value = handleApiError(err);
     } finally {
         entryLoading.value = false;
@@ -175,16 +113,27 @@ async function loadEntries() {
 }
 
 async function createEntry() {
+    if (!entry.patient_id || !entry.title) {
+        entryError.value = 'Por favor, selecione um paciente e informe o título.';
+        return;
+    }
+
     const entryApi = useEntryApi();
     entryLoading.value = true;
     entryError.value = '';
     entryMessage.value = '';
 
     try {
-        const response = await entryApi.createEntry(entry);
-        entryMessage.value = response.message;
-        entry.patient_id = '';
-        entry.title = '';
+        await entryApi.createEntry(entry);
+        entryMessage.value = 'Entrada criada com sucesso!';
+
+        // Reset form
+        Object.assign(entry, {
+            patient_id: '',
+            title: '',
+        });
+        onPatientCleared();
+
         isEntryModalOpen.value = false;
         loadEntries();
     } catch (err) {
@@ -195,24 +144,8 @@ async function createEntry() {
     }
 }
 
-async function completeEntry(id: string) {
-    const entryApi = useEntryApi();
-    entryLoading.value = true;
-
-    try {
-        const response = await entryApi.completeEntry(id);
-        entryMessage.value = response.message;
-        loadEntries();
-    } catch (err) {
-        console.error(err);
-        entryError.value = handleApiError(err);
-    } finally {
-        entryLoading.value = false;
-    }
-}
-
 async function deleteEntry(id: string) {
-    if (!confirm('Are you sure you want to delete this entry? This action cannot be undone.')) {
+    if (!confirm('Tem certeza que deseja excluir esta entrada? Esta ação não pode ser desfeita.')) {
         return;
     }
 
@@ -221,43 +154,7 @@ async function deleteEntry(id: string) {
 
     try {
         await entryApi.deleteEntry(id);
-        entryMessage.value = 'Entry deleted successfully';
-        loadEntries();
-    } catch (err) {
-        console.error(err);
-        entryError.value = handleApiError(err);
-    } finally {
-        entryLoading.value = false;
-    }
-}
-
-async function scheduleExam(id: string, date: string) {
-    const entryApi = useEntryApi();
-    entryLoading.value = true;
-    entryError.value = '';
-    entryMessage.value = '';
-
-    try {
-        const response = await entryApi.scheduleExam(id, date);
-        entryMessage.value = response.message;
-        loadEntries();
-    } catch (err) {
-        console.error(err);
-        entryError.value = handleApiError(err);
-    } finally {
-        entryLoading.value = false;
-    }
-}
-
-async function markExamReady(id: string) {
-    const entryApi = useEntryApi();
-    entryLoading.value = true;
-    entryError.value = '';
-    entryMessage.value = '';
-
-    try {
-        const response = await entryApi.markExamReady(id);
-        entryMessage.value = response.message;
+        entryMessage.value = 'Entrada excluída com sucesso';
         loadEntries();
     } catch (err) {
         console.error(err);
@@ -279,10 +176,11 @@ function clearFilters() {
         date_to: '',
         patient_name: '',
         entry_id: '',
-        limit: 10,
+        limit: 50,
     });
     Object.assign(filters, tempFilters);
     loadEntries();
+    isFilterDialogOpen.value = false;
 }
 
 function openFilterDialog() {
@@ -296,7 +194,7 @@ function hasActiveFilters(): boolean {
 
 function formatDate(dateString: string | undefined): string {
     if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('pt-BR', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
@@ -310,10 +208,75 @@ function showEntryInfo(entry: Entry): void {
     isEntryInfoModalOpen.value = true;
 }
 
+function getStatusText(entry: Entry): string {
+    if (entry.current_status) {
+        return entry.current_status.name;
+    }
+
+    // Fallback para sistema legado
+    if (entry.completed) return 'Concluído';
+    if (entry.exam_ready) return 'Pronto';
+    if (entry.exam_scheduled) return 'Agendado';
+    return 'Pendente';
+}
+
+function getStatusColorClass(entry: Entry): string {
+    if (entry.current_status) {
+        const color = entry.current_status.color.toLowerCase();
+        switch (color) {
+            case '#10b981': // Verde
+                return 'text-green-600 dark:text-green-400';
+            case '#3b82f6': // Azul
+                return 'text-blue-600 dark:text-blue-400';
+            case '#8b5cf6': // Roxo
+                return 'text-purple-600 dark:text-purple-400';
+            case '#f59e0b': // Âmbar
+                return 'text-yellow-600 dark:text-yellow-400';
+            case '#ef4444': // Vermelho
+                return 'text-red-600 dark:text-red-400';
+            default:
+                return 'text-gray-500 dark:text-gray-400';
+        }
+    }
+
+    // Fallback para sistema legado
+    if (entry.completed) return 'text-green-600 dark:text-green-400';
+    if (entry.exam_ready) return 'text-blue-600 dark:text-blue-400';
+    if (entry.exam_scheduled) return 'text-yellow-600 dark:text-yellow-400';
+    return 'text-gray-500 dark:text-gray-400';
+}
+
+function onStatusChanged(updatedEntry: Entry) {
+    // Recarregar todas as entradas para garantir que os dados estejam atualizados
+    loadEntries();
+    entryMessage.value = 'Status atualizado com sucesso!';
+}
+
+function onStatusError(errorMessage: string) {
+    entryError.value = errorMessage;
+    // Recarregar entradas mesmo em caso de erro para garantir estado consistente
+    loadEntries();
+}
+
+// Clear messages after some time
+const clearMessage = (messageRef: any) => {
+    setTimeout(() => {
+        messageRef.value = '';
+    }, 5000);
+};
+
 // Initialize data
 onMounted(() => {
     loadPatients();
     loadEntries();
+});
+
+// Clear messages automatically
+watch([message, error, entryMessage, entryError], () => {
+    if (message.value) clearMessage(message);
+    if (error.value) clearMessage(error);
+    if (entryMessage.value) clearMessage(entryMessage);
+    if (entryError.value) clearMessage(entryError);
 });
 </script>
 
@@ -326,61 +289,10 @@ onMounted(() => {
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">Manage patients and entries efficiently</p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Visão geral e acesso rápido às seções principais</p>
                 </div>
 
                 <div class="flex gap-2">
-                    <!-- Create Patient Modal -->
-                    <!-- <Dialog v-model:open="isPatientModalOpen">
-                        <DialogTrigger as-child>
-                            <Button>
-                                <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                </svg>
-                                Add Patient
-                            </Button>
-                        </DialogTrigger>
-
-                        <DialogContent class="sm:max-w-md">
-                            <DialogHeader>
-                                <DialogTitle>Create New Patient</DialogTitle>
-                            </DialogHeader>
-
-                            <form @submit.prevent="createPatient" class="grid gap-4 py-4">
-                                <div>
-                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
-                                    <Input type="text" v-model="patient.name" placeholder="Enter patient name" class="mt-1" required />
-                                </div>
-                                <div>
-                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
-                                    <Input type="email" v-model="patient.email" placeholder="Enter email address" class="mt-1" required />
-                                </div>
-                                <div>
-                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Phone</label>
-                                    <Input type="text" v-model="patient.phone" placeholder="Enter phone number" class="mt-1" />
-                                </div>
-                                <div>
-                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">SUS Number</label>
-                                    <Input
-                                        type="text"
-                                        v-model="patient.sus_number"
-                                        placeholder="Enter SUS number (15 digits)"
-                                        class="mt-1"
-                                        maxlength="15"
-                                    />
-                                </div>
-
-                                <DialogFooter>
-                                    <Button type="button" variant="outline" @click="isPatientModalOpen = false"> Cancel </Button>
-                                    <Button type="submit" :disabled="loading">
-                                        <span v-if="loading">Creating...</span>
-                                        <span v-else>Create Patient</span>
-                                    </Button>
-                                </DialogFooter>
-                            </form>
-                        </DialogContent>
-                    </Dialog> -->
-
                     <!-- Create Entry Modal -->
                     <Dialog v-model:open="isEntryModalOpen">
                         <DialogTrigger as-child>
@@ -393,41 +305,39 @@ onMounted(() => {
                                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                     />
                                 </svg>
-                                Add Entry
+                                Adicionar Entrada
                             </Button>
                         </DialogTrigger>
 
                         <DialogContent class="sm:max-w-md">
                             <DialogHeader>
-                                <DialogTitle>Create New Entry</DialogTitle>
+                                <DialogTitle>Criar Nova Entrada</DialogTitle>
                             </DialogHeader>
 
                             <form @submit.prevent="createEntry" class="grid gap-4 py-4">
                                 <div>
-                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Patient</label>
-                                    <Select
-                                        v-model="entry.patient_id"
-                                        class="mt-1"
-                                        required
-                                        :placeholder="
-                                            patients.length > 0 ? 'Select a patient' : 'No patients available - Please create a patient first'
-                                        "
-                                    >
-                                        <option v-for="patient in patients" :key="patient.id" :value="patient.id">
-                                            {{ patient.name }} ({{ patient.email }})
-                                        </option>
-                                    </Select>
+                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Paciente</label>
+                                    <div class="mt-1">
+                                        <PatientSearch
+                                            v-model="entry.patient_id"
+                                            @patient-selected="onPatientSelected"
+                                            @patient-cleared="onPatientCleared"
+                                            placeholder="Digite o nome ou email do paciente..."
+                                            required
+                                        />
+                                    </div>
                                 </div>
+
                                 <div>
-                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Title</label>
-                                    <Input type="text" v-model="entry.title" placeholder="Enter entry title" class="mt-1" required />
+                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Título</label>
+                                    <Input type="text" v-model="entry.title" placeholder="Digite o título da entrada" class="mt-1" required />
                                 </div>
 
                                 <DialogFooter>
-                                    <Button type="button" variant="outline" @click="isEntryModalOpen = false"> Cancel </Button>
+                                    <Button type="button" variant="outline" @click="isEntryModalOpen = false"> Cancelar </Button>
                                     <Button type="submit" :disabled="entryLoading">
-                                        <span v-if="entryLoading">Creating...</span>
-                                        <span v-else>Create Entry</span>
+                                        <span v-if="entryLoading">Criando...</span>
+                                        <span v-else>Criar Entrada</span>
                                     </Button>
                                 </DialogFooter>
                             </form>
@@ -462,123 +372,111 @@ onMounted(() => {
                 {{ entryError }}
             </div>
 
-            <!-- Entries Section -->
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Active Entries ({{ entries.length }})</h2>
-                </div>
-
-                <div class="flex gap-2">
-                    <Dialog v-model:open="isFilterDialogOpen">
-                        <DialogTrigger as-child>
-                            <Button @click="openFilterDialog" variant="outline">
-                                <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z"
-                                    />
-                                </svg>
-                                Filters
-                                <span v-if="hasActiveFilters()" class="ml-1 h-2 w-2 rounded-full bg-blue-500"></span>
-                            </Button>
-                        </DialogTrigger>
-
-                        <DialogContent class="sm:max-w-md">
-                            <DialogHeader>
-                                <DialogTitle>Filter Entries</DialogTitle>
-                            </DialogHeader>
-
-                            <div class="grid gap-4 py-4">
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Date From</label>
-                                        <Input type="date" v-model="tempFilters.date_from" class="mt-1" />
-                                    </div>
-                                    <div>
-                                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Date To</label>
-                                        <Input type="date" v-model="tempFilters.date_to" class="mt-1" />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Patient Name</label>
-                                    <Input type="text" v-model="tempFilters.patient_name" placeholder="Search by patient name..." class="mt-1" />
-                                </div>
-
-                                <div>
-                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Entry ID</label>
-                                    <Input type="text" v-model="tempFilters.entry_id" placeholder="Enter specific entry ID..." class="mt-1" />
-                                </div>
-
-                                <div>
-                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Limit Results</label>
-                                    <Select v-model="tempFilters.limit" class="mt-1">
-                                        <option v-for="option in limitOptions" :key="option" :value="option">{{ option }} entries</option>
-                                    </Select>
-                                </div>
-                            </div>
-
-                            <DialogFooter>
-                                <Button variant="outline" @click="clearFilters"> Clear All </Button>
-                                <Button @click="applyFilters"> Apply Filters </Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
-
-                    <Button @click="loadEntries" variant="outline" :disabled="entryLoading">
-                        <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <!-- Dashboard Overview Cards -->
+            <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <!-- Active Entries Card -->
+                <Card class="cursor-pointer transition-shadow hover:shadow-lg" @click="$inertia.visit('/entries/active')">
+                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle class="text-sm font-medium">Entradas Ativas</CardTitle>
+                        <svg class="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
                                 stroke-width="2"
-                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                            />
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            ></path>
                         </svg>
-                        Refresh
-                    </Button>
-                </div>
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-2xl font-bold">
+                            {{ entries.filter((e) => !e.current_status || !['completed', 'cancelled'].includes(e.current_status.slug)).length }}
+                        </div>
+                        <p class="text-xs text-muted-foreground">Entradas não concluídas</p>
+                        <div class="mt-4">
+                            <Button variant="outline" class="w-full">
+                                Ver Entradas Ativas
+                                <svg class="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <!-- Scheduled Entries Card -->
+                <Card class="cursor-pointer transition-shadow hover:shadow-lg" @click="$inertia.visit('/entries/scheduled')">
+                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle class="text-sm font-medium">Entradas Agendadas</CardTitle>
+                        <svg class="h-4 w-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0h6m-6 0l-.5 5m6.5-5l.5 5M12 9v12"
+                            ></path>
+                        </svg>
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-2xl font-bold">{{ entries.filter((e) => e.scheduled_exam_date).length }}</div>
+                        <p class="text-xs text-muted-foreground">Com data agendada</p>
+                        <div class="mt-4">
+                            <Button variant="outline" class="w-full">
+                                Ver Entradas Agendadas
+                                <svg class="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <!-- Completed Entries Card -->
+                <Card class="cursor-pointer transition-shadow hover:shadow-lg" @click="$inertia.visit('/entries/completed')">
+                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle class="text-sm font-medium">Entradas Concluídas</CardTitle>
+                        <svg class="h-4 w-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                            ></path>
+                        </svg>
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-2xl font-bold">
+                            {{ entries.filter((e) => e.current_status && ['completed', 'cancelled'].includes(e.current_status.slug)).length }}
+                        </div>
+                        <p class="text-xs text-muted-foreground">Finalizadas</p>
+                        <div class="mt-4">
+                            <Button variant="outline" class="w-full">
+                                Ver Entradas Concluídas
+                                <svg class="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
 
-            <!-- Active Filters Display -->
-            <div v-if="hasActiveFilters()" class="flex flex-wrap gap-2">
-                <span class="text-sm text-gray-600 dark:text-gray-400">Active filters:</span>
-                <span
-                    v-if="filters.date_from"
-                    class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                >
-                    From: {{ filters.date_from }}
-                </span>
-                <span
-                    v-if="filters.date_to"
-                    class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                >
-                    To: {{ filters.date_to }}
-                </span>
-                <span
-                    v-if="filters.patient_name"
-                    class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                >
-                    Patient: {{ filters.patient_name }}
-                </span>
-                <span
-                    v-if="filters.entry_id"
-                    class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                >
-                    ID: {{ filters.entry_id }}
-                </span>
-                <span
-                    class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800 dark:bg-gray-700 dark:text-gray-200"
-                >
-                    Limit: {{ filters.limit }}
-                </span>
-            </div>
-
-            <!-- Entries Table -->
+            <!-- Recent Entries Section -->
             <Card>
                 <CardHeader>
-                    <CardTitle>Active Entries</CardTitle>
+                    <CardTitle class="flex items-center justify-between">
+                        <span>Entradas Recentes</span>
+                        <Button @click="loadEntries" variant="outline" size="sm" :disabled="entryLoading">
+                            <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                ></path>
+                            </svg>
+                            Atualizar
+                        </Button>
+                    </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div v-if="entryLoading" class="flex items-center justify-center py-12">
@@ -592,159 +490,50 @@ onMounted(() => {
                                 stroke-linejoin="round"
                                 stroke-width="2"
                                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                            />
+                            ></path>
                         </svg>
-                        <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No entries found</h3>
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Create your first entry or adjust your filters.</p>
+                        <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">Nenhuma entrada encontrada</h3>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Crie sua primeira entrada.</p>
                     </div>
 
-                    <div v-else class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
-                            <thead class="bg-gray-50 dark:bg-gray-700">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
-                                        ID
-                                    </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
-                                        Patient
-                                    </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
-                                        Title
-                                    </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
-                                        Date Created
-                                    </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
-                                        Added By
-                                    </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
-                                        Status
-                                    </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
-                                        Actions
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-600 dark:bg-gray-800">
-                                <tr v-for="entry in entries" :key="entry.id" class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
-                                        <button
-                                            @click="showEntryInfo(entry)"
-                                            class="cursor-pointer font-mono text-xs text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                                            :title="'Click to view entry details'"
-                                        >
-                                            {{ entry.id }}
-                                        </button>
-                                    </td>
-                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
-                                        <div class="flex flex-col">
-                                            <span class="font-medium">{{ entry.patient?.name || 'Unknown Patient' }}</span>
-                                            <span v-if="entry.patient?.email" class="text-xs text-gray-500 dark:text-gray-400">
-                                                {{ entry.patient.email }}
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
-                                        <p class="max-w-xs truncate text-left">
-                                            {{ entry.title }}
-                                        </p>
-                                    </td>
-                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
-                                        {{ formatDate(entry.created_at) }}
-                                    </td>
-                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
-                                        {{ entry.created_by?.name || 'Unknown' }}
-                                    </td>
-                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
-                                        <div class="flex flex-col gap-1">
-                                            <span
-                                                class="text-xs font-medium"
-                                                :class="{
-                                                    'text-green-600 dark:text-green-400': entry.completed,
-                                                    'text-blue-600 dark:text-blue-400': entry.exam_ready && !entry.completed,
-                                                    'text-yellow-600 dark:text-yellow-400': entry.exam_scheduled && !entry.exam_ready,
-                                                    'text-gray-500 dark:text-gray-400': !entry.exam_scheduled,
-                                                }"
-                                            >
-                                                {{
-                                                    entry.completed
-                                                        ? 'Completed'
-                                                        : entry.exam_ready
-                                                          ? 'Ready'
-                                                          : entry.exam_scheduled
-                                                            ? 'Scheduled'
-                                                            : 'Pending'
-                                                }}
-                                            </span>
-                                            <div
-                                                v-if="entry.exam_scheduled && entry.exam_scheduled_date"
-                                                class="text-xs text-gray-500 dark:text-gray-400"
-                                            >
-                                                {{ formatDate(entry.exam_scheduled_date) }}
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 text-sm whitespace-nowrap">
-                                        <div class="flex gap-2">
-                                            <!-- Schedule Exam Button -->
-                                            <div v-if="!entry.exam_scheduled" class="flex gap-1">
-                                                <input
-                                                    type="date"
-                                                    @change="scheduleExam(entry.id, ($event.target as HTMLInputElement).value)"
-                                                    class="rounded border border-gray-300 px-2 py-1 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                                                    :disabled="entryLoading"
-                                                />
-                                            </div>
+                    <div v-else class="space-y-4">
+                        <div
+                            v-for="entry in entries.slice(0, 5)"
+                            :key="entry.id"
+                            class="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800"
+                        >
+                            <div class="flex-1">
+                                <div class="flex items-center gap-3">
+                                    <button
+                                        @click="showEntryInfo(entry)"
+                                        class="font-mono text-xs text-blue-600 underline hover:text-blue-800 dark:text-blue-400"
+                                    >
+                                        {{ entry.id }}
+                                    </button>
+                                    <span class="text-sm font-medium">{{ entry.patient?.name || 'Paciente Desconhecido' }}</span>
+                                    <span :class="['rounded-full px-2 py-1 text-xs', getStatusColorClass(entry)]">
+                                        {{ getStatusText(entry) }}
+                                    </span>
+                                </div>
+                                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">{{ entry.title }}</p>
+                                <div class="mt-2 flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+                                    <span>{{ formatDate(entry.created_at) }}</span>
+                                    <span v-if="entry.scheduled_exam_date">Agendado: {{ formatDate(entry.scheduled_exam_date) }}</span>
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <StatusTransitionDropdown :entry="entry" @status-changed="onStatusChanged" @error="onStatusError" size="sm" />
+                            </div>
+                        </div>
 
-                                            <!-- Mark Ready Button -->
-                                            <Button
-                                                v-if="entry.exam_scheduled && !entry.exam_ready"
-                                                size="sm"
-                                                variant="outline"
-                                                @click="markExamReady(entry.id)"
-                                                :disabled="entryLoading"
-                                            >
-                                                <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path
-                                                        stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                        stroke-width="2"
-                                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                                                    />
-                                                </svg>
-                                                Ready
-                                            </Button>
-
-                                            <!-- Complete Button -->
-                                            <Button
-                                                v-if="entry.exam_ready && !entry.completed"
-                                                size="sm"
-                                                @click="completeEntry(entry.id)"
-                                                :disabled="entryLoading"
-                                            >
-                                                <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                                </svg>
-                                                Complete
-                                            </Button>
-
-                                            <!-- Delete Button -->
-                                            <Button size="sm" variant="destructive" @click="deleteEntry(entry.id)" :disabled="entryLoading">
-                                                <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path
-                                                        stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                        stroke-width="2"
-                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                                    />
-                                                </svg>
-                                                Delete
-                                            </Button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div v-if="entries.length > 5" class="border-t pt-4 text-center">
+                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                Mostrando 5 de {{ entries.length }} entradas.
+                                <button @click="$inertia.visit('/entries/active')" class="text-blue-600 underline hover:text-blue-800">
+                                    Ver todas
+                                </button>
+                            </p>
+                        </div>
                     </div>
                 </CardContent>
             </Card>

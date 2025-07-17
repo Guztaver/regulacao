@@ -6,13 +6,20 @@ use App\Models\Patient;
 use App\Models\PatientDocument;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\Response;
 
 class PatientDocumentController extends Controller
 {
     public function store(Request $request, string $patientId): JsonResponse
     {
+        // Ensure user is authenticated
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
+        }
+
         $patient = Patient::findOrFail($patientId);
 
         $validatedData = $request->validate([
@@ -45,14 +52,18 @@ class PatientDocumentController extends Controller
 
     public function index(string $patientId): JsonResponse
     {
+        // Ensure user is authenticated
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
+        }
+
         $patient = Patient::findOrFail($patientId);
 
         $documents = $patient->documents()
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(function ($document) {
-                return [
-                    'id' => $document->id,
+            ->map(fn ($document) =>
+                [
                     'original_name' => $document->original_name,
                     'file_name' => $document->file_name,
                     'mime_type' => $document->mime_type,
@@ -65,8 +76,8 @@ class PatientDocumentController extends Controller
                     'is_image' => $document->isImage(),
                     'is_pdf' => $document->isPdf(),
                     'created_at' => $document->created_at,
-                ];
-            });
+
+            ]);
 
         return response()->json([
             'patient' => $patient,
@@ -76,6 +87,11 @@ class PatientDocumentController extends Controller
 
     public function show(string $patientId, string $documentId): JsonResponse
     {
+        // Ensure user is authenticated
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
+        }
+
         $patient = Patient::findOrFail($patientId);
         $document = $patient->documents()->findOrFail($documentId);
 
@@ -101,6 +117,11 @@ class PatientDocumentController extends Controller
 
     public function download(string $patientId, string $documentId)
     {
+        // Ensure user is authenticated
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
+        }
+
         $patient = Patient::findOrFail($patientId);
         $document = $patient->documents()->findOrFail($documentId);
 
@@ -113,6 +134,11 @@ class PatientDocumentController extends Controller
 
     public function destroy(string $patientId, string $documentId): JsonResponse
     {
+        // Ensure user is authenticated
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
+        }
+
         $patient = Patient::findOrFail($patientId);
         $document = $patient->documents()->findOrFail($documentId);
 
@@ -125,6 +151,11 @@ class PatientDocumentController extends Controller
 
     public function getDocumentTypes(): JsonResponse
     {
+        // Ensure user is authenticated
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
+        }
+
         return response()->json([
             'document_types' => PatientDocument::DOCUMENT_TYPES
         ], JsonResponse::HTTP_OK);

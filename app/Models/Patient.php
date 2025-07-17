@@ -17,7 +17,7 @@ use App\Models\User;
  * @property string $email
  * @property string $phone
  * @property string|null $sus_number
- * @property int|null $created_by
+ * @property int $created_by
  */
 class Patient extends Model
 {
@@ -38,10 +38,32 @@ class Patient extends Model
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
+     * Validation rules for the model
      */
+    public static function rules(): array
+    {
+        return [
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:patients,email',
+            'phone' => 'nullable|string|max:20',
+            'sus_number' => 'nullable|string|size:15|unique:patients,sus_number',
+            'created_by' => 'required|exists:users,id',
+        ];
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+        ];
+    }
+
     public $timestamps = true;
 
     public function entries(): HasMany
@@ -60,5 +82,27 @@ class Patient extends Model
     public function documents(): HasMany
     {
         return $this->hasMany(PatientDocument::class);
+    }
+
+    /**
+     * Boot the model and add model events
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Ensure created_by is always set when creating
+        static::creating(function ($patient) {
+            if (empty($patient->created_by)) {
+                throw new \InvalidArgumentException('created_by is required and cannot be null');
+            }
+        });
+
+        // Prevent updates that would set created_by to null
+        static::updating(function ($patient) {
+            if (empty($patient->created_by)) {
+                throw new \InvalidArgumentException('created_by is required and cannot be null');
+            }
+        });
     }
 }

@@ -40,6 +40,23 @@ class PatientDocument extends Model
     ];
 
     /**
+     * Validation rules for the model
+     */
+    public static function rules(): array
+    {
+        return [
+            'patient_id' => 'required|exists:patients,id',
+            'original_name' => 'required|string|max:255',
+            'file_name' => 'required|string|max:255',
+            'file_path' => 'required|string|max:500',
+            'mime_type' => 'required|string|max:100',
+            'file_size' => 'required|integer|min:1',
+            'document_type' => 'nullable|string|in:' . implode(',', array_keys(self::DOCUMENT_TYPES)),
+            'description' => 'nullable|string|max:500',
+        ];
+    }
+
+    /**
      * The attributes that should be cast.
      *
      * @var array<string, string>
@@ -103,6 +120,50 @@ class PatientDocument extends Model
     protected static function boot()
     {
         parent::boot();
+
+        // Validate required fields when creating
+        static::creating(function ($document) {
+            if (empty($document->patient_id)) {
+                throw new \InvalidArgumentException('patient_id is required and cannot be null');
+            }
+            if (empty($document->original_name)) {
+                throw new \InvalidArgumentException('original_name is required and cannot be null');
+            }
+            if (empty($document->file_name)) {
+                throw new \InvalidArgumentException('file_name is required and cannot be null');
+            }
+            if (empty($document->file_path)) {
+                throw new \InvalidArgumentException('file_path is required and cannot be null');
+            }
+            if (empty($document->mime_type)) {
+                throw new \InvalidArgumentException('mime_type is required and cannot be null');
+            }
+            if (empty($document->file_size) || $document->file_size <= 0) {
+                throw new \InvalidArgumentException('file_size is required and must be greater than 0');
+            }
+        });
+
+        // Validate required fields when updating
+        static::updating(function ($document) {
+            if (empty($document->patient_id)) {
+                throw new \InvalidArgumentException('patient_id is required and cannot be null');
+            }
+            if (empty($document->original_name)) {
+                throw new \InvalidArgumentException('original_name is required and cannot be null');
+            }
+            if (empty($document->file_name)) {
+                throw new \InvalidArgumentException('file_name is required and cannot be null');
+            }
+            if (empty($document->file_path)) {
+                throw new \InvalidArgumentException('file_path is required and cannot be null');
+            }
+            if (empty($document->mime_type)) {
+                throw new \InvalidArgumentException('mime_type is required and cannot be null');
+            }
+            if (empty($document->file_size) || $document->file_size <= 0) {
+                throw new \InvalidArgumentException('file_size is required and must be greater than 0');
+            }
+        });
 
         static::deleting(function ($document) {
             if (Storage::exists($document->file_path)) {

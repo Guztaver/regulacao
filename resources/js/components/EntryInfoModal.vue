@@ -1,30 +1,8 @@
 <script setup lang="ts">
+import type { Entry } from '@/types';
 import { onMounted, onUnmounted } from 'vue';
-
-interface User {
-    id: number;
-    name: string;
-    email: string;
-}
-
-interface Patient {
-    id: string;
-    name: string;
-    email?: string;
-    sus_number?: string;
-    created_by?: User;
-}
-
-interface Entry {
-    id: string;
-    patient_id: string;
-    title: string;
-    patient?: Patient;
-    created_by?: User;
-    created_at?: string;
-    updated_at?: string;
-    completed: boolean;
-}
+import StatusBadge from './StatusBadge.vue';
+import Timeline from './Timeline.vue';
 
 interface Props {
     open: boolean;
@@ -95,7 +73,7 @@ onUnmounted(() => {
                 </h3>
                 <button
                     @click="closeModal"
-                    class="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-white"
+                    class="cursor-pointer rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-white"
                 >
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -108,29 +86,24 @@ onUnmounted(() => {
                 <!-- Entry Status -->
                 <div class="flex items-center justify-between">
                     <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Status:</span>
+                    <StatusBadge :entry="entry" />
+                </div>
+
+                <!-- Exam Schedule Date (if scheduled) -->
+                <div v-if="entry.exam_scheduled && entry.exam_scheduled_date" class="flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Exam Date:</span>
                     <span
-                        :class="[
-                            'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold',
-                            entry.completed
-                                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                                : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-                        ]"
+                        class="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-semibold text-purple-800 dark:bg-purple-900 dark:text-purple-200"
                     >
-                        <svg v-if="entry.completed" class="mr-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="mr-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path
-                                fill-rule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                clip-rule="evenodd"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                             />
                         </svg>
-                        <svg v-else class="mr-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path
-                                fill-rule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                clip-rule="evenodd"
-                            />
-                        </svg>
-                        {{ entry.completed ? 'Completed' : 'Pending' }}
+                        {{ formatDate(entry.exam_scheduled_date) }}
                     </span>
                 </div>
 
@@ -153,7 +126,7 @@ onUnmounted(() => {
                 <div>
                     <span class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Created By:</span>
                     <p class="rounded-md border p-3 text-sm text-gray-900 dark:bg-gray-700 dark:text-gray-100">
-                        {{ entry?.created_by?.name || 'Unknown' }}
+                        {{ entry?.createdBy?.name || 'Unknown' }}
                     </p>
                 </div>
 
@@ -175,7 +148,9 @@ onUnmounted(() => {
                         <div class="flex items-center justify-between">
                             <span class="text-xs text-gray-600 dark:text-gray-400">Name:</span>
                             <span class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                {{ entry.patient.name || 'Unknown Patient' }}
+                                <a :href="`/patients/${entry.patient?.id}`" class="text-blue-500 hover:underline">
+                                    {{ entry.patient?.name || 'Unknown Patient' }}
+                                </a>
                             </span>
                         </div>
 
@@ -212,7 +187,7 @@ onUnmounted(() => {
                     </div>
                 </div>
 
-                <!-- Timestamps -->
+                <!-- Activity Timeline -->
                 <div class="border-t pt-4">
                     <h4 class="mb-3 flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -220,27 +195,13 @@ onUnmounted(() => {
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
                                 stroke-width="2"
-                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
                             />
                         </svg>
-                        Timeline
+                        Activity Timeline
                     </h4>
 
-                    <div class="space-y-2">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs text-gray-600 dark:text-gray-400">Created:</span>
-                            <span class="text-sm text-gray-900 dark:text-gray-100">
-                                {{ formatDate(entry.created_at) }}
-                            </span>
-                        </div>
-
-                        <div v-if="entry.updated_at && entry.updated_at !== entry.created_at" class="flex items-center justify-between">
-                            <span class="text-xs text-gray-600 dark:text-gray-400">Updated:</span>
-                            <span class="text-sm text-gray-900 dark:text-gray-100">
-                                {{ formatDate(entry.updated_at) }}
-                            </span>
-                        </div>
-                    </div>
+                    <Timeline :timeline="entry.timeline || []" max-height="24rem" />
                 </div>
             </div>
 

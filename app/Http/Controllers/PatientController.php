@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StorePatientRequest;
 use App\Models\Patient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -10,18 +11,13 @@ use Symfony\Component\HttpFoundation\Response;
 
 class PatientController extends Controller
 {
-    public function store(Request $request): JsonResponse
+    public function store(StorePatientRequest $request): JsonResponse
     {
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'phone' => 'nullable|string|max:20',
-            'sus_number' => 'nullable|string|size:15|unique:patients,sus_number',
-        ]);
+        $validatedData = $request->validated();
 
         $patient = new Patient();
         $patient->fill($validatedData);
-        $patient->created_by = Auth::check() ? Auth::id() : null;
+        $patient->created_by = Auth::id(); // Never null - auth is required via form request
         $patient->save();
 
         return response()->json(['message' => 'Patient created successfully', 'patient' => $patient], Response::HTTP_CREATED);
@@ -29,6 +25,11 @@ class PatientController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        // Ensure user is authenticated
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
+        }
+
         $validatedData = $request->validate([
             'search' => 'nullable|string|max:255',
             'limit' => 'nullable|integer|min:1|max:100',
@@ -59,6 +60,11 @@ class PatientController extends Controller
 
     public function destroy(Request $request, $id): JsonResponse
     {
+        // Ensure user is authenticated
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
+        }
+
         $patient = Patient::findOrFail($id);
         $patient->delete();
 
@@ -67,6 +73,11 @@ class PatientController extends Controller
 
     public function show(Request $request, $id): JsonResponse
     {
+        // Ensure user is authenticated
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
+        }
+
         $patient = Patient::with(['documents', 'entries.patient', 'createdBy'])
                           ->withCount(['documents', 'entries'])
                           ->findOrFail($id);
@@ -84,6 +95,11 @@ class PatientController extends Controller
 
     public function update(Request $request, $id): JsonResponse
     {
+        // Ensure user is authenticated
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
+        }
+
         $patient = Patient::findOrFail($id);
 
         $validatedData = $request->validate([

@@ -1,0 +1,269 @@
+import axios, { type AxiosResponse } from 'axios';
+
+// Track if CSRF has been initialized to avoid multiple calls
+let csrfInitialized = false;
+
+/**
+ * Initialize CSRF token for SPA authentication
+ */
+async function initializeCsrf(): Promise<void> {
+    if (csrfInitialized) return;
+
+    try {
+        await axios.get('/sanctum/csrf-cookie');
+        csrfInitialized = true;
+    } catch (error) {
+        console.error('Failed to initialize CSRF token:', error);
+        throw error;
+    }
+}
+
+/**
+ * Composable for authenticated API calls
+ */
+export function useApi() {
+    /**
+     * Make an authenticated GET request
+     */
+    async function get<T = any>(url: string, params?: Record<string, any>): Promise<T> {
+        await initializeCsrf();
+
+        const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
+        const response: AxiosResponse<T> = await axios.get(`${url}${queryString}`);
+        return response.data;
+    }
+
+    /**
+     * Make an authenticated POST request
+     */
+    async function post<T = any>(url: string, data?: any): Promise<T> {
+        await initializeCsrf();
+
+        const response: AxiosResponse<T> = await axios.post(url, data);
+        return response.data;
+    }
+
+    /**
+     * Make an authenticated PUT request
+     */
+    async function put<T = any>(url: string, data?: any): Promise<T> {
+        await initializeCsrf();
+
+        const response: AxiosResponse<T> = await axios.put(url, data);
+        return response.data;
+    }
+
+    /**
+     * Make an authenticated DELETE request
+     */
+    async function del<T = any>(url: string): Promise<T> {
+        await initializeCsrf();
+
+        const response: AxiosResponse<T> = await axios.delete(url);
+        return response.data;
+    }
+
+    /**
+     * Make an authenticated PATCH request
+     */
+    async function patch<T = any>(url: string, data?: any): Promise<T> {
+        await initializeCsrf();
+
+        const response: AxiosResponse<T> = await axios.patch(url, data);
+        return response.data;
+    }
+
+    return {
+        get,
+        post,
+        put,
+        delete: del,
+        patch,
+    };
+}
+
+/**
+ * API endpoints for patients
+ */
+export function usePatientApi() {
+    const api = useApi();
+
+    return {
+        /**
+         * Get all patients with optional search and limit
+         */
+        getPatients: (params?: { search?: string; limit?: number }) => api.get('/api/patients', params),
+
+        /**
+         * Get a specific patient by ID
+         */
+        getPatient: (id: string) => api.get(`/api/patients/${id}`),
+
+        /**
+         * Create a new patient
+         */
+        createPatient: (data: { name: string; email: string; phone?: string; sus_number?: string }) => api.post('/api/patients', data),
+
+        /**
+         * Update an existing patient
+         */
+        updatePatient: (id: string, data: { name: string; email: string; phone?: string; sus_number?: string }) =>
+            api.put(`/api/patients/${id}`, data),
+
+        /**
+         * Delete a patient
+         */
+        deletePatient: (id: string) => api.delete(`/api/patients/${id}`),
+    };
+}
+
+/**
+ * API endpoints for entries
+ */
+export function useEntryApi() {
+    const api = useApi();
+
+    return {
+        /**
+         * Get entries with optional filters
+         */
+        getEntries: (params?: { date_from?: string; date_to?: string; patient_name?: string; entry_id?: string; limit?: number }) =>
+            api.get('/api/entries', params),
+
+        /**
+         * Get completed entries with optional filters
+         */
+        getCompletedEntries: (params?: { date_from?: string; date_to?: string; patient_name?: string; entry_id?: string; limit?: number }) =>
+            api.get('/api/entries/completed', params),
+
+        /**
+         * Get a specific entry by ID
+         */
+        getEntry: (id: string) => api.get(`/api/entries/${id}`),
+
+        /**
+         * Create a new entry
+         */
+        createEntry: (data: { patient_id: string; title: string }) => api.post('/api/entries', data),
+
+        /**
+         * Complete/toggle an entry
+         */
+        completeEntry: (id: string) => api.put(`/api/entries/${id}/complete`),
+
+        /**
+         * Delete an entry
+         */
+        deleteEntry: (id: string) => api.delete(`/api/entries/${id}`),
+
+        /**
+         * Schedule an exam for an entry
+         */
+        scheduleExam: (id: string, examScheduledDate: string) =>
+            api.put(`/api/entries/${id}/schedule-exam`, { exam_scheduled_date: examScheduledDate }),
+
+        /**
+         * Mark an exam as ready
+         */
+        markExamReady: (id: string) => api.put(`/api/entries/${id}/mark-exam-ready`),
+    };
+}
+
+/**
+ * API endpoints for patient documents
+ */
+export function useDocumentApi() {
+    const api = useApi();
+
+    return {
+        /**
+         * Get all documents for a patient
+         */
+        getPatientDocuments: (patientId: string) => api.get(`/api/patients/${patientId}/documents`),
+
+        /**
+         * Get a specific document
+         */
+        getDocument: (patientId: string, documentId: string) => api.get(`/api/patients/${patientId}/documents/${documentId}`),
+
+        /**
+         * Upload a new document for a patient
+         */
+        uploadDocument: async (patientId: string, file: File, documentType: string, description?: string) => {
+            await initializeCsrf();
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('document_type', documentType);
+            if (description) {
+                formData.append('description', description);
+            }
+
+            const response = await axios.post(`/api/patients/${patientId}/documents`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            return response.data;
+        },
+
+        /**
+         * Delete a document
+         */
+        deleteDocument: (patientId: string, documentId: string) => api.delete(`/api/patients/${patientId}/documents/${documentId}`),
+
+        /**
+         * Get document types
+         */
+        getDocumentTypes: () => api.get('/api/document-types'),
+
+        /**
+         * Download a document
+         */
+        downloadDocument: async (patientId: string, documentId: string) => {
+            await initializeCsrf();
+
+            const response = await axios.get(`/api/patients/${patientId}/documents/${documentId}/download`, {
+                responseType: 'blob',
+            });
+            return response;
+        },
+    };
+}
+
+/**
+ * Error handling utility
+ */
+export function handleApiError(error: any): string {
+    if (error.response) {
+        // Server responded with error status
+        const status = error.response.status;
+        const data = error.response.data;
+
+        switch (status) {
+            case 401:
+                return 'Não autorizado. Faça login novamente.';
+            case 403:
+                return 'Acesso negado. Você não tem permissão para esta ação.';
+            case 404:
+                return 'Recurso não encontrado.';
+            case 422:
+                // Validation errors
+                if (data.errors) {
+                    const firstError = Object.values(data.errors)[0];
+                    return Array.isArray(firstError) ? firstError[0] : String(firstError);
+                }
+                return data.message || 'Dados inválidos.';
+            case 500:
+                return 'Erro interno do servidor. Tente novamente mais tarde.';
+            default:
+                return data.message || `Erro ${status}: ${error.message}`;
+        }
+    } else if (error.request) {
+        // Network error
+        return 'Erro de conexão. Verifique sua internet e tente novamente.';
+    } else {
+        // Other error
+        return error.message || 'Erro desconhecido.';
+    }
+}

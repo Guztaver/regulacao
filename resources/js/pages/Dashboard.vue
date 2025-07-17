@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { handleApiError, useEntryApi, usePatientApi } from '@/composables/useApi';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
-import axios from 'axios';
 import { onMounted, reactive, ref } from 'vue';
 
 interface User {
@@ -100,7 +100,7 @@ const entries = ref<Entry[]>([]);
 const limitOptions = [5, 10, 25, 50, 100];
 
 // Patient functions
-function createPatient() {
+async function createPatient() {
     loading.value = true;
     error.value = '';
     message.value = '';
@@ -119,166 +119,151 @@ function createPatient() {
         sus_number: patient.sus_number,
     };
 
-    axios
-        .post('/api/patients', patientData)
-        .then((response) => {
-            message.value = response.data.message;
-            patient.name = '';
-            patient.email = '';
-            patient.phone = '';
-            patient.sus_number = '';
-            isPatientModalOpen.value = false;
-            loadPatients();
-        })
-        .catch((err) => {
-            console.error(err);
-            error.value = 'Failed to create patient';
-        })
-        .finally(() => {
-            loading.value = false;
-        });
+    const patientApi = usePatientApi();
+
+    try {
+        const response = await patientApi.createPatient(patientData);
+        message.value = response.message;
+        patient.name = '';
+        patient.email = '';
+        patient.phone = '';
+        patient.sus_number = '';
+        isPatientModalOpen.value = false;
+        loadPatients();
+    } catch (err) {
+        console.error(err);
+        error.value = handleApiError(err);
+    } finally {
+        loading.value = false;
+    }
 }
 
-function loadPatients() {
-    axios
-        .get('/api/patients')
-        .then((response) => {
-            patients.value = response.data;
-        })
-        .catch((err) => {
-            console.error('Error loading patients:', err);
-        });
+async function loadPatients() {
+    const patientApi = usePatientApi();
+
+    try {
+        patients.value = await patientApi.getPatients({ limit: 10 });
+    } catch (err) {
+        console.error('Error loading patients:', err);
+    }
 }
 
 // Entry functions
-function loadEntries() {
+async function loadEntries() {
+    const entryApi = useEntryApi();
     entryLoading.value = true;
     entryError.value = '';
 
-    const params = new URLSearchParams();
+    try {
+        const params: any = {
+            limit: filters.limit,
+        };
 
-    if (filters.date_from) params.append('date_from', filters.date_from);
-    if (filters.date_to) params.append('date_to', filters.date_to);
-    if (filters.patient_name) params.append('patient_name', filters.patient_name);
-    if (filters.entry_id) params.append('entry_id', filters.entry_id);
-    params.append('limit', filters.limit.toString());
+        if (filters.date_from) params.date_from = filters.date_from;
+        if (filters.date_to) params.date_to = filters.date_to;
+        if (filters.patient_name) params.patient_name = filters.patient_name;
+        if (filters.entry_id) params.entry_id = filters.entry_id;
 
-    axios
-        .get(`/api/entries?${params.toString()}`)
-        .then((response) => {
-            entries.value = response.data;
-        })
-        .catch((err) => {
-            console.error('Error loading entries:', err);
-            entryError.value = 'Failed to load entries';
-        })
-        .finally(() => {
-            entryLoading.value = false;
-        });
+        entries.value = await entryApi.getEntries(params);
+    } catch (err) {
+        console.error('Error loading entries:', err);
+        entryError.value = handleApiError(err);
+    } finally {
+        entryLoading.value = false;
+    }
 }
 
-function createEntry() {
+async function createEntry() {
+    const entryApi = useEntryApi();
     entryLoading.value = true;
     entryError.value = '';
     entryMessage.value = '';
 
-    axios
-        .post('/api/entries', entry)
-        .then((response) => {
-            entryMessage.value = response.data.message;
-            entry.patient_id = '';
-            entry.title = '';
-            isEntryModalOpen.value = false;
-            loadEntries();
-        })
-        .catch((err) => {
-            console.error(err);
-            entryError.value = 'Failed to create entry';
-        })
-        .finally(() => {
-            entryLoading.value = false;
-        });
+    try {
+        const response = await entryApi.createEntry(entry);
+        entryMessage.value = response.message;
+        entry.patient_id = '';
+        entry.title = '';
+        isEntryModalOpen.value = false;
+        loadEntries();
+    } catch (err) {
+        console.error(err);
+        entryError.value = handleApiError(err);
+    } finally {
+        entryLoading.value = false;
+    }
 }
 
-function completeEntry(id: string) {
+async function completeEntry(id: string) {
+    const entryApi = useEntryApi();
     entryLoading.value = true;
 
-    axios
-        .put(`/api/entries/${id}/complete`)
-        .then((response) => {
-            entryMessage.value = response.data.message;
-            loadEntries();
-        })
-        .catch((err) => {
-            console.error(err);
-            entryError.value = 'Failed to complete entry';
-        })
-        .finally(() => {
-            entryLoading.value = false;
-        });
+    try {
+        const response = await entryApi.completeEntry(id);
+        entryMessage.value = response.message;
+        loadEntries();
+    } catch (err) {
+        console.error(err);
+        entryError.value = handleApiError(err);
+    } finally {
+        entryLoading.value = false;
+    }
 }
 
-function deleteEntry(id: string) {
+async function deleteEntry(id: string) {
     if (!confirm('Are you sure you want to delete this entry? This action cannot be undone.')) {
         return;
     }
 
+    const entryApi = useEntryApi();
     entryLoading.value = true;
 
-    axios
-        .delete(`/api/entries/${id}`)
-        .then(() => {
-            entryMessage.value = 'Entry deleted successfully';
-            loadEntries();
-        })
-        .catch((err) => {
-            console.error(err);
-            entryError.value = 'Failed to delete entry';
-        })
-        .finally(() => {
-            entryLoading.value = false;
-        });
+    try {
+        await entryApi.deleteEntry(id);
+        entryMessage.value = 'Entry deleted successfully';
+        loadEntries();
+    } catch (err) {
+        console.error(err);
+        entryError.value = handleApiError(err);
+    } finally {
+        entryLoading.value = false;
+    }
 }
 
-function scheduleExam(id: string, date: string) {
+async function scheduleExam(id: string, date: string) {
+    const entryApi = useEntryApi();
     entryLoading.value = true;
     entryError.value = '';
     entryMessage.value = '';
 
-    setTimeout(() => {
-        entryMessage.value = 'Exam scheduled successfully';
-        setTimeout(() => {
-            entryMessage.value = '';
-        }, 5000);
-
-        const entry = entries.value.find((e) => e.id === id);
-        if (entry) {
-            entry.exam_scheduled = true;
-            entry.exam_scheduled_date = date;
-        }
-
+    try {
+        const response = await entryApi.scheduleExam(id, date);
+        entryMessage.value = response.message;
+        loadEntries();
+    } catch (err) {
+        console.error(err);
+        entryError.value = handleApiError(err);
+    } finally {
         entryLoading.value = false;
-    }, 500);
+    }
 }
 
-function markExamReady(id: string) {
+async function markExamReady(id: string) {
+    const entryApi = useEntryApi();
     entryLoading.value = true;
     entryError.value = '';
     entryMessage.value = '';
 
-    setTimeout(() => {
-        entryMessage.value = 'Exam marked as ready';
-        setTimeout(() => {
-            entryMessage.value = '';
-        }, 5000);
-
-        const entry = entries.value.find((e) => e.id === id);
-        if (entry) {
-            entry.exam_ready = true;
-        }
-
+    try {
+        const response = await entryApi.markExamReady(id);
+        entryMessage.value = response.message;
+        loadEntries();
+    } catch (err) {
+        console.error(err);
+        entryError.value = handleApiError(err);
+    } finally {
         entryLoading.value = false;
-    }, 500);
+    }
 }
 
 function applyFilters() {

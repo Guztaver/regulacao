@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Entry;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class EntryController extends Controller
@@ -19,6 +20,7 @@ class EntryController extends Controller
         $entry = new Entry();
         $entry->patient_id = $validatedData['patient_id'];
         $entry->title = $validatedData['title'];
+        $entry->created_by = Auth::check() ? Auth::id() : null;
         $entry->save();
 
         return response()->json(['message' => 'Entry created successfully', 'entry' => $entry], Response::HTTP_CREATED);
@@ -50,7 +52,7 @@ class EntryController extends Controller
             'limit' => 'nullable|integer|min:1|max:100',
         ]);
 
-        $query = Entry::with('patient')->where('completed', false);
+        $query = Entry::with(['patient', 'createdBy'])->where('completed', false);
 
         // Filter by date range
         if (!empty($validatedData['date_from'])) {
@@ -99,7 +101,7 @@ class EntryController extends Controller
             'limit' => 'nullable|integer|min:1|max:100',
         ]);
 
-        $query = Entry::with('patient')->where('completed', true);
+        $query = Entry::with(['patient', 'createdBy'])->where('completed', true);
 
         // Filter by date range
         if (!empty($validatedData['date_from'])) {

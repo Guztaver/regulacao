@@ -6,8 +6,10 @@ use Database\Factories\PatientFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Notifications\Notifiable;
+use App\Models\User;
 
 /**
  * @property Uuid $id
@@ -15,6 +17,7 @@ use Illuminate\Notifications\Notifiable;
  * @property string $email
  * @property string $phone
  * @property string|null $sus_number
+ * @property int|null $created_by
  */
 class Patient extends Model
 {
@@ -30,7 +33,8 @@ class Patient extends Model
         'name',
         'email',
         'phone',
-        'sus_number'
+        'sus_number',
+        'created_by'
     ];
 
     /**
@@ -43,6 +47,11 @@ class Patient extends Model
     public function entries(): HasMany
     {
         return $this->hasMany(Entry::class);
+    }
+
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     /**

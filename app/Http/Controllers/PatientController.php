@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Patient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class PatientController extends Controller
@@ -20,6 +21,7 @@ class PatientController extends Controller
 
         $patient = new Patient();
         $patient->fill($validatedData);
+        $patient->created_by = Auth::check() ? Auth::id() : null;
         $patient->save();
 
         return response()->json(['message' => 'Patient created successfully', 'patient' => $patient], Response::HTTP_CREATED);
@@ -45,7 +47,8 @@ class PatientController extends Controller
         }
 
         $limit = $validatedData['limit'] ?? 50;
-        $patients = $query->withCount('documents')
+        $patients = $query->with('createdBy')
+                         ->withCount('documents')
                          ->withCount('entries')
                          ->latest('created_at')
                          ->limit($limit)
@@ -64,7 +67,7 @@ class PatientController extends Controller
 
     public function show(Request $request, $id): JsonResponse
     {
-        $patient = Patient::with(['documents', 'entries.patient'])
+        $patient = Patient::with(['documents', 'entries.patient', 'createdBy'])
                           ->withCount(['documents', 'entries'])
                           ->findOrFail($id);
 

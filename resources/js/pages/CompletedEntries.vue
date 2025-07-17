@@ -1,26 +1,27 @@
 <script setup lang="ts">
+import EntryInfoModal from '@/components/EntryInfoModal.vue';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
 import axios from 'axios';
-import { reactive, ref, onMounted } from 'vue';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { onMounted, reactive, ref } from 'vue';
+
+interface User {
+    id: number;
+    name: string;
+    email: string;
+}
 
 interface Patient {
     id: string;
     name: string;
     email: string;
     phone: string;
+    created_by?: User;
 }
 
 interface Entry {
@@ -30,6 +31,7 @@ interface Entry {
     patient?: Patient;
     created_at?: string;
     completed: boolean;
+    created_by?: User;
 }
 
 interface Filters {
@@ -56,6 +58,8 @@ const loading = ref(false);
 const message = ref('');
 const error = ref('');
 const isFilterDialogOpen = ref(false);
+const isEntryInfoModalOpen = ref(false);
+const selectedEntry = ref<Entry | null>(null);
 
 const filters: Filters = reactive({
     date_from: '',
@@ -91,7 +95,7 @@ function loadCompletedEntries() {
         .get(`/api/entries/completed?${params.toString()}`)
         .then((response) => {
             entries.value = response.data.entries;
-            message.value = `Found ${response.data.count} completed entries`;
+            // message.value = `Found ${response.data.count} completed entries`;
         })
         .catch((err) => {
             console.error('Error loading completed entries:', err);
@@ -130,7 +134,7 @@ function uncompleteEntry(id: string) {
 
     axios
         .put(`/api/entries/${id}/complete`)
-        .then((response) => {
+        .then(() => {
             message.value = 'Entry marked as incomplete successfully';
             loadCompletedEntries();
         })
@@ -152,7 +156,7 @@ function deleteEntry(id: string) {
 
     axios
         .delete(`/api/entries/${id}`)
-        .then((response) => {
+        .then(() => {
             message.value = 'Entry deleted successfully';
             loadCompletedEntries();
         })
@@ -172,8 +176,13 @@ function formatDate(dateString: string | undefined): string {
         month: 'short',
         day: 'numeric',
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
     });
+}
+
+function showEntryInfo(entry: Entry): void {
+    selectedEntry.value = entry;
+    isEntryInfoModalOpen.value = true;
 }
 
 function hasActiveFilters(): boolean {
@@ -194,17 +203,20 @@ onMounted(() => {
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Completed Entries</h1>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">
-                        Manage your completed entries with filters and actions
-                    </p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Manage your completed entries with filters and actions</p>
                 </div>
 
                 <div class="flex gap-2">
                     <Dialog v-model:open="isFilterDialogOpen">
                         <DialogTrigger as-child>
                             <Button @click="openFilterDialog" variant="outline">
-                                <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z"/>
+                                <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z"
+                                    />
                                 </svg>
                                 Filters
                                 <span v-if="hasActiveFilters()" class="ml-1 h-2 w-2 rounded-full bg-blue-500"></span>
@@ -220,40 +232,22 @@ onMounted(() => {
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
                                         <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Date From</label>
-                                        <Input
-                                            type="date"
-                                            v-model="tempFilters.date_from"
-                                            class="mt-1"
-                                        />
+                                        <Input type="date" v-model="tempFilters.date_from" class="mt-1" />
                                     </div>
                                     <div>
                                         <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Date To</label>
-                                        <Input
-                                            type="date"
-                                            v-model="tempFilters.date_to"
-                                            class="mt-1"
-                                        />
+                                        <Input type="date" v-model="tempFilters.date_to" class="mt-1" />
                                     </div>
                                 </div>
 
                                 <div>
                                     <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Patient Name</label>
-                                    <Input
-                                        type="text"
-                                        v-model="tempFilters.patient_name"
-                                        placeholder="Search by patient name..."
-                                        class="mt-1"
-                                    />
+                                    <Input type="text" v-model="tempFilters.patient_name" placeholder="Search by patient name..." class="mt-1" />
                                 </div>
 
                                 <div>
                                     <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Entry ID</label>
-                                    <Input
-                                        type="text"
-                                        v-model="tempFilters.entry_id"
-                                        placeholder="Enter specific entry ID..."
-                                        class="mt-1"
-                                    />
+                                    <Input type="text" v-model="tempFilters.entry_id" placeholder="Enter specific entry ID..." class="mt-1" />
                                 </div>
 
                                 <div>
@@ -262,27 +256,26 @@ onMounted(() => {
                                         v-model="tempFilters.limit"
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                     >
-                                        <option v-for="option in limitOptions" :key="option" :value="option">
-                                            {{ option }} entries
-                                        </option>
+                                        <option v-for="option in limitOptions" :key="option" :value="option">{{ option }} entries</option>
                                     </select>
                                 </div>
                             </div>
 
                             <DialogFooter>
-                                <Button variant="outline" @click="clearFilters">
-                                    Clear All
-                                </Button>
-                                <Button @click="applyFilters">
-                                    Apply Filters
-                                </Button>
+                                <Button variant="outline" @click="clearFilters"> Clear All </Button>
+                                <Button @click="applyFilters"> Apply Filters </Button>
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
 
                     <Button @click="loadCompletedEntries" variant="outline" :disabled="loading">
-                        <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                            />
                         </svg>
                         Refresh
                     </Button>
@@ -290,29 +283,49 @@ onMounted(() => {
             </div>
 
             <!-- Messages -->
-            <div v-if="message" class="rounded border border-green-400 bg-green-100 px-4 py-3 text-green-700 dark:border-green-600 dark:bg-green-900 dark:text-green-200">
+            <div
+                v-if="message"
+                class="rounded border border-green-400 bg-green-100 px-4 py-3 text-green-700 dark:border-green-600 dark:bg-green-900 dark:text-green-200"
+            >
                 {{ message }}
             </div>
-            <div v-if="error" class="rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700 dark:border-red-600 dark:bg-red-900 dark:text-red-200">
+            <div
+                v-if="error"
+                class="rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700 dark:border-red-600 dark:bg-red-900 dark:text-red-200"
+            >
                 {{ error }}
             </div>
 
             <!-- Active Filters Display -->
             <div v-if="hasActiveFilters()" class="flex flex-wrap gap-2">
                 <span class="text-sm text-gray-600 dark:text-gray-400">Active filters:</span>
-                <span v-if="filters.date_from" class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                <span
+                    v-if="filters.date_from"
+                    class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                >
                     From: {{ filters.date_from }}
                 </span>
-                <span v-if="filters.date_to" class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                <span
+                    v-if="filters.date_to"
+                    class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                >
                     To: {{ filters.date_to }}
                 </span>
-                <span v-if="filters.patient_name" class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                <span
+                    v-if="filters.patient_name"
+                    class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                >
                     Patient: {{ filters.patient_name }}
                 </span>
-                <span v-if="filters.entry_id" class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                <span
+                    v-if="filters.entry_id"
+                    class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                >
                     ID: {{ filters.entry_id }}
                 </span>
-                <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                <span
+                    class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+                >
                     Limit: {{ filters.limit }}
                 </span>
             </div>
@@ -329,7 +342,12 @@ onMounted(() => {
 
                     <div v-else-if="entries.length === 0" class="py-12 text-center text-gray-500 dark:text-gray-400">
                         <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            />
                         </svg>
                         <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No completed entries found</h3>
                         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Try adjusting your filters or check back later.</p>
@@ -352,6 +370,9 @@ onMounted(() => {
                                         Completed At
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
+                                        Added By
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
                                         Actions
                                     </th>
                                 </tr>
@@ -359,7 +380,13 @@ onMounted(() => {
                             <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-600 dark:bg-gray-800">
                                 <tr v-for="entry in entries" :key="entry.id" class="hover:bg-gray-50 dark:hover:bg-gray-700">
                                     <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
-                                        <span class="font-mono text-xs">{{ entry.id }}</span>
+                                        <button
+                                            @click="showEntryInfo(entry)"
+                                            class="cursor-pointer font-mono text-xs text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                            :title="'Click to view entry details'"
+                                        >
+                                            {{ entry.id }}
+                                        </button>
                                     </td>
                                     <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
                                         <div class="flex flex-col">
@@ -370,34 +397,37 @@ onMounted(() => {
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
-                                        <div class="max-w-xs truncate" :title="entry.title">
+                                        <p class="max-w-xs truncate text-left">
                                             {{ entry.title }}
-                                        </div>
+                                        </p>
                                     </td>
                                     <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
                                         {{ formatDate(entry.created_at) }}
                                     </td>
+                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
+                                        {{ entry.created_by?.name || 'Unknown' }}
+                                    </td>
                                     <td class="px-6 py-4 text-sm whitespace-nowrap">
                                         <div class="flex gap-2">
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                @click="uncompleteEntry(entry.id)"
-                                                :disabled="loading"
-                                            >
-                                                <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+                                            <Button size="sm" variant="outline" @click="uncompleteEntry(entry.id)" :disabled="loading">
+                                                <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
+                                                    />
                                                 </svg>
                                                 Uncomplete
                                             </Button>
-                                            <Button
-                                                size="sm"
-                                                variant="destructive"
-                                                @click="deleteEntry(entry.id)"
-                                                :disabled="loading"
-                                            >
-                                                <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                            <Button size="sm" variant="destructive" @click="deleteEntry(entry.id)" :disabled="loading">
+                                                <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                                    />
                                                 </svg>
                                                 Delete
                                             </Button>
@@ -410,5 +440,8 @@ onMounted(() => {
                 </CardContent>
             </Card>
         </div>
+
+        <!-- Entry Info Modal -->
+        <EntryInfoModal v-model:open="isEntryInfoModalOpen" :entry="selectedEntry" />
     </AppLayout>
 </template>

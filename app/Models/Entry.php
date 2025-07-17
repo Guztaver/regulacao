@@ -9,11 +9,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Notifications\Notifiable;
+use App\Models\User;
 
 /**
  * @property Uuid $patient_id
  * @property string $title
  * @property bool $completed
+ * @property int|null $created_by
  */
 class Entry extends Model
 {
@@ -28,7 +30,8 @@ class Entry extends Model
     protected $fillable = [
         'patient_id',
         'title',
-        'completed'
+        'completed',
+        'created_by'
     ];
 
     /**
@@ -41,6 +44,11 @@ class Entry extends Model
     public function patient(): BelongsTo
     {
         return $this->belongsTo(Patient::class);
+    }
+
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function toggleCompleted(): void

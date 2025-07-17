@@ -3,6 +3,7 @@
 use App\Http\Controllers\PatientController;
 
 use App\Http\Controllers\PatientDocumentController;
+use Illuminate\Support\Facades\Route;
 
 //Route::middleware(['auth', 'verified'])->group(function () {
 Route::get('/patients', [PatientController::class, 'index'])->name('patients.index');

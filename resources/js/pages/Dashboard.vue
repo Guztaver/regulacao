@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import EntryInfoModal from '@/components/EntryInfoModal.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -9,12 +10,19 @@ import { Head } from '@inertiajs/vue3';
 import axios from 'axios';
 import { onMounted, reactive, ref } from 'vue';
 
+interface User {
+    id: number;
+    name: string;
+    email: string;
+}
+
 interface Patient {
     id: string;
     name: string;
     email: string;
     phone: string;
     sus_number?: string;
+    created_by?: User;
 }
 
 interface Entry {
@@ -24,6 +32,7 @@ interface Entry {
     patient?: Patient;
     created_at?: string;
     completed: boolean;
+    created_by?: User;
 }
 
 interface Filters {
@@ -80,6 +89,8 @@ const entryLoading = ref(false);
 const isPatientModalOpen = ref(false);
 const isEntryModalOpen = ref(false);
 const isFilterDialogOpen = ref(false);
+const isEntryInfoModalOpen = ref(false);
+const selectedEntry = ref<Entry | null>(null);
 
 const patients = ref<Patient[]>([]);
 const entries = ref<Entry[]>([]);
@@ -91,8 +102,22 @@ function createPatient() {
     error.value = '';
     message.value = '';
 
+    // Validate SUS number
+    if (patient.sus_number && patient.sus_number.length < 15) {
+        alert('SUS number must be exactly 15 digits long');
+        loading.value = false;
+        return;
+    }
+
+    const patientData = {
+        name: patient.name,
+        email: patient.email,
+        phone: patient.phone,
+        sus_number: patient.sus_number,
+    };
+
     axios
-        .post('/api/patients', patient)
+        .post('/api/patients', patientData)
         .then((response) => {
             message.value = response.data.message;
             patient.name = '';
@@ -199,7 +224,7 @@ function deleteEntry(id: string) {
 
     axios
         .delete(`/api/entries/${id}`)
-        .then((response) => {
+        .then(() => {
             entryMessage.value = 'Entry deleted successfully';
             loadEntries();
         })
@@ -249,6 +274,11 @@ function formatDate(dateString: string | undefined): string {
         hour: '2-digit',
         minute: '2-digit',
     });
+}
+
+function showEntryInfo(entry: Entry): void {
+    selectedEntry.value = entry;
+    isEntryInfoModalOpen.value = true;
 }
 
 // Initialize data
@@ -351,7 +381,8 @@ onMounted(() => {
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                         required
                                     >
-                                        <option value="">Select a patient</option>
+                                        <option value="" v-if="patients.length > 0">Select a patient</option>
+                                        <option value="" disabled v-else>No patients available - Please create a patient first</option>
                                         <option v-for="patient in patients" :key="patient.id" :value="patient.id">
                                             {{ patient.name }} ({{ patient.email }})
                                         </option>
@@ -557,6 +588,9 @@ onMounted(() => {
                                         Created At
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
+                                        Added By
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
                                         Actions
                                     </th>
                                 </tr>
@@ -564,7 +598,13 @@ onMounted(() => {
                             <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-600 dark:bg-gray-800">
                                 <tr v-for="entry in entries" :key="entry.id" class="hover:bg-gray-50 dark:hover:bg-gray-700">
                                     <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
-                                        <span class="font-mono text-xs">{{ entry.id }}</span>
+                                        <button
+                                            @click="showEntryInfo(entry)"
+                                            class="cursor-pointer font-mono text-xs text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                            :title="'Click to view entry details'"
+                                        >
+                                            {{ entry.id }}
+                                        </button>
                                     </td>
                                     <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
                                         <div class="flex flex-col">
@@ -575,12 +615,15 @@ onMounted(() => {
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
-                                        <div class="max-w-xs truncate" :title="entry.title">
+                                        <p class="max-w-xs truncate text-left">
                                             {{ entry.title }}
-                                        </div>
+                                        </p>
                                     </td>
                                     <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
                                         {{ formatDate(entry.created_at) }}
+                                    </td>
+                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
+                                        {{ entry.created_by?.name || 'Unknown' }}
                                     </td>
                                     <td class="px-6 py-4 text-sm whitespace-nowrap">
                                         <div class="flex gap-2">
@@ -610,5 +653,8 @@ onMounted(() => {
                 </CardContent>
             </Card>
         </div>
+
+        <!-- Entry Info Modal -->
+        <EntryInfoModal v-model:open="isEntryInfoModalOpen" :entry="selectedEntry" />
     </AppLayout>
 </template>

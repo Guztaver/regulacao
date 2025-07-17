@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
+import { useTranslations } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
@@ -65,17 +67,19 @@ interface DocumentType {
 
 const props = defineProps<Props>();
 
+const { t } = useTranslations();
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Dashboard',
+        title: t.dashboard,
         href: '/dashboard',
     },
     {
-        title: 'Patients',
+        title: t.patients,
         href: '/patients',
     },
     {
-        title: 'Patient Details',
+        title: 'Detalhes do Paciente',
         href: `/patients/${props.patientId}`,
     },
 ];
@@ -366,7 +370,7 @@ onMounted(() => {
                         <!-- Edit Patient Modal -->
                         <Dialog v-model:open="isEditModalOpen">
                             <DialogTrigger as-child>
-                                <Button variant="outline" class="cursor-pointer">
+                                <Button variant="outline">
                                     <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path
                                             stroke-linecap="round"
@@ -416,7 +420,7 @@ onMounted(() => {
                         <!-- Upload Document Modal -->
                         <Dialog v-model:open="isDocumentModalOpen">
                             <DialogTrigger as-child>
-                                <Button class="cursor-pointer">
+                                <Button>
                                     <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path
                                             stroke-linecap="round"
@@ -437,16 +441,11 @@ onMounted(() => {
                                 <form @submit.prevent="uploadDocument" class="grid gap-4 py-4">
                                     <div>
                                         <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Document Type *</label>
-                                        <select
-                                            v-model="newDocument.document_type"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                                            required
-                                        >
-                                            <option value="">Select document type</option>
+                                        <Select v-model="newDocument.document_type" class="mt-1" required placeholder="Select document type">
                                             <option v-for="(label, key) in documentTypes" :key="key" :value="key">
                                                 {{ label }}
                                             </option>
-                                        </select>
+                                        </Select>
                                     </div>
                                     <div>
                                         <label class="text-sm font-medium text-gray-700 dark:text-gray-300">File *</label>
@@ -655,7 +654,7 @@ onMounted(() => {
                                     </div>
                                 </div>
                                 <div class="mt-3 flex gap-2">
-                                    <Button class="cursor-pointer" size="sm" variant="outline" @click="downloadDocument(document.id)">
+                                    <Button size="sm" variant="outline" @click="downloadDocument(document.id)">
                                         <svg class="mr-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path
                                                 stroke-linecap="round"
@@ -666,7 +665,7 @@ onMounted(() => {
                                         </svg>
                                         Download
                                     </Button>
-                                    <Button class="cursor-pointer" size="sm" variant="destructive" @click="deleteDocument(document.id)">
+                                    <Button size="sm" variant="destructive" @click="deleteDocument(document.id)">
                                         <svg class="mr-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path
                                                 stroke-linecap="round"
@@ -695,7 +694,7 @@ onMounted(() => {
                                 :key="entry.id"
                                 class="flex items-center justify-between rounded-lg border border-gray-200 p-3 dark:border-gray-600"
                             >
-                                <div class="flex-1 cursor-pointer" @click="showEntryInfo(entry)">
+                                <div class="flex-1" @click="showEntryInfo(entry)">
                                     <p
                                         class="text-sm font-medium text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                                     >

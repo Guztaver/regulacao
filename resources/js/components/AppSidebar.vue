@@ -3,24 +3,27 @@ import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
+import { useTranslations } from '@/composables/useTranslations';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
 import { CheckCircle, Folder, LayoutGrid, Users } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
+const { t } = useTranslations();
+
 const mainNavItems: NavItem[] = [
     {
-        title: 'Dashboard',
+        title: t.dashboard,
         href: '/dashboard',
         icon: LayoutGrid,
     },
     {
-        title: 'Patients',
+        title: t.patients,
         href: '/patients',
         icon: Users,
     },
     {
-        title: 'Completed Entries',
+        title: t.completedEntries,
         href: '/entries/completed',
         icon: CheckCircle,
     },

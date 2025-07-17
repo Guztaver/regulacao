@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
+import { useTranslations } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
@@ -42,13 +44,15 @@ interface Filters {
     limit: number;
 }
 
+const { t } = useTranslations();
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Dashboard',
+        title: t.dashboard,
         href: '/dashboard',
     },
     {
-        title: 'Completed Entries',
+        title: t.completedEntries,
         href: '/entries/completed',
     },
 ];
@@ -77,29 +81,29 @@ const tempFilters: Filters = reactive({
     limit: 10,
 });
 
-const limitOptions = [5, 10, 25, 50, 100];
+const limitOptions = [10, 25, 50, 100];
 
 function loadCompletedEntries() {
     loading.value = true;
     error.value = '';
+    message.value = '';
 
     const params = new URLSearchParams();
-
     if (filters.date_from) params.append('date_from', filters.date_from);
     if (filters.date_to) params.append('date_to', filters.date_to);
     if (filters.patient_name) params.append('patient_name', filters.patient_name);
     if (filters.entry_id) params.append('entry_id', filters.entry_id);
-    params.append('limit', filters.limit.toString());
+    if (filters.limit) params.append('limit', filters.limit.toString());
+    params.append('completed', 'true');
 
     axios
-        .get(`/api/entries/completed?${params.toString()}`)
+        .get(`/api/entries?${params.toString()}`)
         .then((response) => {
-            entries.value = response.data.entries;
-            // message.value = `Found ${response.data.count} completed entries`;
+            entries.value = response.data.data || response.data;
         })
         .catch((err) => {
-            console.error('Error loading completed entries:', err);
-            error.value = 'Failed to load completed entries';
+            console.error(err);
+            error.value = 'Erro ao carregar entradas concluídas';
         })
         .finally(() => {
             loading.value = false;
@@ -129,40 +133,40 @@ function openFilterDialog() {
     isFilterDialogOpen.value = true;
 }
 
-function uncompleteEntry(id: string) {
+function uncompleteEntry(entryId: string) {
     loading.value = true;
+    error.value = '';
 
     axios
-        .put(`/api/entries/${id}/complete`)
+        .patch(`/api/entries/${entryId}`, { completed: false })
         .then(() => {
-            message.value = 'Entry marked as incomplete successfully';
+            message.value = 'Entrada marcada como não concluída com sucesso!';
             loadCompletedEntries();
         })
         .catch((err) => {
-            console.error('Error uncompleting entry:', err);
-            error.value = 'Failed to mark entry as incomplete';
+            console.error(err);
+            error.value = 'Erro ao alterar status da entrada';
         })
         .finally(() => {
             loading.value = false;
         });
 }
 
-function deleteEntry(id: string) {
-    if (!confirm('Are you sure you want to delete this entry? This action cannot be undone.')) {
-        return;
-    }
+function deleteEntry(entryId: string) {
+    if (!confirm('Tem certeza que deseja excluir esta entrada?')) return;
 
     loading.value = true;
+    error.value = '';
 
     axios
-        .delete(`/api/entries/${id}`)
+        .delete(`/api/entries/${entryId}`)
         .then(() => {
-            message.value = 'Entry deleted successfully';
+            message.value = 'Entrada excluída com sucesso!';
             loadCompletedEntries();
         })
         .catch((err) => {
-            console.error('Error deleting entry:', err);
-            error.value = 'Failed to delete entry';
+            console.error(err);
+            error.value = 'Erro ao excluir entrada';
         })
         .finally(() => {
             loading.value = false;
@@ -171,16 +175,14 @@ function deleteEntry(id: string) {
 
 function formatDate(dateString: string | undefined): string {
     if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('pt-BR', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
     });
 }
 
-function showEntryInfo(entry: Entry): void {
+function showEntryInfo(entry: Entry) {
     selectedEntry.value = entry;
     isEntryInfoModalOpen.value = true;
 }
@@ -189,21 +191,22 @@ function hasActiveFilters(): boolean {
     return !!(filters.date_from || filters.date_to || filters.patient_name || filters.entry_id);
 }
 
+// Initialize data
 onMounted(() => {
     loadCompletedEntries();
 });
 </script>
 
 <template>
-    <Head title="Completed Entries" />
+    <Head :title="t.completedEntries" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-6 p-6">
-            <!-- Header with Actions -->
+            <!-- Header Section -->
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Completed Entries</h1>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">Manage your completed entries with filters and actions</p>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t.completedEntries }}</h1>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Visualize e gerencie entradas de pacientes concluídas</p>
                 </div>
 
                 <div class="flex gap-2">
@@ -218,52 +221,49 @@ onMounted(() => {
                                         d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z"
                                     />
                                 </svg>
-                                Filters
+                                {{ t.filters }}
                                 <span v-if="hasActiveFilters()" class="ml-1 h-2 w-2 rounded-full bg-blue-500"></span>
                             </Button>
                         </DialogTrigger>
 
                         <DialogContent class="sm:max-w-md">
                             <DialogHeader>
-                                <DialogTitle>Filter Completed Entries</DialogTitle>
+                                <DialogTitle>{{ t.filters }} {{ t.completedEntries }}</DialogTitle>
                             </DialogHeader>
 
                             <div class="grid gap-4 py-4">
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Date From</label>
+                                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t.dateFrom }}</label>
                                         <Input type="date" v-model="tempFilters.date_from" class="mt-1" />
                                     </div>
                                     <div>
-                                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Date To</label>
+                                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t.dateTo }}</label>
                                         <Input type="date" v-model="tempFilters.date_to" class="mt-1" />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Patient Name</label>
-                                    <Input type="text" v-model="tempFilters.patient_name" placeholder="Search by patient name..." class="mt-1" />
+                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t.patientName }}</label>
+                                    <Input type="text" v-model="tempFilters.patient_name" :placeholder="t.searchByPatientName" class="mt-1" />
                                 </div>
 
                                 <div>
-                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Entry ID</label>
-                                    <Input type="text" v-model="tempFilters.entry_id" placeholder="Enter specific entry ID..." class="mt-1" />
+                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t.entryId }}</label>
+                                    <Input type="text" v-model="tempFilters.entry_id" :placeholder="t.enterSpecificEntryId" class="mt-1" />
                                 </div>
 
                                 <div>
-                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Limit Results</label>
-                                    <select
-                                        v-model="tempFilters.limit"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                                    >
-                                        <option v-for="option in limitOptions" :key="option" :value="option">{{ option }} entries</option>
-                                    </select>
+                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t.limitResults }}</label>
+                                    <Select v-model="tempFilters.limit" class="mt-1">
+                                        <option v-for="option in limitOptions" :key="option" :value="option">{{ option }} {{ t.entries }}</option>
+                                    </Select>
                                 </div>
                             </div>
 
                             <DialogFooter>
-                                <Button variant="outline" @click="clearFilters"> Clear All </Button>
-                                <Button @click="applyFilters"> Apply Filters </Button>
+                                <Button variant="outline" @click="clearFilters">{{ t.clearAll }}</Button>
+                                <Button @click="applyFilters">{{ t.applyFilters }}</Button>
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
@@ -277,7 +277,7 @@ onMounted(() => {
                                 d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                             />
                         </svg>
-                        Refresh
+                        {{ t.refresh }}
                     </Button>
                 </div>
             </div>
@@ -298,42 +298,42 @@ onMounted(() => {
 
             <!-- Active Filters Display -->
             <div v-if="hasActiveFilters()" class="flex flex-wrap gap-2">
-                <span class="text-sm text-gray-600 dark:text-gray-400">Active filters:</span>
+                <span class="text-sm text-gray-600 dark:text-gray-400">{{ t.activeFilters }}</span>
                 <span
                     v-if="filters.date_from"
                     class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
                 >
-                    From: {{ filters.date_from }}
+                    {{ t.from }} {{ filters.date_from }}
                 </span>
                 <span
                     v-if="filters.date_to"
                     class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
                 >
-                    To: {{ filters.date_to }}
+                    {{ t.to }} {{ filters.date_to }}
                 </span>
                 <span
                     v-if="filters.patient_name"
                     class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
                 >
-                    Patient: {{ filters.patient_name }}
+                    {{ t.patient }}: {{ filters.patient_name }}
                 </span>
                 <span
                     v-if="filters.entry_id"
                     class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
                 >
-                    ID: {{ filters.entry_id }}
+                    {{ t.id }}: {{ filters.entry_id }}
                 </span>
                 <span
                     class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800 dark:bg-gray-700 dark:text-gray-200"
                 >
-                    Limit: {{ filters.limit }}
+                    {{ t.limit }}: {{ filters.limit }}
                 </span>
             </div>
 
             <!-- Entries Table -->
             <Card>
                 <CardHeader>
-                    <CardTitle>Completed Entries ({{ entries.length }})</CardTitle>
+                    <CardTitle>{{ t.completedEntries }} ({{ entries.length }})</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div v-if="loading" class="flex items-center justify-center py-12">
@@ -349,8 +349,8 @@ onMounted(() => {
                                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                             />
                         </svg>
-                        <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No completed entries found</h3>
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Try adjusting your filters or check back later.</p>
+                        <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">Nenhuma entrada concluída encontrada</h3>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Ajuste seus filtros para encontrar mais resultados.</p>
                     </div>
 
                     <div v-else class="overflow-x-auto">
@@ -358,22 +358,22 @@ onMounted(() => {
                             <thead class="bg-gray-50 dark:bg-gray-700">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
-                                        ID
+                                        {{ t.id }}
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
-                                        Patient
+                                        {{ t.patient }}
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
-                                        Title
+                                        {{ t.title }}
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
-                                        Completed At
+                                        Data de Conclusão
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
-                                        Added By
+                                        {{ t.addedBy }}
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
-                                        Actions
+                                        {{ t.actions }}
                                     </th>
                                 </tr>
                             </thead>
@@ -383,14 +383,14 @@ onMounted(() => {
                                         <button
                                             @click="showEntryInfo(entry)"
                                             class="cursor-pointer font-mono text-xs text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                                            :title="'Click to view entry details'"
+                                            :title="t.entryDetails"
                                         >
                                             {{ entry.id }}
                                         </button>
                                     </td>
                                     <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
                                         <div class="flex flex-col">
-                                            <span class="font-medium">{{ entry.patient?.name || 'Unknown Patient' }}</span>
+                                            <span class="font-medium">{{ entry.patient?.name || t.unknownPatient }}</span>
                                             <span v-if="entry.patient?.email" class="text-xs text-gray-500 dark:text-gray-400">
                                                 {{ entry.patient.email }}
                                             </span>
@@ -405,7 +405,7 @@ onMounted(() => {
                                         {{ formatDate(entry.created_at) }}
                                     </td>
                                     <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
-                                        {{ entry.created_by?.name || 'Unknown' }}
+                                        {{ entry.created_by?.name || t.unknown }}
                                     </td>
                                     <td class="px-6 py-4 text-sm whitespace-nowrap">
                                         <div class="flex gap-2">
@@ -418,8 +418,9 @@ onMounted(() => {
                                                         d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
                                                     />
                                                 </svg>
-                                                Uncomplete
+                                                Reabrir
                                             </Button>
+
                                             <Button size="sm" variant="destructive" @click="deleteEntry(entry.id)" :disabled="loading">
                                                 <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path
@@ -429,7 +430,7 @@ onMounted(() => {
                                                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                                                     />
                                                 </svg>
-                                                Delete
+                                                {{ t.delete }}
                                             </Button>
                                         </div>
                                     </td>

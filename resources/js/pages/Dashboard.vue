@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
 import { handleApiError, useEntryApi, usePatientApi } from '@/composables/useApi';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
@@ -330,7 +331,7 @@ onMounted(() => {
 
                 <div class="flex gap-2">
                     <!-- Create Patient Modal -->
-                    <Dialog v-model:open="isPatientModalOpen">
+                    <!-- <Dialog v-model:open="isPatientModalOpen">
                         <DialogTrigger as-child>
                             <Button>
                                 <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -378,12 +379,12 @@ onMounted(() => {
                                 </DialogFooter>
                             </form>
                         </DialogContent>
-                    </Dialog>
+                    </Dialog> -->
 
                     <!-- Create Entry Modal -->
                     <Dialog v-model:open="isEntryModalOpen">
                         <DialogTrigger as-child>
-                            <Button variant="outline">
+                            <Button>
                                 <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path
                                         stroke-linecap="round"
@@ -404,17 +405,18 @@ onMounted(() => {
                             <form @submit.prevent="createEntry" class="grid gap-4 py-4">
                                 <div>
                                     <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Patient</label>
-                                    <select
+                                    <Select
                                         v-model="entry.patient_id"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                        class="mt-1"
                                         required
+                                        :placeholder="
+                                            patients.length > 0 ? 'Select a patient' : 'No patients available - Please create a patient first'
+                                        "
                                     >
-                                        <option value="" v-if="patients.length > 0">Select a patient</option>
-                                        <option value="" disabled v-else>No patients available - Please create a patient first</option>
                                         <option v-for="patient in patients" :key="patient.id" :value="patient.id">
                                             {{ patient.name }} ({{ patient.email }})
                                         </option>
-                                    </select>
+                                    </Select>
                                 </div>
                                 <div>
                                     <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Title</label>
@@ -512,12 +514,9 @@ onMounted(() => {
 
                                 <div>
                                     <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Limit Results</label>
-                                    <select
-                                        v-model="tempFilters.limit"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                                    >
+                                    <Select v-model="tempFilters.limit" class="mt-1">
                                         <option v-for="option in limitOptions" :key="option" :value="option">{{ option }} entries</option>
-                                    </select>
+                                    </Select>
                                 </div>
                             </div>
 

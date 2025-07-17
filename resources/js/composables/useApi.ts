@@ -147,23 +147,49 @@ export function useEntryApi() {
         createEntry: (data: { patient_id: string; title: string }) => api.post('/api/entries', data),
 
         /**
-         * Complete/toggle an entry
-         */
-        completeEntry: (id: string) => api.put(`/api/entries/${id}/complete`),
-
-        /**
          * Delete an entry
          */
         deleteEntry: (id: string) => api.delete(`/api/entries/${id}`),
 
         /**
-         * Schedule an exam for an entry
+         * Get all available entry statuses
+         */
+        getStatuses: () => api.get('/api/entry-statuses'),
+
+        /**
+         * Get next possible statuses for an entry
+         */
+        getNextStatuses: (id: string) => api.get(`/api/entries/${id}/next-statuses`),
+
+        /**
+         * Transition an entry to a new status
+         */
+        transitionStatus: (id: string, statusId: number, reason?: string, metadata?: Record<string, any>) =>
+            api.put(`/api/entries/${id}/transition-status`, {
+                status_id: statusId,
+                reason,
+                metadata,
+            }),
+
+        /**
+         * Cancel an entry
+         */
+        cancelEntry: (id: string, reason?: string) => api.put(`/api/entries/${id}/cancel`, { reason }),
+
+        // Legacy methods for backward compatibility
+        /**
+         * Complete/toggle an entry (legacy)
+         */
+        completeEntry: (id: string) => api.put(`/api/entries/${id}/complete`),
+
+        /**
+         * Schedule an exam for an entry (legacy)
          */
         scheduleExam: (id: string, examScheduledDate: string) =>
             api.put(`/api/entries/${id}/schedule-exam`, { exam_scheduled_date: examScheduledDate }),
 
         /**
-         * Mark an exam as ready
+         * Mark an exam as ready (legacy)
          */
         markExamReady: (id: string) => api.put(`/api/entries/${id}/mark-exam-ready`),
     };

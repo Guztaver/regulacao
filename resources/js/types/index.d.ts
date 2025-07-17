@@ -41,6 +41,7 @@ export interface Patient {
     id: string;
     name: string;
     email?: string;
+    phone?: string;
     sus_number?: string;
     created_by?: User;
     created_at?: string;
@@ -60,18 +61,51 @@ export interface EntryTimeline {
     user?: User;
 }
 
+export interface EntryStatus {
+    id: number;
+    name: string;
+    slug: string;
+    color: string;
+    description?: string;
+    is_final: boolean;
+    is_active: boolean;
+    sort_order: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface EntryStatusTransition {
+    id: number;
+    entry_id: string;
+    from_status_id?: number;
+    to_status_id: number;
+    user_id: number;
+    reason?: string;
+    metadata?: Record<string, any>;
+    transitioned_at: string;
+    created_at: string;
+    updated_at: string;
+    from_status?: EntryStatus;
+    to_status?: EntryStatus;
+    user?: User;
+    description?: string;
+    scheduled_date?: string;
+    notes?: string;
+}
+
 export interface Entry {
     id: string;
     patient_id: string;
     title: string;
-    completed: boolean;
+    current_status_id: number;
     created_by: number;
-    exam_scheduled: boolean;
-    exam_scheduled_date?: string;
-    exam_ready: boolean;
     created_at?: string;
     updated_at?: string;
     patient?: Patient;
     createdBy?: User;
+    current_status?: EntryStatus;
     timeline?: EntryTimeline[];
+    status_transitions?: EntryStatusTransition[];
+    scheduled_exam_date?: string;
+    next_statuses?: EntryStatus[];
 }

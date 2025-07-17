@@ -7,13 +7,12 @@
                 <h2 class="mb-4 text-lg font-semibold">Test Entry Actions</h2>
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium mb-2">Select Entry:</label>
-                        <select v-model="selectedEntryId" class="w-full max-w-md rounded border p-2">
-                            <option value="">Select an entry...</option>
+                        <label class="mb-2 block text-sm font-medium">Select Entry:</label>
+                        <Select v-model="selectedEntryId" class="w-full max-w-md" placeholder="Select an entry...">
                             <option v-for="entry in entries" :key="entry.id" :value="entry.id">
                                 {{ entry.title }} ({{ entry.id.substring(0, 8) }}...)
                             </option>
-                        </select>
+                        </Select>
                     </div>
 
                     <div v-if="selectedEntryId" class="flex space-x-4">
@@ -49,7 +48,7 @@
                 </div>
             </div>
 
-            <div v-if="selectedEntry" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div v-if="selectedEntry" class="grid grid-cols-1 gap-6 lg:grid-cols-2">
                 <!-- Entry Details -->
                 <div class="rounded-lg border bg-white p-6 shadow-sm dark:bg-gray-800">
                     <h3 class="mb-4 text-lg font-semibold">Entry Details</h3>
@@ -95,7 +94,9 @@
                 <div
                     :class="[
                         'rounded-lg p-4',
-                        messageType === 'success' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                        messageType === 'success'
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
                     ]"
                 >
                     {{ message }}
@@ -106,11 +107,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import AppLayout from '@/layouts/AppLayout.vue';
 import StatusBadge from '@/components/StatusBadge.vue';
 import Timeline from '@/components/Timeline.vue';
+import { Select } from '@/components/ui/select';
+import AppLayout from '@/layouts/AppLayout.vue';
 import type { Entry } from '@/types';
+import { computed, onMounted, ref } from 'vue';
 
 const entries = ref<Entry[]>([]);
 const selectedEntryId = ref<string>('');
@@ -120,7 +122,7 @@ const message = ref('');
 const messageType = ref<'success' | 'error'>('success');
 
 const selectedEntryComputed = computed(() => {
-    return entries.value.find(entry => entry.id === selectedEntryId.value) || null;
+    return entries.value.find((entry) => entry.id === selectedEntryId.value) || null;
 });
 
 function formatDate(dateString?: string): string {
@@ -171,7 +173,7 @@ async function refreshEntry() {
             selectedEntry.value = data.entry;
 
             // Update the entry in the entries array
-            const index = entries.value.findIndex(e => e.id === selectedEntryId.value);
+            const index = entries.value.findIndex((e) => e.id === selectedEntryId.value);
             if (index !== -1) {
                 entries.value[index] = data.entry;
             }

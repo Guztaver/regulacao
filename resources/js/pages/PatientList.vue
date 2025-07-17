@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
+import { useTranslations } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
@@ -32,13 +34,15 @@ interface Filters {
     limit: number;
 }
 
+const { t } = useTranslations();
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Dashboard',
+        title: t.dashboard,
         href: '/dashboard',
     },
     {
-        title: 'Patients',
+        title: t.patients,
         href: '/patients',
     },
 ];
@@ -177,7 +181,7 @@ function hasActiveFilters(): boolean {
 
 function formatDate(dateString: string | undefined): string {
     if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('pt-BR', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
@@ -185,7 +189,7 @@ function formatDate(dateString: string | undefined): string {
 }
 
 function formatSusNumber(susNumber: string | undefined): string {
-    if (!susNumber) return 'Not informed';
+    if (!susNumber) return 'Não informado';
     // Format SUS number with spaces for readability
     return susNumber.replace(/(\d{3})(\d{4})(\d{4})(\d{4})/, '$1 $2 $3 $4');
 }
@@ -197,15 +201,15 @@ onMounted(() => {
 </script>
 
 <template>
-    <Head title="Patients" />
+    <Head :title="t.patients" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-6 p-6">
             <!-- Header Section -->
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Patients</h1>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">Manage patient information and documents</p>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t.patients }}</h1>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Gerencie informações e registros de pacientes</p>
                 </div>
 
                 <div class="flex gap-2">
@@ -216,45 +220,38 @@ onMounted(() => {
                                 <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                 </svg>
-                                Add Patient
+                                {{ t.addPatient }}
                             </Button>
                         </DialogTrigger>
 
                         <DialogContent class="sm:max-w-md">
                             <DialogHeader>
-                                <DialogTitle>Create New Patient</DialogTitle>
+                                <DialogTitle>{{ t.createNewPatient }}</DialogTitle>
                             </DialogHeader>
 
                             <form @submit.prevent="createPatient" class="grid gap-4 py-4">
                                 <div>
-                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Name *</label>
-                                    <Input type="text" v-model="patient.name" placeholder="Enter patient name" class="mt-1" required />
+                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t.name }}</label>
+                                    <Input type="text" v-model="patient.name" :placeholder="t.enterPatientName" class="mt-1" required />
                                 </div>
                                 <div>
-                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Email *</label>
-                                    <Input type="email" v-model="patient.email" placeholder="Enter email address" class="mt-1" required />
+                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t.email }}</label>
+                                    <Input type="email" v-model="patient.email" :placeholder="t.enterEmailAddress" class="mt-1" required />
                                 </div>
                                 <div>
-                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Phone</label>
-                                    <Input type="text" v-model="patient.phone" placeholder="Enter phone number" class="mt-1" />
+                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t.phone }}</label>
+                                    <Input type="text" v-model="patient.phone" :placeholder="t.enterPhoneNumber" class="mt-1" />
                                 </div>
                                 <div>
-                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">SUS Number</label>
-                                    <Input
-                                        type="text"
-                                        v-model="patient.sus_number"
-                                        placeholder="Enter SUS number (15 digits)"
-                                        class="mt-1"
-                                        maxlength="15"
-                                    />
-                                    <p class="mt-1 text-xs text-gray-500">Sistema Único de Saúde card number</p>
+                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t.susNumber }} (Opcional)</label>
+                                    <Input type="text" v-model="patient.sus_number" :placeholder="t.enterSusNumber" class="mt-1" maxlength="15" />
                                 </div>
 
                                 <DialogFooter>
-                                    <Button type="button" variant="outline" @click="isPatientModalOpen = false"> Cancel </Button>
+                                    <Button type="button" variant="outline" @click="isPatientModalOpen = false">{{ t.cancel }}</Button>
                                     <Button type="submit" :disabled="loading">
-                                        <span v-if="loading">Creating...</span>
-                                        <span v-else>Create Patient</span>
+                                        <span v-if="loading">{{ t.creating }}</span>
+                                        <span v-else>{{ t.create }} {{ t.patient }}</span>
                                     </Button>
                                 </DialogFooter>
                             </form>
@@ -311,41 +308,35 @@ onMounted(() => {
                                         d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z"
                                     />
                                 </svg>
-                                Options
+                                {{ t.filters }}
                                 <span v-if="hasActiveFilters()" class="ml-1 h-2 w-2 rounded-full bg-blue-500"></span>
                             </Button>
                         </DialogTrigger>
 
                         <DialogContent class="sm:max-w-md">
                             <DialogHeader>
-                                <DialogTitle>Filter Options</DialogTitle>
+                                <DialogTitle>{{ t.filters }} {{ t.patients }}</DialogTitle>
                             </DialogHeader>
 
                             <div class="grid gap-4 py-4">
                                 <div>
-                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Search</label>
-                                    <Input
-                                        type="text"
-                                        v-model="tempFilters.search"
-                                        placeholder="Search by name, email, or SUS number..."
-                                        class="mt-1"
-                                    />
+                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t.search }}</label>
+                                    <Input type="text" v-model="tempFilters.search" :placeholder="t.searchPatients" class="mt-1" />
                                 </div>
 
                                 <div>
-                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Results Limit</label>
-                                    <select
-                                        v-model="tempFilters.limit"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                                    >
-                                        <option v-for="option in limitOptions" :key="option" :value="option">{{ option }} patients</option>
-                                    </select>
+                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t.limitResults }}</label>
+                                    <Select v-model="tempFilters.limit" class="mt-1">
+                                        <option v-for="option in limitOptions" :key="option" :value="option">
+                                            {{ option }} {{ t.patients.toLowerCase() }}
+                                        </option>
+                                    </Select>
                                 </div>
                             </div>
 
                             <DialogFooter>
-                                <Button variant="outline" @click="clearFilters"> Clear All </Button>
-                                <Button @click="applyFilters"> Apply Filters </Button>
+                                <Button variant="outline" @click="clearFilters">{{ t.clearAll }}</Button>
+                                <Button @click="applyFilters">{{ t.applyFilters }}</Button>
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
@@ -359,31 +350,31 @@ onMounted(() => {
                                 d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                             />
                         </svg>
-                        Refresh
+                        {{ t.refresh }}
                     </Button>
                 </div>
             </div>
 
             <!-- Active Filters Display -->
             <div v-if="hasActiveFilters()" class="flex flex-wrap gap-2">
-                <span class="text-sm text-gray-600 dark:text-gray-400">Active filters:</span>
+                <span class="text-sm text-gray-600 dark:text-gray-400">{{ t.activeFilters }}</span>
                 <span
                     v-if="filters.search"
                     class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
                 >
-                    Search: {{ filters.search }}
+                    {{ t.search }}: {{ filters.search }}
                 </span>
                 <span
                     class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800 dark:bg-gray-700 dark:text-gray-200"
                 >
-                    Limit: {{ filters.limit }}
+                    {{ t.limit }}: {{ filters.limit }}
                 </span>
             </div>
 
             <!-- Patients Table -->
             <Card>
                 <CardHeader>
-                    <CardTitle>Patients ({{ patients.length }})</CardTitle>
+                    <CardTitle>Todos os {{ t.patients }}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div v-if="loading" class="flex items-center justify-center py-12">
@@ -399,8 +390,9 @@ onMounted(() => {
                                 d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                             />
                         </svg>
-                        <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No patients found</h3>
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by creating your first patient.</p>
+                        <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">{{ t.noPatientsList }}</h3>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ t.adjustFilters }}</p>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Comece criando seu primeiro paciente.</p>
                     </div>
 
                     <div v-else class="overflow-x-auto">
@@ -408,22 +400,22 @@ onMounted(() => {
                             <thead class="bg-gray-50 dark:bg-gray-700">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
-                                        Patient Info
+                                        Informações do Paciente
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
-                                        SUS Number
+                                        {{ t.susNumber }}
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
-                                        Statistics
+                                        Estatísticas
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
-                                        Created
+                                        Criado
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
-                                        Added By
+                                        {{ t.addedBy }}
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
-                                        Actions
+                                        {{ t.actions }}
                                     </th>
                                 </tr>
                             </thead>
@@ -438,19 +430,19 @@ onMounted(() => {
                                     </td>
                                     <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
                                         <span v-if="patient.sus_number" class="font-mono text-sm">{{ formatSusNumber(patient.sus_number) }}</span>
-                                        <span v-else class="text-gray-500 italic">Not informed</span>
+                                        <span v-else class="text-gray-500 italic">Não informado</span>
                                     </td>
                                     <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
                                         <div class="flex flex-col text-xs">
-                                            <span>{{ patient.entries_count || 0 }} entries</span>
-                                            <span>{{ patient.documents_count || 0 }} documents</span>
+                                            <span>{{ patient.entries_count || 0 }} {{ t.entries.toLowerCase() }}</span>
+                                            <span>{{ patient.documents_count || 0 }} documentos</span>
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
                                         {{ formatDate(patient.created_at) }}
                                     </td>
                                     <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
-                                        {{ patient.created_by?.name || 'Unknown' }}
+                                        {{ patient.created_by?.name || t.unknown }}
                                     </td>
                                     <td class="px-6 py-4 text-sm whitespace-nowrap">
                                         <div class="flex gap-2">
@@ -470,9 +462,10 @@ onMounted(() => {
                                                             d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                                                         />
                                                     </svg>
-                                                    View
+                                                    {{ t.view }}
                                                 </Link>
                                             </Button>
+
                                             <Button size="sm" variant="destructive" @click="deletePatient(patient.id)" :disabled="loading">
                                                 <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path
@@ -482,7 +475,7 @@ onMounted(() => {
                                                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                                                     />
                                                 </svg>
-                                                Delete
+                                                {{ t.delete }}
                                             </Button>
                                         </div>
                                     </td>

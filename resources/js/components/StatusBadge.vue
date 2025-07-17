@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useTranslations } from '@/composables/useTranslations';
 import type { Entry } from '@/types';
 import { computed } from 'vue';
 
@@ -13,37 +14,81 @@ const props = withDefaults(defineProps<Props>(), {
     showIcon: true,
 });
 
+const { t } = useTranslations();
+
 const statusInfo = computed(() => {
-    if (props.entry.completed) {
+    const status = props.entry.current_status;
+
+    if (!status) {
         return {
-            text: 'Completed',
-            color: 'green',
-            icon: 'check',
-            bgClass: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-        };
-    } else if (props.entry.exam_ready) {
-        return {
-            text: 'Exam Ready',
-            color: 'indigo',
-            icon: 'ready',
-            bgClass: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
-        };
-    } else if (props.entry.exam_scheduled) {
-        return {
-            text: 'Exam Scheduled',
-            color: 'purple',
-            icon: 'calendar',
-            bgClass: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-        };
-    } else {
-        return {
-            text: 'Pending',
-            color: 'gray',
-            icon: 'clock',
+            text: t.unknown,
+            color: '#6B7280',
+            icon: 'question',
             bgClass: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
         };
     }
+
+    // Generate background classes based on status color
+    const colorClasses = getColorClasses(status.color);
+
+    return {
+        text: getStatusName(status.slug),
+        color: status.color,
+        icon: getIconForStatus(status.slug),
+        bgClass: colorClasses,
+    };
 });
+
+function getColorClasses(hexColor: string): string {
+    // Convert hex to appropriate Tailwind classes based on common colors
+    switch (hexColor.toLowerCase()) {
+        case '#10b981': // Green - completed
+            return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+        case '#3b82f6': // Blue - exam scheduled
+            return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+        case '#8b5cf6': // Purple - exam ready
+            return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
+        case '#f59e0b': // Amber - pending
+            return 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200';
+        case '#ef4444': // Red - cancelled
+            return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+        default:
+            return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+    }
+}
+
+function getIconForStatus(statusSlug: string): string {
+    switch (statusSlug) {
+        case 'completed':
+            return 'check';
+        case 'exam_scheduled':
+            return 'calendar';
+        case 'exam_ready':
+            return 'ready';
+        case 'cancelled':
+            return 'x';
+        case 'pending':
+        default:
+            return 'clock';
+    }
+}
+
+function getStatusName(statusSlug: string): string {
+    switch (statusSlug) {
+        case 'completed':
+            return t.completed;
+        case 'exam_scheduled':
+            return t.examScheduled;
+        case 'exam_ready':
+            return t.examReady;
+        case 'cancelled':
+            return t.cancelled;
+        case 'pending':
+            return t.pending;
+        default:
+            return t.unknown;
+    }
+}
 
 const sizeClasses = computed(() => {
     switch (props.size) {
@@ -71,13 +116,7 @@ const iconSize = computed(() => {
 </script>
 
 <template>
-    <span
-        :class="[
-            'inline-flex items-center rounded-full font-semibold',
-            statusInfo.bgClass,
-            sizeClasses,
-        ]"
-    >
+    <span :class="['inline-flex items-center rounded-full font-semibold', statusInfo.bgClass, sizeClasses]">
         <svg v-if="showIcon" :class="['mr-1', iconSize]" fill="currentColor" viewBox="0 0 20 20">
             <!-- Completed check icon -->
             <path
@@ -98,6 +137,13 @@ const iconSize = computed(() => {
                 v-else-if="statusInfo.icon === 'ready'"
                 fill-rule="evenodd"
                 d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.293l-3-3a1 1 0 00-1.414-1.414L9 7.586 7.707 6.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4a1 1 0 00-1.414-1.414z"
+                clip-rule="evenodd"
+            />
+            <!-- X icon for cancelled -->
+            <path
+                v-else-if="statusInfo.icon === 'x'"
+                fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
                 clip-rule="evenodd"
             />
             <!-- Clock icon for pending -->

@@ -33,6 +33,9 @@ interface Entry {
     created_at?: string;
     completed: boolean;
     created_by?: User;
+    exam_scheduled: boolean;
+    exam_scheduled_date?: string;
+    exam_ready: boolean;
 }
 
 interface Filters {
@@ -237,7 +240,93 @@ function deleteEntry(id: string) {
         });
 }
 
-// Filter functions
+function scheduleExam(id: string, date: string) {
+    entryLoading.value = true;
+    entryError.value = '';
+    entryMessage.value = '';
+
+    // Temporary mock response until backend API is ready
+    setTimeout(() => {
+        entryMessage.value = 'Exam scheduled successfully';
+        setTimeout(() => {
+            entryMessage.value = '';
+        }, 5000);
+
+        // Update entry locally
+        const entry = entries.value.find((e) => e.id === id);
+        if (entry) {
+            entry.exam_scheduled = true;
+            entry.exam_scheduled_date = date;
+        }
+
+        entryLoading.value = false;
+    }, 500);
+
+    // TODO: Replace with actual API call when backend is ready
+    // axios
+    //     .put(`/api/entries/${id}/schedule-exam`, { exam_scheduled_date: date })
+    //     .then((response) => {
+    //         entryMessage.value = response.data.message;
+    //         setTimeout(() => {
+    //             entryMessage.value = '';
+    //         }, 5000);
+    //         loadEntries();
+    //     })
+    //     .catch((err) => {
+    //         console.error(err);
+    //         entryError.value = 'Failed to schedule exam';
+    //         setTimeout(() => {
+    //             entryError.value = '';
+    //         }, 5000);
+    //     })
+    //     .finally(() => {
+    //         entryLoading.value = false;
+    //     });
+}
+
+function markExamReady(id: string) {
+    entryLoading.value = true;
+    entryError.value = '';
+    entryMessage.value = '';
+
+    // Temporary mock response until backend API is ready
+    setTimeout(() => {
+        entryMessage.value = 'Exam marked as ready';
+        setTimeout(() => {
+            entryMessage.value = '';
+        }, 5000);
+
+        // Update entry locally
+        const entry = entries.value.find((e) => e.id === id);
+        if (entry) {
+            entry.exam_ready = true;
+        }
+
+        entryLoading.value = false;
+    }, 500);
+
+    // TODO: Replace with actual API call when backend is ready
+    // axios
+    //     .put(`/api/entries/${id}/mark-ready`)
+    //     .then((response) => {
+    //         entryMessage.value = response.data.message;
+    //         setTimeout(() => {
+    //             entryMessage.value = '';
+    //         }, 5000);
+    //         loadEntries();
+    //     })
+    //     .catch((err) => {
+    //         console.error(err);
+    //         entryError.value = 'Failed to mark exam as ready';
+    //         setTimeout(() => {
+    //             entryError.value = '';
+    //         }, 5000);
+    //     })
+    //     .finally(() => {
+    //         entryLoading.value = false;
+    //     });
+}
+
 function applyFilters() {
     Object.assign(filters, tempFilters);
     isFilterDialogOpen.value = false;
@@ -585,10 +674,13 @@ onMounted(() => {
                                         Title
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
-                                        Created At
+                                        Date Created
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
                                         Added By
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
+                                        Status
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
                                         Actions
@@ -625,14 +717,80 @@ onMounted(() => {
                                     <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
                                         {{ entry.created_by?.name || 'Unknown' }}
                                     </td>
+                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
+                                        <div class="flex flex-col gap-1">
+                                            <span
+                                                class="text-xs font-medium"
+                                                :class="{
+                                                    'text-green-600 dark:text-green-400': entry.completed,
+                                                    'text-blue-600 dark:text-blue-400': entry.exam_ready && !entry.completed,
+                                                    'text-yellow-600 dark:text-yellow-400': entry.exam_scheduled && !entry.exam_ready,
+                                                    'text-gray-500 dark:text-gray-400': !entry.exam_scheduled,
+                                                }"
+                                            >
+                                                {{
+                                                    entry.completed
+                                                        ? 'Completed'
+                                                        : entry.exam_ready
+                                                          ? 'Ready'
+                                                          : entry.exam_scheduled
+                                                            ? 'Scheduled'
+                                                            : 'Pending'
+                                                }}
+                                            </span>
+                                            <div
+                                                v-if="entry.exam_scheduled && entry.exam_scheduled_date"
+                                                class="text-xs text-gray-500 dark:text-gray-400"
+                                            >
+                                                {{ formatDate(entry.exam_scheduled_date) }}
+                                            </div>
+                                        </div>
+                                    </td>
                                     <td class="px-6 py-4 text-sm whitespace-nowrap">
                                         <div class="flex gap-2">
-                                            <Button size="sm" @click="completeEntry(entry.id)" :disabled="entryLoading">
+                                            <!-- Schedule Exam Button -->
+                                            <div v-if="!entry.exam_scheduled" class="flex gap-1">
+                                                <input
+                                                    type="date"
+                                                    @change="scheduleExam(entry.id, ($event.target as HTMLInputElement).value)"
+                                                    class="rounded border border-gray-300 px-2 py-1 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                                    :disabled="entryLoading"
+                                                />
+                                            </div>
+
+                                            <!-- Mark Ready Button -->
+                                            <Button
+                                                v-if="entry.exam_scheduled && !entry.exam_ready"
+                                                size="sm"
+                                                variant="outline"
+                                                @click="markExamReady(entry.id)"
+                                                :disabled="entryLoading"
+                                            >
+                                                <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                                    />
+                                                </svg>
+                                                Ready
+                                            </Button>
+
+                                            <!-- Complete Button -->
+                                            <Button
+                                                v-if="entry.exam_ready && !entry.completed"
+                                                size="sm"
+                                                @click="completeEntry(entry.id)"
+                                                :disabled="entryLoading"
+                                            >
                                                 <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                                 </svg>
                                                 Complete
                                             </Button>
+
+                                            <!-- Delete Button -->
                                             <Button size="sm" variant="destructive" @click="deleteEntry(entry.id)" :disabled="entryLoading">
                                                 <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path

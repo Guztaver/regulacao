@@ -10,5 +10,8 @@ Route::get('dashboard', static fn () => Inertia::render('Dashboard'))->middlewar
 
 Route::get('entries/completed', static fn () => Inertia::render('CompletedEntries'))->middleware(['auth', 'verified'])->name('entries.completed.page');
 
+Route::get('patients', static fn () => Inertia::render('PatientList'))->middleware(['auth', 'verified'])->name('patients.list.page');
+Route::get('patients/{id}', static fn (string $id) => Inertia::render('PatientView', ['patientId' => $id]))->middleware(['auth', 'verified'])->name('patients.view.page');
+
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

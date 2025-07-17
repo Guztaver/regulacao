@@ -10,9 +10,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Notifications\Notifiable;
 
 /**
+ * @property Uuid $id
  * @property string $name
  * @property string $email
- * @property string|null $phone
+ * @property string $phone
+ * @property string|null $sus_number
  */
 class Patient extends Model
 {
@@ -28,6 +30,7 @@ class Patient extends Model
         'name',
         'email',
         'phone',
+        'sus_number'
     ];
 
     /**
@@ -40,5 +43,13 @@ class Patient extends Model
     public function entries(): HasMany
     {
         return $this->hasMany(Entry::class);
+    }
+
+    /**
+     * Get the documents for the patient.
+     */
+    public function documents(): HasMany
+    {
+        return $this->hasMany(PatientDocument::class);
     }
 }

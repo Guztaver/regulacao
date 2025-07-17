@@ -14,6 +14,7 @@ interface Patient {
     name: string;
     email: string;
     phone: string;
+    sus_number?: string;
 }
 
 interface Entry {
@@ -45,6 +46,7 @@ const patient: Patient = reactive({
     name: '',
     email: '',
     phone: '',
+    sus_number: '',
 });
 
 const entry = reactive({
@@ -96,6 +98,7 @@ function createPatient() {
             patient.name = '';
             patient.email = '';
             patient.phone = '';
+            patient.sus_number = '';
             isPatientModalOpen.value = false;
             loadPatients();
         })
@@ -296,6 +299,16 @@ onMounted(() => {
                                 <div>
                                     <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Phone</label>
                                     <Input type="text" v-model="patient.phone" placeholder="Enter phone number" class="mt-1" />
+                                </div>
+                                <div>
+                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">SUS Number</label>
+                                    <Input
+                                        type="text"
+                                        v-model="patient.sus_number"
+                                        placeholder="Enter SUS number (15 digits)"
+                                        class="mt-1"
+                                        maxlength="15"
+                                    />
                                 </div>
 
                                 <DialogFooter>

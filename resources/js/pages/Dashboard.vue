@@ -82,7 +82,7 @@ const onPatientCleared = () => {
 async function loadPatients() {
     const patientApi = usePatientApi();
     try {
-        const response = await patientApi.getPatients({ limit: 1000 });
+        const response = await patientApi.getPatients({ limit: 100 });
         patients.value = Array.isArray(response) ? response : response.data || [];
     } catch (err) {
         console.error('Erro ao carregar pacientes:', err);

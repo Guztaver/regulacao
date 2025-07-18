@@ -2,7 +2,7 @@
 import { handleApiError, useEntryApi } from '@/composables/useApi';
 import { useTranslations } from '@/composables/useTranslations';
 import type { Entry, EntryStatus } from '@/types';
-import { computed, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, ref } from 'vue';
 
 interface Props {
     entry: Entry;
@@ -156,9 +156,14 @@ function selectStatus(statusId: number) {
     selectedStatusId.value = statusId;
     const status = nextStatuses.value.find((s) => s.id === statusId);
 
-    // Show reason input for final statuses or specific transitions
-    if (status && (status.is_final || status.slug === 'cancelled')) {
+    // Only require reason for cancelled transitions
+    if (status && status.slug === 'cancelled') {
         showReasonInput.value = true;
+        // Focus on textarea after it becomes visible
+        nextTick(() => {
+            const textarea = document.querySelector('.status-transition-dropdown textarea');
+            if (textarea) textarea.focus();
+        });
     } else {
         transitionToStatus(statusId);
     }
@@ -263,7 +268,7 @@ onMounted(() => {
                 <div class="mb-3">
                     <label class="mb-1 block text-sm font-medium text-gray-700">
                         Motivo da mudança de status
-                        <span v-if="nextStatuses.find((s) => s.id === selectedStatusId)?.is_final" class="text-red-500">*</span>
+                        <span v-if="nextStatuses.find((s) => s.id === selectedStatusId)?.slug === 'cancelled'" class="text-red-500">*</span>
                     </label>
                     <textarea
                         v-model="reasonText"
@@ -271,6 +276,9 @@ onMounted(() => {
                         :placeholder="`Motivo para alterar para ${nextStatuses.find((s) => s.id === selectedStatusId)?.name}...`"
                         class="w-full rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500"
                     ></textarea>
+                    <p v-if="nextStatuses.find((s) => s.id === selectedStatusId)?.slug === 'cancelled'" class="mt-2 text-sm text-gray-600">
+                        <span class="font-medium">Atenção:</span> É necessário informar o motivo para cancelar.
+                    </p>
                 </div>
 
                 <div class="flex justify-end space-x-2">
@@ -283,11 +291,22 @@ onMounted(() => {
                     </button>
                     <button
                         @click="confirmTransition"
-                        :disabled="isLoading || (nextStatuses.find((s) => s.id === selectedStatusId)?.is_final && !reasonText.trim())"
+                        :disabled="isLoading || (nextStatuses.find((s) => s.id === selectedStatusId)?.slug === 'cancelled' && !reasonText.trim())"
                         type="button"
-                        class="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        :class="[
+                            'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+                            isLoading || (nextStatuses.find((s) => s.id === selectedStatusId)?.slug === 'cancelled' && !reasonText.trim())
+                                ? 'cursor-not-allowed bg-gray-300 text-gray-500'
+                                : 'bg-blue-600 text-white hover:bg-blue-700',
+                        ]"
+                        :title="
+                            nextStatuses.find((s) => s.id === selectedStatusId)?.is_final && !reasonText.trim()
+                                ? 'Digite um motivo para continuar'
+                                : ''
+                        "
                     >
-                        Confirmar
+                        <span v-if="isLoading">Processando...</span>
+                        <span v-else>Confirmar</span>
                     </button>
                 </div>
             </div>

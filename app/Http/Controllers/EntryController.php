@@ -24,7 +24,7 @@ class EntryController extends Controller
         $entry->created_by = Auth::id(); // Never null - auth is required via form request
         $entry->save();
 
-        return response()->json(['message' => 'Entry created successfully', 'entry' => $entry], Response::HTTP_CREATED);
+        return response()->json(['message' => 'Entrada criada com sucesso', 'entry' => $entry], Response::HTTP_CREATED);
     }
 
 
@@ -32,13 +32,13 @@ class EntryController extends Controller
     {
         // Ensure user is authenticated
         if (!Auth::check()) {
-            return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
+            return response()->json(['error' => 'Autenticação obrigatória'], Response::HTTP_UNAUTHORIZED);
         }
 
         $entry = Entry::findOrFail($id);
         $entry->delete();
 
-        return response()->json(['message' => 'Entry deleted successfully'], Response::HTTP_OK);
+        return response()->json(['message' => 'Entrada excluída com sucesso'], Response::HTTP_OK);
     }
 
     public function show(Request $request, $id): JsonResponse
@@ -135,7 +135,7 @@ class EntryController extends Controller
 
         try {
             $entry->markAsCompleted();
-            return response()->json(['message' => 'Entry completed successfully'], JsonResponse::HTTP_OK);
+            return response()->json(['message' => 'Entrada concluída com sucesso'], JsonResponse::HTTP_OK);
         } catch (\InvalidArgumentException $e) {
             return response()->json(['error' => $e->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
         }
@@ -216,11 +216,11 @@ class EntryController extends Controller
         try {
             $entry->scheduleExam(
                 $validatedData['exam_scheduled_date'],
-                $validatedData['reason'] ?? 'Exam scheduled'
+                $validatedData['reason'] ?? 'Exame agendado'
             );
 
             return response()->json([
-                'message' => 'Exam scheduled successfully',
+                'message' => 'Exame agendado com sucesso',
                 'entry' => $entry->fresh(['currentStatus', 'patient'])
             ], JsonResponse::HTTP_OK);
         } catch (\InvalidArgumentException $e) {
@@ -310,7 +310,7 @@ class EntryController extends Controller
             ]);
 
             return response()->json([
-                'message' => 'Status updated successfully',
+                'message' => 'Status atualizado com sucesso',
                 'entry' => $entry->fresh(['currentStatus', 'statusTransitions'])
             ], JsonResponse::HTTP_OK);
         } catch (\InvalidArgumentException $e) {
@@ -348,7 +348,7 @@ class EntryController extends Controller
 
         try {
             $entry->cancel($validatedData['reason'] ?? null);
-            return response()->json(['message' => 'Entry cancelled successfully'], JsonResponse::HTTP_OK);
+            return response()->json(['message' => 'Entrada cancelada com sucesso'], JsonResponse::HTTP_OK);
         } catch (\InvalidArgumentException $e) {
             return response()->json(['error' => $e->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
         }

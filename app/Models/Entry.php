@@ -183,7 +183,7 @@ class Entry extends Model
     public function markAsCompleted(?string $reason = null): bool
     {
         $completedStatus = EntryStatus::findBySlug(EntryStatus::COMPLETED);
-        return $this->transitionTo($completedStatus->id, $reason ?? 'Entry marked as completed');
+        return $this->transitionTo($completedStatus->id, $reason ?? 'Entrada marcada como concluída');
     }
 
     /**
@@ -194,7 +194,7 @@ class Entry extends Model
         $examScheduledStatus = EntryStatus::findBySlug(EntryStatus::EXAM_SCHEDULED);
         return $this->transitionTo(
             $examScheduledStatus->id,
-            $reason ?? 'Exam scheduled',
+            $reason ?? 'Exame agendado',
             ['scheduled_date' => $scheduledDate]
         );
     }
@@ -214,7 +214,7 @@ class Entry extends Model
     public function cancel(?string $reason = null): bool
     {
         $cancelledStatus = EntryStatus::findBySlug(EntryStatus::CANCELLED);
-        return $this->transitionTo($cancelledStatus->id, $reason ?? 'Entry cancelled');
+        return $this->transitionTo($cancelledStatus->id, $reason ?? 'Entrada cancelada');
     }
 
     /**
@@ -311,7 +311,7 @@ class Entry extends Model
                     null,
                     $entry->current_status_id,
                     $entry->created_by,
-                    'Entry created',
+                    'Entrada criada',
                     ['title' => $entry->title]
                 );
 
@@ -320,7 +320,7 @@ class Entry extends Model
                     $entry->id,
                     $entry->created_by,
                     EntryTimeline::ACTION_CREATED,
-                    'Entry created',
+                    'Entrada criada',
                     ['title' => $entry->title]
                 );
             }
@@ -356,7 +356,7 @@ class Entry extends Model
                             $entry->id,
                             Auth::id(),
                             EntryTimeline::ACTION_UPDATED,
-                            'Entry updated',
+                            'Entrada atualizada',
                             ['changes' => $nonStatusChanges]
                         );
                     }
@@ -371,7 +371,7 @@ class Entry extends Model
                     $entry->id,
                     Auth::id(),
                     EntryTimeline::ACTION_DELETED,
-                    'Entry deleted',
+                    'Entrada excluída',
                     ['title' => $entry->title]
                 );
             }

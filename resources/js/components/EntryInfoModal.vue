@@ -426,7 +426,7 @@ function printEntry() {
                                             {{
                                                 transition.from_status
                                                     ? `${transition.from_status.name} → ${transition.to_status?.name}`
-                                                    : `Set to ${transition.to_status?.name}`
+                                                    : `Definido para ${transition.to_status?.name}`
                                             }}
                                         </p>
                                         <p class="text-xs text-gray-500 dark:text-gray-400">
@@ -708,28 +708,6 @@ function printEntry() {
                     <p class="mt-4 text-lg text-gray-500 dark:text-gray-400">Nenhuma entrada selecionada</p>
                 </div>
             </div>
-
-            <!-- Footer with Print Button -->
-            <!-- <div v-if="entry" class="flex-shrink-0 border-t border-gray-200 p-6 dark:border-gray-700">
-                <div class="flex items-center justify-between">
-                    <div class="text-sm text-gray-500 dark:text-gray-400">Entrada criada em {{ formatDate(entry.created_at) }}</div>
-                    <div class="flex gap-2">
-
-                        <Button @click="printEntry" variant="outline" size="sm" class="gap-2">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-                                />
-                            </svg>
-                            Imprimir Entrada
-                        </Button>
-                        <Button @click="closeModal" variant="secondary" size="sm"> Fechar </Button>
-                    </div>
-                </div>
-            </div> -->
         </div>
     </div>
 </template>

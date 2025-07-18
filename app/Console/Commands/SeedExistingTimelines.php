@@ -61,7 +61,7 @@ class SeedExistingTimelines extends Command
                     'entry_id' => $entry->id,
                     'user_id' => $entry->created_by,
                     'action' => EntryTimeline::ACTION_COMPLETED,
-                    'description' => 'Entry marked as completed',
+                    'description' => 'Entrada marcada como concluída',
                     'metadata' => [],
                     'performed_at' => $entry->updated_at,
                 ]);
@@ -73,7 +73,7 @@ class SeedExistingTimelines extends Command
                     'entry_id' => $entry->id,
                     'user_id' => $entry->created_by,
                     'action' => EntryTimeline::ACTION_EXAM_SCHEDULED,
-                    'description' => 'Exam scheduled',
+                    'description' => 'Exame agendado',
                     'metadata' => ['scheduled_date' => $entry->exam_scheduled_date->toDateString()],
                     'performed_at' => $entry->updated_at,
                 ]);

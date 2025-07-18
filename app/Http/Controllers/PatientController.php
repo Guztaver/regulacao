@@ -20,7 +20,7 @@ class PatientController extends Controller
         $patient->created_by = Auth::id(); // Never null - auth is required via form request
         $patient->save();
 
-        return response()->json(['message' => 'Patient created successfully', 'patient' => $patient], Response::HTTP_CREATED);
+        return response()->json(['message' => 'Paciente criado com sucesso', 'patient' => $patient], Response::HTTP_CREATED);
     }
 
     public function index(Request $request): JsonResponse
@@ -62,13 +62,13 @@ class PatientController extends Controller
     {
         // Ensure user is authenticated
         if (!Auth::check()) {
-            return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
+            return response()->json(['error' => 'Autenticação obrigatória'], Response::HTTP_UNAUTHORIZED);
         }
 
         $patient = Patient::findOrFail($id);
         $patient->delete();
 
-        return response()->json(['message' => 'Patient deleted successfully'], Response::HTTP_OK);
+        return response()->json(['message' => 'Paciente excluído com sucesso'], Response::HTTP_OK);
     }
 
     public function show(Request $request, $id): JsonResponse
@@ -112,7 +112,7 @@ class PatientController extends Controller
         $patient->update($validatedData);
 
         return response()->json([
-            'message' => 'Patient updated successfully',
+            'message' => 'Paciente atualizado com sucesso',
             'patient' => $patient
         ], Response::HTTP_OK);
     }

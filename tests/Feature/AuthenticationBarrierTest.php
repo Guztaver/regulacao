@@ -173,7 +173,7 @@ class AuthenticationBarrierTest extends TestCase
         $response = $this->postJson('/api/patients', $patientData);
 
         $response->assertStatus(201)
-                 ->assertJson(['message' => 'Patient created successfully']);
+                 ->assertJson(['message' => 'Paciente criado com sucesso']);
 
         $this->assertDatabaseHas('patients', [
             'name' => 'João Silva',
@@ -209,7 +209,7 @@ class AuthenticationBarrierTest extends TestCase
         $response = $this->postJson('/api/entries', $entryData);
 
         $response->assertStatus(201)
-                 ->assertJson(['message' => 'Entry created successfully']);
+                 ->assertJson(['message' => 'Entrada criada com sucesso']);
 
         $this->assertDatabaseHas('entries', [
             'patient_id' => $patient->id,

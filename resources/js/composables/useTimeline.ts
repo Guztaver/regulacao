@@ -49,10 +49,10 @@ export function useTimeline() {
             const diffHours = Math.floor(diffMins / 60);
             const diffDays = Math.floor(diffHours / 24);
 
-            if (diffMins < 1) return 'just now';
-            if (diffMins < 60) return `${diffMins}m ago`;
-            if (diffHours < 24) return `${diffHours}h ago`;
-            if (diffDays < 7) return `${diffDays}d ago`;
+            if (diffMins < 1) return 'agora mesmo';
+            if (diffMins < 60) return `${diffMins}m atrás`;
+            if (diffHours < 24) return `${diffHours}h atrás`;
+            if (diffDays < 7) return `${diffDays}d atrás`;
 
             return new Intl.DateTimeFormat('pt-BR', {
                 day: '2-digit',
@@ -62,19 +62,19 @@ export function useTimeline() {
                 minute: '2-digit',
             }).format(date);
         } catch {
-            return 'Invalid Date';
+            return 'Data Inválida';
         }
     }
 
     function getActionDisplayName(action: string): string {
         const displayNames: Record<string, string> = {
-            created: 'Created',
-            completed: 'Completed',
-            uncompleted: 'Uncompleted',
-            exam_scheduled: 'Exam Scheduled',
-            exam_ready: 'Exam Ready',
-            updated: 'Updated',
-            deleted: 'Deleted',
+            created: 'Criado',
+            completed: 'Concluído',
+            uncompleted: 'Não Concluído',
+            exam_scheduled: 'Exame Agendado',
+            exam_ready: 'Exame Pronto',
+            updated: 'Atualizado',
+            deleted: 'Excluído',
         };
         return displayNames[action] || action.charAt(0).toUpperCase() + action.slice(1);
     }
@@ -92,21 +92,19 @@ export function useTimeline() {
                     month: '2-digit',
                     year: 'numeric',
                 }).format(date);
-                parts.push(`Scheduled for: ${formatted}`);
+                parts.push(`Agendado para: ${formatted}`);
             } catch {
-                parts.push(`Scheduled for: ${metadata.scheduled_date}`);
+                parts.push(`Agendado para: ${metadata.scheduled_date}`);
             }
         }
 
         if (metadata.changes) {
-            const changeDescriptions = Object.entries(metadata.changes).map(
-                ([key, value]) => `${key}: ${value}`
-            );
-            parts.push(`Changes: ${changeDescriptions.join(', ')}`);
+            const changeDescriptions = Object.entries(metadata.changes).map(([key, value]) => `${key}: ${value}`);
+            parts.push(`Alterações: ${changeDescriptions.join(', ')}`);
         }
 
         if (metadata.title) {
-            parts.push(`Title: ${metadata.title}`);
+            parts.push(`Título: ${metadata.title}`);
         }
 
         return parts.join(' | ');
@@ -123,7 +121,7 @@ export function useTimeline() {
     function groupTimelineByDate(timeline: EntryTimeline[]): Record<string, EntryTimeline[]> {
         const grouped: Record<string, EntryTimeline[]> = {};
 
-        timeline.forEach(item => {
+        timeline.forEach((item) => {
             const date = new Date(item.performed_at);
             const dateKey = new Intl.DateTimeFormat('pt-BR', {
                 day: '2-digit',

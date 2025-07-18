@@ -95,7 +95,7 @@ return new class extends Migration
                     'from_status_id' => $pendingStatusId,
                     'to_status_id' => $examScheduledStatusId,
                     'user_id' => $entry->created_by,
-                    'reason' => 'Exam scheduled during migration',
+                    'reason' => 'Exame agendado durante migração',
                     'metadata' => json_encode([
                         'scheduled_date' => $entry->exam_scheduled_date,
                         'migrated_from_boolean_fields' => true
@@ -133,7 +133,7 @@ return new class extends Migration
                     'from_status_id' => $fromStatusId,
                     'to_status_id' => $completedStatusId,
                     'user_id' => $entry->created_by,
-                    'reason' => 'Entry completed during migration',
+                    'reason' => 'Entrada concluída durante migração',
                     'metadata' => json_encode(['migrated_from_boolean_fields' => true]),
                     'transitioned_at' => $entry->updated_at,
                     'created_at' => now(),

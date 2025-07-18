@@ -139,7 +139,7 @@ class EntryDocumentTest extends TestCase
             ->deleteJson("/api/entries/{$this->entry->id}/documents/{$document->id}");
 
         $response->assertStatus(200)
-            ->assertJson(['message' => 'Document deleted successfully']);
+            ->assertJson(['message' => 'Documento excluído com sucesso']);
 
         $this->assertDatabaseMissing('entry_documents', [
             'id' => $document->id,

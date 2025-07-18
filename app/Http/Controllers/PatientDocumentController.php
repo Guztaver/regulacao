@@ -45,7 +45,7 @@ class PatientDocumentController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Document uploaded successfully',
+            'message' => 'Documento enviado com sucesso',
             'document' => $document->load('patient')
         ], JsonResponse::HTTP_CREATED);
     }
@@ -145,7 +145,7 @@ class PatientDocumentController extends Controller
         $document->delete();
 
         return response()->json([
-            'message' => 'Document deleted successfully'
+            'message' => 'Documento excluído com sucesso'
         ], JsonResponse::HTTP_OK);
     }
 

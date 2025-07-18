@@ -19,6 +19,7 @@ const {
     formatTimelineDate,
     formatTimelineMetadata,
     sortTimelineByDate,
+    getActionDisplayName,
 } = useTimeline();
 
 const sortedTimeline = computed(() => {
@@ -30,10 +31,7 @@ const sortedTimeline = computed(() => {
     <div v-if="sortedTimeline && sortedTimeline.length > 0" :class="['space-y-3 overflow-y-auto', `max-h-[${maxHeight}]`]">
         <div v-for="(timelineItem, index) in sortedTimeline" :key="timelineItem.id" class="relative flex items-start space-x-3">
             <!-- Timeline line -->
-            <div
-                v-if="index < sortedTimeline.length - 1"
-                class="absolute left-4 top-8 h-full w-px bg-gray-200 dark:bg-gray-700"
-            ></div>
+            <div v-if="index < sortedTimeline.length - 1" class="absolute top-8 left-4 h-full w-px bg-gray-200 dark:bg-gray-700"></div>
 
             <!-- Timeline icon -->
             <div
@@ -100,13 +98,13 @@ const sortedTimeline = computed(() => {
             <div class="min-w-0 flex-1">
                 <div class="flex items-center justify-between">
                     <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {{ timelineItem.description }}
+                        {{ getActionDisplayName(timelineItem.action) }}
                     </p>
                     <time class="text-xs text-gray-500 dark:text-gray-400">
                         {{ formatTimelineDate(timelineItem.performed_at) }}
                     </time>
                 </div>
-                <div class="mt-1 text-xs text-gray-600 dark:text-gray-400">by {{ timelineItem.user?.name || 'Unknown User' }}</div>
+                <div class="mt-1 text-xs text-gray-600 dark:text-gray-400">por {{ timelineItem.user?.name || 'Usuário Desconhecido' }}</div>
 
                 <!-- Additional metadata -->
                 <div v-if="formatTimelineMetadata(timelineItem.metadata)" class="mt-2">
@@ -119,6 +117,6 @@ const sortedTimeline = computed(() => {
     </div>
 
     <div v-else class="py-4 text-center">
-        <p class="text-sm text-gray-500 dark:text-gray-400">No timeline data available</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Nenhum dado de timeline disponível</p>
     </div>
 </template>

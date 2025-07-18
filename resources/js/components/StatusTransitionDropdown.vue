@@ -83,7 +83,7 @@ async function loadNextStatuses() {
                 entryId: props.entry.id,
             });
         }
-    } catch (error) {
+    } catch (error: any) {
         console.error('StatusTransitionDropdown: Failed to load next statuses:', error);
         console.error('StatusTransitionDropdown: Error details:', {
             status: error.response?.status,
@@ -124,7 +124,7 @@ async function transitionToStatus(statusId: number, reason?: string) {
 
         emit('status-changed', updatedEntry);
         closeDropdown();
-    } catch (error) {
+    } catch (error: any) {
         console.error('StatusTransitionDropdown: Failed to transition status:', error);
         console.error('StatusTransitionDropdown: Error details:', {
             status: error.response?.status,

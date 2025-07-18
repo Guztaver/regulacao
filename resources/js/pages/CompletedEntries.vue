@@ -7,33 +7,13 @@ import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { useTranslations } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem, type Entry } from '@/types';
 import { Head } from '@inertiajs/vue3';
 import axios from 'axios';
 import { onMounted, reactive, ref } from 'vue';
 
-interface User {
-    id: number;
-    name: string;
-    email: string;
-}
-
-interface Patient {
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
-    created_by?: User;
-}
-
-interface Entry {
-    id: string;
-    patient_id: string;
-    title: string;
-    patient?: Patient;
-    created_at?: string;
+interface CompletedEntry extends Entry {
     completed: boolean;
-    created_by?: User;
 }
 
 interface Filters {
@@ -57,13 +37,13 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const entries = ref<Entry[]>([]);
+const entries = ref<CompletedEntry[]>([]);
 const loading = ref(false);
 const message = ref('');
 const error = ref('');
 const isFilterDialogOpen = ref(false);
 const isEntryInfoModalOpen = ref(false);
-const selectedEntry = ref<Entry | null>(null);
+const selectedEntry = ref<CompletedEntry | null>(null);
 
 const filters: Filters = reactive({
     date_from: '',
@@ -99,7 +79,7 @@ function loadCompletedEntries() {
     axios
         .get(`/api/entries?${params.toString()}`)
         .then((response) => {
-            entries.value = response.data.data || response.data;
+            entries.value = (response.data.data || response.data) as CompletedEntry[];
         })
         .catch((err) => {
             console.error(err);
@@ -182,13 +162,23 @@ function formatDate(dateString: string | undefined): string {
     });
 }
 
-function showEntryInfo(entry: Entry) {
+function showEntryInfo(entry: CompletedEntry) {
     selectedEntry.value = entry;
     isEntryInfoModalOpen.value = true;
 }
 
+function getCreatorName(entry: CompletedEntry): string {
+    if (typeof entry.created_by === 'object' && entry.created_by?.name) {
+        return entry.created_by.name;
+    }
+    if (entry.createdBy?.name) {
+        return entry.createdBy.name;
+    }
+    return t.unknown;
+}
+
 function hasActiveFilters(): boolean {
-    return !!(filters.date_from || filters.date_to || filters.patient_name || filters.entry_id);
+    return filters.date_from !== '' || filters.date_to !== '' || filters.patient_name !== '' || filters.entry_id !== '';
 }
 
 // Initialize data
@@ -405,7 +395,7 @@ onMounted(() => {
                                         {{ formatDate(entry.created_at) }}
                                     </td>
                                     <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
-                                        {{ entry.created_by?.name || t.unknown }}
+                                        {{ getCreatorName(entry) }}
                                     </td>
                                     <td class="px-6 py-4 text-sm whitespace-nowrap">
                                         <div class="flex gap-2">

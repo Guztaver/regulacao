@@ -112,7 +112,7 @@ import Timeline from '@/components/Timeline.vue';
 import { Select } from '@/components/ui/select';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { Entry } from '@/types';
-import { computed, onMounted, ref } from 'vue';
+import { onMounted, ref } from 'vue';
 
 const entries = ref<Entry[]>([]);
 const selectedEntryId = ref<string>('');
@@ -120,10 +120,6 @@ const selectedEntry = ref<Entry | null>(null);
 const loading = ref(false);
 const message = ref('');
 const messageType = ref<'success' | 'error'>('success');
-
-const selectedEntryComputed = computed(() => {
-    return entries.value.find((entry) => entry.id === selectedEntryId.value) || null;
-});
 
 function formatDate(dateString?: string): string {
     if (!dateString) return 'N/A';

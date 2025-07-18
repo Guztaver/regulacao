@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
 import { handleApiError, useEntryApi, usePatientApi } from '@/composables/useApi';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem, Entry, Patient } from '@/types';
@@ -246,7 +247,7 @@ function getStatusColorClass(entry: Entry): string {
     return 'text-gray-500 dark:text-gray-400';
 }
 
-function onStatusChanged(updatedEntry: Entry) {
+function onStatusChanged() {
     // Recarregar todas as entradas para garantir que os dados estejam atualizados
     loadEntries();
     entryMessage.value = 'Status atualizado com sucesso!';
@@ -289,7 +290,7 @@ watch([message, error, entryMessage, entryError], () => {
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">Visão geral e acesso rápido às seções principais</p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Gerencie pacientes e entradas de forma eficiente</p>
                 </div>
 
                 <div class="flex gap-2">
@@ -372,111 +373,123 @@ watch([message, error, entryMessage, entryError], () => {
                 {{ entryError }}
             </div>
 
-            <!-- Dashboard Overview Cards -->
-            <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                <!-- Active Entries Card -->
-                <Card class="cursor-pointer transition-shadow hover:shadow-lg" @click="$inertia.visit('/entries/active')">
-                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="text-sm font-medium">Entradas Ativas</CardTitle>
-                        <svg class="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                            ></path>
-                        </svg>
-                    </CardHeader>
-                    <CardContent>
-                        <div class="text-2xl font-bold">
-                            {{ entries.filter((e) => !e.current_status || !['completed', 'cancelled'].includes(e.current_status.slug)).length }}
-                        </div>
-                        <p class="text-xs text-muted-foreground">Entradas não concluídas</p>
-                        <div class="mt-4">
-                            <Button variant="outline" class="w-full">
-                                Ver Entradas Ativas
-                                <svg class="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                                </svg>
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
+            <!-- Entries Section -->
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Entradas Ativas ({{ entries.length }})</h2>
+                </div>
 
-                <!-- Scheduled Entries Card -->
-                <Card class="cursor-pointer transition-shadow hover:shadow-lg" @click="$inertia.visit('/entries/scheduled')">
-                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="text-sm font-medium">Entradas Agendadas</CardTitle>
-                        <svg class="h-4 w-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0h6m-6 0l-.5 5m6.5-5l.5 5M12 9v12"
-                            ></path>
-                        </svg>
-                    </CardHeader>
-                    <CardContent>
-                        <div class="text-2xl font-bold">{{ entries.filter((e) => e.scheduled_exam_date).length }}</div>
-                        <p class="text-xs text-muted-foreground">Com data agendada</p>
-                        <div class="mt-4">
-                            <Button variant="outline" class="w-full">
-                                Ver Entradas Agendadas
-                                <svg class="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                <div class="flex gap-2">
+                    <Dialog v-model:open="isFilterDialogOpen">
+                        <DialogTrigger as-child>
+                            <Button @click="openFilterDialog" variant="outline">
+                                <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z"
+                                    />
                                 </svg>
+                                Filtros
+                                <span v-if="hasActiveFilters()" class="ml-1 h-2 w-2 rounded-full bg-blue-500"></span>
                             </Button>
-                        </div>
-                    </CardContent>
-                </Card>
+                        </DialogTrigger>
 
-                <!-- Completed Entries Card -->
-                <Card class="cursor-pointer transition-shadow hover:shadow-lg" @click="$inertia.visit('/entries/completed')">
-                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="text-sm font-medium">Entradas Concluídas</CardTitle>
-                        <svg class="h-4 w-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <DialogContent class="sm:max-w-md">
+                            <DialogHeader>
+                                <DialogTitle>Filtrar Entradas</DialogTitle>
+                            </DialogHeader>
+
+                            <div class="grid gap-4 py-4">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Data Inicial</label>
+                                        <Input type="date" v-model="tempFilters.date_from" class="mt-1" />
+                                    </div>
+                                    <div>
+                                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Data Final</label>
+                                        <Input type="date" v-model="tempFilters.date_to" class="mt-1" />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Nome do Paciente</label>
+                                    <Input type="text" v-model="tempFilters.patient_name" placeholder="Buscar por nome do paciente..." class="mt-1" />
+                                </div>
+
+                                <div>
+                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">ID da Entrada</label>
+                                    <Input type="text" v-model="tempFilters.entry_id" placeholder="Digite o ID específico..." class="mt-1" />
+                                </div>
+
+                                <div>
+                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Limite de Resultados</label>
+                                    <Select v-model="tempFilters.limit" class="mt-1">
+                                        <option v-for="option in limitOptions" :key="option" :value="option">{{ option }} entradas</option>
+                                    </Select>
+                                </div>
+                            </div>
+
+                            <DialogFooter>
+                                <Button variant="outline" @click="clearFilters"> Limpar Tudo </Button>
+                                <Button @click="applyFilters"> Aplicar Filtros </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+
+                    <Button @click="loadEntries" variant="outline" :disabled="entryLoading">
+                        <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
                                 stroke-width="2"
-                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                            ></path>
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                            />
                         </svg>
-                    </CardHeader>
-                    <CardContent>
-                        <div class="text-2xl font-bold">
-                            {{ entries.filter((e) => e.current_status && ['completed', 'cancelled'].includes(e.current_status.slug)).length }}
-                        </div>
-                        <p class="text-xs text-muted-foreground">Finalizadas</p>
-                        <div class="mt-4">
-                            <Button variant="outline" class="w-full">
-                                Ver Entradas Concluídas
-                                <svg class="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                                </svg>
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
+                        Atualizar
+                    </Button>
+                </div>
             </div>
 
-            <!-- Recent Entries Section -->
+            <!-- Active Filters Display -->
+            <div v-if="hasActiveFilters()" class="flex flex-wrap gap-2">
+                <span class="text-sm text-gray-600 dark:text-gray-400">Filtros ativos:</span>
+                <span
+                    v-if="filters.date_from"
+                    class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                >
+                    De: {{ filters.date_from }}
+                </span>
+                <span
+                    v-if="filters.date_to"
+                    class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                >
+                    Até: {{ filters.date_to }}
+                </span>
+                <span
+                    v-if="filters.patient_name"
+                    class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                >
+                    Paciente: {{ filters.patient_name }}
+                </span>
+                <span
+                    v-if="filters.entry_id"
+                    class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                >
+                    ID: {{ filters.entry_id }}
+                </span>
+                <span
+                    class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+                >
+                    Limite: {{ filters.limit }}
+                </span>
+            </div>
+
+            <!-- Entries Table -->
             <Card>
                 <CardHeader>
-                    <CardTitle class="flex items-center justify-between">
-                        <span>Entradas Recentes</span>
-                        <Button @click="loadEntries" variant="outline" size="sm" :disabled="entryLoading">
-                            <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                                ></path>
-                            </svg>
-                            Atualizar
-                        </Button>
-                    </CardTitle>
+                    <CardTitle>Entradas Ativas</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div v-if="entryLoading" class="flex items-center justify-center py-12">
@@ -490,50 +503,110 @@ watch([message, error, entryMessage, entryError], () => {
                                 stroke-linejoin="round"
                                 stroke-width="2"
                                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                            ></path>
+                            />
                         </svg>
                         <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">Nenhuma entrada encontrada</h3>
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Crie sua primeira entrada.</p>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Crie sua primeira entrada ou ajuste seus filtros.</p>
                     </div>
 
-                    <div v-else class="space-y-4">
-                        <div
-                            v-for="entry in entries.slice(0, 5)"
-                            :key="entry.id"
-                            class="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800"
-                        >
-                            <div class="flex-1">
-                                <div class="flex items-center gap-3">
-                                    <button
-                                        @click="showEntryInfo(entry)"
-                                        class="font-mono text-xs text-blue-600 underline hover:text-blue-800 dark:text-blue-400"
-                                    >
-                                        {{ entry.id }}
-                                    </button>
-                                    <span class="text-sm font-medium">{{ entry.patient?.name || 'Paciente Desconhecido' }}</span>
-                                    <span :class="['rounded-full px-2 py-1 text-xs', getStatusColorClass(entry)]">
-                                        {{ getStatusText(entry) }}
-                                    </span>
-                                </div>
-                                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">{{ entry.title }}</p>
-                                <div class="mt-2 flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
-                                    <span>{{ formatDate(entry.created_at) }}</span>
-                                    <span v-if="entry.scheduled_exam_date">Agendado: {{ formatDate(entry.scheduled_exam_date) }}</span>
-                                </div>
-                            </div>
-                            <div class="flex gap-2">
-                                <StatusTransitionDropdown :entry="entry" @status-changed="onStatusChanged" @error="onStatusError" size="sm" />
-                            </div>
-                        </div>
+                    <div v-else class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+                            <thead class="bg-gray-50 dark:bg-gray-700">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
+                                        ID
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
+                                        Paciente
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
+                                        Título
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
+                                        Data de Criação
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
+                                        Criado Por
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
+                                        Status
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
+                                        Ações
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-600 dark:bg-gray-800">
+                                <tr v-for="entry in entries" :key="entry.id" class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
+                                        <button
+                                            @click="showEntryInfo(entry)"
+                                            class="cursor-pointer font-mono text-xs text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                            :title="'Clique para ver detalhes da entrada'"
+                                        >
+                                            {{ entry.id }}
+                                        </button>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
+                                        <div class="flex flex-col">
+                                            <span class="font-medium">{{ entry.patient?.name || 'Paciente Desconhecido' }}</span>
+                                            <span v-if="entry.patient?.email" class="text-xs text-gray-500 dark:text-gray-400">
+                                                {{ entry.patient.email }}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+                                        <p class="max-w-xs truncate text-left">
+                                            {{ entry.title }}
+                                        </p>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
+                                        {{ formatDate(entry.created_at) }}
+                                    </td>
+                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
+                                        {{
+                                            typeof entry.created_by === 'object' && entry.created_by && 'name' in entry.created_by
+                                                ? entry.created_by.name
+                                                : entry.createdBy?.name || 'Desconhecido'
+                                        }}
+                                    </td>
+                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
+                                        <div class="flex flex-col gap-1">
+                                            <span :class="['text-xs font-medium', getStatusColorClass(entry)]">
+                                                {{ getStatusText(entry) }}
+                                            </span>
+                                            <div v-if="entry.scheduled_exam_date" class="text-xs text-gray-500 dark:text-gray-400">
+                                                {{ formatDate(entry.scheduled_exam_date) }}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm whitespace-nowrap">
+                                        <div class="flex gap-2">
+                                            <!-- Status Transition Dropdown -->
+                                            <StatusTransitionDropdown
+                                                :entry="entry"
+                                                @status-changed="onStatusChanged"
+                                                @error="onStatusError"
+                                                size="sm"
+                                            />
 
-                        <div v-if="entries.length > 5" class="border-t pt-4 text-center">
-                            <p class="text-sm text-gray-500 dark:text-gray-400">
-                                Mostrando 5 de {{ entries.length }} entradas.
-                                <button @click="$inertia.visit('/entries/active')" class="text-blue-600 underline hover:text-blue-800">
-                                    Ver todas
-                                </button>
-                            </p>
-                        </div>
+                                            <!-- Delete Button -->
+                                            <Button size="sm" variant="destructive" @click="deleteEntry(entry.id)" :disabled="entryLoading">
+                                                <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                                    />
+                                                </svg>
+                                                Excluir
+                                            </Button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </CardContent>
             </Card>

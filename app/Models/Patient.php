@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Notifications\Notifiable;
 use App\Models\User;
+use Symfony\Component\Uid\Uuid;
 
 /**
  * @property Uuid $id

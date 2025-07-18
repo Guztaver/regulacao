@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { useTranslations } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem, type Entry, type Patient } from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
 import axios from 'axios';
 import { onMounted, reactive, ref } from 'vue';
@@ -16,23 +16,8 @@ interface Props {
     patientId: string;
 }
 
-interface User {
-    id: number;
-    name: string;
-    email: string;
-}
-
-interface Patient {
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
-    sus_number?: string;
-    documents_count?: number;
-    entries_count?: number;
-    created_at?: string;
-    updated_at?: string;
-    created_by?: User;
+interface PatientViewEntry extends Entry {
+    completed: boolean;
 }
 
 interface PatientDocument {
@@ -49,16 +34,6 @@ interface PatientDocument {
     is_image: boolean;
     is_pdf: boolean;
     created_at: string;
-}
-
-interface Entry {
-    id: string;
-    patient_id: string;
-    title: string;
-    completed: boolean;
-    created_at: string;
-    patient?: Patient;
-    created_by?: User;
 }
 
 interface DocumentType {
@@ -86,7 +61,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const patient = ref<Patient | null>(null);
 const documents = ref<PatientDocument[]>([]);
-const entries = ref<Entry[]>([]);
+const entries = ref<PatientViewEntry[]>([]);
 const documentTypes = ref<DocumentType>({});
 const summary = ref({
     total_documents: 0,
@@ -103,7 +78,7 @@ const editingPatient = reactive({
 });
 
 const isEntryInfoModalOpen = ref(false);
-const selectedEntry = ref<Entry | null>(null);
+const selectedEntry = ref<PatientViewEntry | null>(null);
 
 const newDocument = reactive({
     file: null as File | null,
@@ -135,8 +110,8 @@ function loadPatient() {
             // Populate edit form
             if (patient.value) {
                 editingPatient.name = patient.value.name;
-                editingPatient.email = patient.value.email;
-                editingPatient.phone = patient.value.phone;
+                editingPatient.email = patient.value.email || '';
+                editingPatient.phone = patient.value.phone || '';
                 editingPatient.sus_number = patient.value.sus_number || '';
             }
         })
@@ -309,9 +284,17 @@ function formatDate(dateString: string | undefined): string {
     });
 }
 
-function showEntryInfo(entry: Entry): void {
+function showEntryInfo(entry: PatientViewEntry): void {
     selectedEntry.value = entry;
     isEntryInfoModalOpen.value = true;
+}
+
+function getPatientCreatorName(patient: Patient | null): string {
+    if (!patient) return 'Unknown';
+    if (typeof patient.created_by === 'object' && patient.created_by?.name) {
+        return patient.created_by.name;
+    }
+    return 'Unknown';
 }
 
 function formatSusNumber(susNumber: string | undefined): string {
@@ -529,7 +512,7 @@ onMounted(() => {
                                 </div>
                                 <div>
                                     <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Added By</p>
-                                    <p>{{ patient?.created_by?.name || 'Unknown' }}</p>
+                                    <p>{{ getPatientCreatorName(patient) }}</p>
                                 </div>
                             </div>
                         </CardContent>

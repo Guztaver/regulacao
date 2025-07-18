@@ -6,7 +6,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { useTranslations } from '@/composables/useTranslations';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { Calendar, CheckCircle, Clock, Folder, LayoutGrid, Users } from 'lucide-vue-next';
+import { Calendar, CheckCircle, Clock, FileText, Folder, LayoutGrid, Users } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const { t } = useTranslations();
@@ -18,24 +18,31 @@ const mainNavItems: NavItem[] = [
         icon: LayoutGrid,
     },
     {
-        title: 'Entradas Ativas',
+        title: 'Entradas',
         href: '/entries/active',
-        icon: Clock,
-    },
-    {
-        title: 'Entradas Agendadas',
-        href: '/entries/scheduled',
-        icon: Calendar,
+        icon: FileText,
+        items: [
+            {
+                title: 'Entradas Ativas',
+                href: '/entries/active',
+                icon: Clock,
+            },
+            {
+                title: 'Entradas Agendadas',
+                href: '/entries/scheduled',
+                icon: Calendar,
+            },
+            {
+                title: t.completedEntries,
+                href: '/entries/completed',
+                icon: CheckCircle,
+            },
+        ],
     },
     {
         title: t.patients,
         href: '/patients',
         icon: Users,
-    },
-    {
-        title: t.completedEntries,
-        href: '/entries/completed',
-        icon: CheckCircle,
     },
 ];
 

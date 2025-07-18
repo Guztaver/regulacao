@@ -165,3 +165,70 @@
         @apply bg-background text-foreground;
     }
 }
+
+@layer components {
+    /* Sidebar menu animations */
+    .sidebar-menu-item {
+        @apply transition-all duration-200 ease-in-out;
+    }
+
+    .sidebar-menu-item:hover {
+        @apply scale-105 transform;
+    }
+
+    /* Arrow rotation for sidebar */
+    .sidebar-arrow {
+        @apply transition-transform duration-300 ease-in-out;
+    }
+
+    /* When sidebar is collapsed, arrow should point down */
+    .group[data-collapsible='icon'] .sidebar-arrow {
+        @apply rotate-90;
+    }
+
+    /* When submenu is open, arrow should point down */
+    .group[data-state='open'] .sidebar-arrow {
+        @apply rotate-90;
+    }
+
+    /* Submenu slide animations */
+    .sidebar-submenu {
+        @apply transition-all duration-300 ease-in-out;
+    }
+
+    .sidebar-submenu[data-state='open'] {
+        @apply animate-in duration-300 slide-in-from-top-1;
+    }
+
+    .sidebar-submenu[data-state='closed'] {
+        @apply animate-out duration-300 slide-out-to-top-1;
+    }
+
+    /* Submenu item hover animations */
+    .sidebar-submenu-item {
+        @apply transition-all duration-200 ease-in-out;
+    }
+
+    .sidebar-submenu-item:hover {
+        @apply translate-x-1 bg-sidebar-accent text-sidebar-accent-foreground;
+    }
+
+    /* Icon scaling on hover */
+    .sidebar-icon {
+        @apply transition-transform duration-200 ease-in-out;
+    }
+
+    .sidebar-menu-item:hover .sidebar-icon {
+        @apply scale-110;
+    }
+
+    /* Pulse animation for active items */
+    .sidebar-active-item {
+        @apply bg-sidebar-accent text-sidebar-accent-foreground;
+    }
+
+    .sidebar-active-item::before {
+        content: '';
+        @apply absolute top-0 left-0 h-full w-1 animate-pulse bg-sidebar-primary;
+    }
+}

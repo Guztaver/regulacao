@@ -112,7 +112,37 @@
                         @if($transition->metadata && count($transition->metadata) > 0)
                             <strong>Dados adicionais:</strong>
                             @foreach($transition->metadata as $key => $value)
-                                {{ $key }}: {{ is_array($value) ? json_encode($value) : $value }}@if(!$loop->last), @endif
+                                @switch($key)
+                                    @case('title')
+                                        Título: {{ is_array($value) ? json_encode($value) : $value }}@if(!$loop->last), @endif
+                                        @break
+                                    @case('scheduled_date')
+                                        Data agendada: {{ is_array($value) ? json_encode($value) : $value }}@if(!$loop->last), @endif
+                                        @break
+                                    @case('changes')
+                                        Alterações: {{ is_array($value) ? json_encode($value) : $value }}@if(!$loop->last), @endif
+                                        @break
+                                    @case('migrated_from_boolean_fields')
+                                        Migrado de campos booleanos: {{ is_array($value) ? json_encode($value) : ($value ? 'Sim' : 'Não') }}@if(!$loop->last), @endif
+                                        @break
+                                    @case('notes')
+                                        Observações: {{ is_array($value) ? json_encode($value) : $value }}@if(!$loop->last), @endif
+                                        @break
+                                    @case('priority')
+                                        Prioridade: {{ is_array($value) ? json_encode($value) : $value }}@if(!$loop->last), @endif
+                                        @break
+                                    @case('location')
+                                        Local: {{ is_array($value) ? json_encode($value) : $value }}@if(!$loop->last), @endif
+                                        @break
+                                    @case('doctor')
+                                        Médico: {{ is_array($value) ? json_encode($value) : $value }}@if(!$loop->last), @endif
+                                        @break
+                                    @case('reason')
+                                        Motivo: {{ is_array($value) ? json_encode($value) : $value }}@if(!$loop->last), @endif
+                                        @break
+                                    @default
+                                        {{ $key }}: {{ is_array($value) ? json_encode($value) : $value }}@if(!$loop->last), @endif
+                                @endswitch
                             @endforeach
                         @endif
                     </div>
@@ -159,7 +189,30 @@
                     <small>{{ $timelineItem->performed_at ? \Carbon\Carbon::parse($timelineItem->performed_at)->format('H:i') : $timelineItem->created_at->format('H:i') }}</small>
                 </div>
                 <div class="timeline-content">
-                    <div class="timeline-title">{{ $timelineItem->action }}</div>
+                    <div class="timeline-title">
+                        @switch($timelineItem->action)
+                            @case('created')
+                                Criado
+                                @break
+                            @case('completed')
+                                Concluído
+                                @break
+                            @case('exam_scheduled')
+                                Exame Agendado
+                                @break
+                            @case('exam_ready')
+                                Exame Pronto
+                                @break
+                            @case('updated')
+                                Atualizado
+                                @break
+                            @case('deleted')
+                                Excluído
+                                @break
+                            @default
+                                {{ ucfirst($timelineItem->action) }}
+                        @endswitch
+                    </div>
                     <div class="timeline-description">
                         @if($timelineItem->description)
                             {{ $timelineItem->description }}<br>
@@ -170,7 +223,37 @@
                         @if($timelineItem->metadata && count($timelineItem->metadata) > 0)
                             <strong>Dados:</strong>
                             @foreach($timelineItem->metadata as $key => $value)
-                                {{ $key }}: {{ is_array($value) ? json_encode($value) : $value }}@if(!$loop->last), @endif
+                                @switch($key)
+                                    @case('title')
+                                        Título: {{ is_array($value) ? json_encode($value) : $value }}@if(!$loop->last), @endif
+                                        @break
+                                    @case('scheduled_date')
+                                        Data agendada: {{ is_array($value) ? json_encode($value) : $value }}@if(!$loop->last), @endif
+                                        @break
+                                    @case('changes')
+                                        Alterações: {{ is_array($value) ? json_encode($value) : $value }}@if(!$loop->last), @endif
+                                        @break
+                                    @case('migrated_from_boolean_fields')
+                                        Migrado de campos booleanos: {{ is_array($value) ? json_encode($value) : ($value ? 'Sim' : 'Não') }}@if(!$loop->last), @endif
+                                        @break
+                                    @case('notes')
+                                        Observações: {{ is_array($value) ? json_encode($value) : $value }}@if(!$loop->last), @endif
+                                        @break
+                                    @case('priority')
+                                        Prioridade: {{ is_array($value) ? json_encode($value) : $value }}@if(!$loop->last), @endif
+                                        @break
+                                    @case('location')
+                                        Local: {{ is_array($value) ? json_encode($value) : $value }}@if(!$loop->last), @endif
+                                        @break
+                                    @case('doctor')
+                                        Médico: {{ is_array($value) ? json_encode($value) : $value }}@if(!$loop->last), @endif
+                                        @break
+                                    @case('reason')
+                                        Motivo: {{ is_array($value) ? json_encode($value) : $value }}@if(!$loop->last), @endif
+                                        @break
+                                    @default
+                                        {{ $key }}: {{ is_array($value) ? json_encode($value) : $value }}@if(!$loop->last), @endif
+                                @endswitch
                             @endforeach
                         @endif
                     </div>

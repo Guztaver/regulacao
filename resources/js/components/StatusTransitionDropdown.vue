@@ -62,6 +62,8 @@ async function loadNextStatuses() {
     console.log('StatusTransitionDropdown: Loading next statuses for entry', {
         entryId: props.entry.id,
         currentStatus: props.entry.current_status?.slug,
+        currentStatusIsFinal: props.entry.current_status?.is_final,
+        currentStatusName: props.entry.current_status?.name,
     });
 
     try {
@@ -71,10 +73,24 @@ async function loadNextStatuses() {
 
         console.log('StatusTransitionDropdown: Next statuses loaded', {
             count: nextStatuses.value.length,
-            statuses: nextStatuses.value.map((s) => ({ id: s.id, slug: s.slug, name: s.name })),
+            statuses: nextStatuses.value.map((s) => ({ id: s.id, slug: s.slug, name: s.name, is_final: s.is_final })),
+            rawResponse: response,
         });
+
+        if (nextStatuses.value.length === 0) {
+            console.warn('StatusTransitionDropdown: No next statuses available', {
+                currentStatus: props.entry.current_status,
+                entryId: props.entry.id,
+            });
+        }
     } catch (error) {
         console.error('StatusTransitionDropdown: Failed to load next statuses:', error);
+        console.error('StatusTransitionDropdown: Error details:', {
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            data: error.response?.data,
+            url: error.config?.url,
+        });
         emit('error', handleApiError(error));
     } finally {
         isLoading.value = false;
@@ -218,8 +234,12 @@ onMounted(() => {
             class="ring-opacity-5 absolute right-0 z-50 mt-2 w-64 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black focus:outline-none"
         >
             <div v-if="!showReasonInput" class="py-1">
-                <div v-if="nextStatuses.length === 0 && !isLoading" class="px-4 py-2 text-sm text-gray-500">
-                    Nenhuma transição de status disponível
+                <div v-if="nextStatuses.length === 0 && !isLoading" class="px-4 py-2">
+                    <div class="mb-2 text-sm text-gray-500">Nenhuma transição de status disponível</div>
+                    <div v-if="props.entry.current_status" class="text-xs text-gray-400">
+                        Status atual: {{ props.entry.current_status.name }}
+                        <span v-if="props.entry.current_status.is_final" class="text-orange-500">(Final)</span>
+                    </div>
                 </div>
 
                 <button

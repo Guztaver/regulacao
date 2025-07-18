@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class EntryStatus extends Model
@@ -118,19 +120,28 @@ class EntryStatus extends Model
      */
     public function canTransitionTo(EntryStatus $toStatus): bool
     {
-        // If current status is final, no transitions allowed
-        if ($this->is_final) {
-            return false;
-        }
-
         // Define allowed transitions
         $allowedTransitions = [
             'pending' => ['exam_scheduled', 'completed', 'cancelled'],
             'exam_scheduled' => ['exam_ready', 'completed', 'cancelled'],
             'exam_ready' => ['completed', 'cancelled'],
+            // Allow transitions from final statuses back to active states
+            'completed' => ['pending', 'exam_scheduled', 'exam_ready', 'cancelled'],
+            'cancelled' => ['pending', 'exam_scheduled', 'exam_ready', 'completed'],
         ];
 
-        return in_array($toStatus->slug, $allowedTransitions[$this->slug] ?? []);
+        $canTransition = in_array($toStatus->slug, $allowedTransitions[$this->slug] ?? []);
+
+        // Only log when transition is not allowed for debugging
+        if (!$canTransition) {
+            Log::warning('Status transition not allowed', [
+                'from_status' => $this->slug,
+                'to_status' => $toStatus->slug,
+                'allowed_transitions' => $allowedTransitions[$this->slug] ?? [],
+            ]);
+        }
+
+        return $canTransition;
     }
 
     /**
@@ -138,19 +149,28 @@ class EntryStatus extends Model
      */
     public function getNextStatuses(): \Illuminate\Database\Eloquent\Collection
     {
-        if ($this->is_final) {
-            return new \Illuminate\Database\Eloquent\Collection();
-        }
-
         $allowedTransitions = [
             'pending' => ['exam_scheduled', 'completed', 'cancelled'],
             'exam_scheduled' => ['exam_ready', 'completed', 'cancelled'],
             'exam_ready' => ['completed', 'cancelled'],
+            // Allow transitions from final statuses back to active states
+            'completed' => ['pending', 'exam_scheduled', 'exam_ready', 'cancelled'],
+            'cancelled' => ['pending', 'exam_scheduled', 'exam_ready', 'completed'],
         ];
 
         $allowedSlugs = $allowedTransitions[$this->slug] ?? [];
+        $nextStatuses = static::whereIn('slug', $allowedSlugs)->active()->ordered()->get();
 
-        return static::whereIn('slug', $allowedSlugs)->active()->ordered()->get();
+        // Only log when no next statuses are found for debugging
+        if ($nextStatuses->isEmpty()) {
+            Log::debug('No next statuses available', [
+                'current_status' => $this->slug,
+                'current_status_is_final' => $this->is_final,
+                'allowed_slugs' => $allowedSlugs,
+            ]);
+        }
+
+        return $nextStatuses;
     }
 
     /**

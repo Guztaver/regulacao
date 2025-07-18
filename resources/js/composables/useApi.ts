@@ -29,7 +29,10 @@ export function useApi() {
         await initializeCsrf();
 
         const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
-        const response: AxiosResponse<T> = await axios.get(`${url}${queryString}`);
+        const fullUrl = `${url}${queryString}`;
+
+        const response: AxiosResponse<T> = await axios.get(fullUrl);
+
         return response.data;
     }
 
@@ -50,6 +53,7 @@ export function useApi() {
         await initializeCsrf();
 
         const response: AxiosResponse<T> = await axios.put(url, data);
+
         return response.data;
     }
 
@@ -197,8 +201,11 @@ export function useEntryApi() {
         /**
          * Schedule an exam for an entry (legacy)
          */
-        scheduleExam: (id: string, examScheduledDate: string) =>
-            api.put(`/api/entries/${id}/schedule-exam`, { exam_scheduled_date: examScheduledDate }),
+        scheduleExam: (id: string, examScheduledDate: string, reason?: string) =>
+            api.put(`/api/entries/${id}/schedule-exam`, {
+                exam_scheduled_date: examScheduledDate,
+                reason,
+            }),
 
         /**
          * Mark an exam as ready (legacy)

@@ -204,13 +204,21 @@ class EntryController extends Controller
 
         $validatedData = $request->validate([
             'exam_scheduled_date' => 'required|date|after_or_equal:today',
+            'reason' => 'nullable|string|max:500',
         ]);
 
         $entry = Entry::findOrFail($id);
 
         try {
-            $entry->scheduleExam($validatedData['exam_scheduled_date']);
-            return response()->json(['message' => 'Exam scheduled successfully'], JsonResponse::HTTP_OK);
+            $entry->scheduleExam(
+                $validatedData['exam_scheduled_date'],
+                $validatedData['reason'] ?? 'Exam scheduled'
+            );
+
+            return response()->json([
+                'message' => 'Exam scheduled successfully',
+                'entry' => $entry->fresh(['currentStatus', 'patient'])
+            ], JsonResponse::HTTP_OK);
         } catch (\InvalidArgumentException $e) {
             return response()->json(['error' => $e->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
         }

@@ -277,6 +277,68 @@ export function useDocumentApi() {
 }
 
 /**
+ * API endpoints for entry documents
+ */
+export function useEntryDocumentApi() {
+    const api = useApi();
+
+    return {
+        /**
+         * Get all documents for an entry
+         */
+        getEntryDocuments: (entryId: string) => api.get(`/api/entries/${entryId}/documents`),
+
+        /**
+         * Get a specific entry document
+         */
+        getEntryDocument: (entryId: string, documentId: string) => api.get(`/api/entries/${entryId}/documents/${documentId}`),
+
+        /**
+         * Upload a new document for an entry
+         */
+        uploadEntryDocument: async (entryId: string, file: File, documentType: string, description?: string) => {
+            await initializeCsrf();
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('document_type', documentType);
+            if (description) {
+                formData.append('description', description);
+            }
+
+            const response = await axios.post(`/api/entries/${entryId}/documents`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            return response.data;
+        },
+
+        /**
+         * Delete an entry document
+         */
+        deleteEntryDocument: (entryId: string, documentId: string) => api.delete(`/api/entries/${entryId}/documents/${documentId}`),
+
+        /**
+         * Get entry document types
+         */
+        getEntryDocumentTypes: () => api.get('/api/entry-documents/types'),
+
+        /**
+         * Download an entry document
+         */
+        downloadEntryDocument: async (entryId: string, documentId: string) => {
+            await initializeCsrf();
+
+            const response = await axios.get(`/api/entries/${entryId}/documents/${documentId}/download`, {
+                responseType: 'blob',
+            });
+            return response;
+        },
+    };
+}
+
+/**
  * Error handling utility
  */
 export function handleApiError(error: any): string {

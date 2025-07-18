@@ -31,6 +31,12 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->command->info('✅ Test user created: test@example.com');
+
+        // Run additional seeders
+        $this->call([
+            EntryDocumentSeeder::class,
+        ]);
+
         $this->command->warn('⚠️  Remember: This is test data only!');
     }
 }

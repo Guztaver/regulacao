@@ -93,6 +93,26 @@ export interface EntryStatusTransition {
     notes?: string;
 }
 
+export interface EntryDocument {
+    id: string;
+    entry_id: string;
+    original_name: string;
+    file_name: string;
+    file_path: string;
+    mime_type: string;
+    file_size: number;
+    formatted_file_size: string;
+    document_type: string;
+    document_type_label: string;
+    description?: string;
+    url: string;
+    is_image: boolean;
+    is_pdf: boolean;
+    created_at: string;
+    updated_at: string;
+    entry?: Entry;
+}
+
 export interface Entry {
     id: string;
     patient_id: string;
@@ -108,6 +128,8 @@ export interface Entry {
     status_transitions?: EntryStatusTransition[];
     scheduled_exam_date?: string;
     next_statuses?: EntryStatus[];
+    documents?: EntryDocument[];
+    documents_count?: number;
 
     // Legacy properties for backward compatibility
     completed?: boolean;

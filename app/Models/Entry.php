@@ -72,6 +72,13 @@ class Entry extends Model
         'scheduled_exam_date',
     ];
 
+    /**
+     * The relationships that should always be loaded.
+     *
+     * @var array<string>
+     */
+    protected $with = [];
+
     public $timestamps = true;
 
     public function patient(): BelongsTo
@@ -97,6 +104,11 @@ class Entry extends Model
     public function statusTransitions(): HasMany
     {
         return $this->hasMany(EntryStatusTransition::class)->with(['fromStatus', 'toStatus', 'user'])->latest();
+    }
+
+    public function documents(): HasMany
+    {
+        return $this->hasMany(EntryDocument::class);
     }
 
     public function latestTransition(): \Illuminate\Database\Eloquent\Relations\HasOne

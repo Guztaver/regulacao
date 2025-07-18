@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { handleApiError, useEntryDocumentApi } from '@/composables/useApi';
 import { useTranslations } from '@/composables/useTranslations';
-import type { Entry } from '@/types';
-import { onMounted, onUnmounted, watch } from 'vue';
+import type { Entry, EntryDocument } from '@/types';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import StatusBadge from './StatusBadge.vue';
 import Timeline from './Timeline.vue';
 
@@ -16,6 +19,23 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useTranslations();
+
+// Document upload state
+const documentApi = useEntryDocumentApi();
+const isUploading = ref(false);
+const uploadError = ref('');
+const uploadSuccess = ref('');
+const fileInput = ref<HTMLInputElement>();
+const selectedFile = ref<File>();
+const documentType = ref('');
+const documentDescription = ref('');
+const documentTypes = ref<Record<string, string>>({});
+const entryDocuments = ref<EntryDocument[]>([]);
+const showDocumentUpload = ref(false);
+
+// Computed properties
+const hasDocuments = computed(() => entryDocuments.value.length > 0);
+const canUpload = computed(() => selectedFile.value && documentType.value);
 
 function formatDate(dateString?: string): string {
     if (!dateString) return 'N/A';
@@ -69,6 +89,128 @@ onUnmounted(() => {
     document.removeEventListener('keydown', handleEscapeKey);
     // Ensure body scroll is restored when component unmounts
     document.body.style.overflow = '';
+});
+
+// Document management functions
+async function loadDocumentTypes() {
+    try {
+        const response = await documentApi.getEntryDocumentTypes();
+        documentTypes.value = response.document_types;
+    } catch (error) {
+        console.error('Failed to load document types:', error);
+    }
+}
+
+async function loadEntryDocuments() {
+    if (!props.entry?.id) return;
+
+    try {
+        const response = await documentApi.getEntryDocuments(props.entry.id);
+        entryDocuments.value = response.documents;
+    } catch (error) {
+        console.error('Failed to load entry documents:', error);
+    }
+}
+
+function handleFileSelect(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+        selectedFile.value = input.files[0];
+        uploadError.value = '';
+        uploadSuccess.value = '';
+    }
+}
+
+function resetUploadForm() {
+    selectedFile.value = undefined;
+    documentType.value = '';
+    documentDescription.value = '';
+    uploadError.value = '';
+    uploadSuccess.value = '';
+    if (fileInput.value) {
+        fileInput.value.value = '';
+    }
+}
+
+async function uploadDocument() {
+    if (!props.entry?.id || !selectedFile.value || !documentType.value) return;
+
+    isUploading.value = true;
+    uploadError.value = '';
+    uploadSuccess.value = '';
+
+    try {
+        await documentApi.uploadEntryDocument(props.entry.id, selectedFile.value, documentType.value, documentDescription.value);
+
+        uploadSuccess.value = 'Documento enviado com sucesso!';
+        resetUploadForm();
+        await loadEntryDocuments();
+
+        // Auto-hide success message after 3 seconds
+        setTimeout(() => {
+            uploadSuccess.value = '';
+        }, 3000);
+    } catch (error) {
+        uploadError.value = handleApiError(error);
+    } finally {
+        isUploading.value = false;
+    }
+}
+
+async function deleteDocument(documentId: string) {
+    if (!props.entry?.id) return;
+
+    if (!confirm('Tem certeza que deseja excluir este documento?')) return;
+
+    try {
+        await documentApi.deleteEntryDocument(props.entry.id, documentId);
+        await loadEntryDocuments();
+    } catch (error) {
+        console.error('Failed to delete document:', error);
+    }
+}
+
+async function downloadDocument(documentId: string, fileName: string) {
+    if (!props.entry?.id) return;
+
+    try {
+        const response = await documentApi.downloadEntryDocument(props.entry.id, documentId);
+        const blob = new Blob([response.data]);
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+    } catch (error) {
+        console.error('Failed to download document:', error);
+    }
+}
+
+function formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// Watch for entry changes to load documents
+watch(
+    () => props.entry?.id,
+    async (newEntryId) => {
+        if (newEntryId) {
+            await loadEntryDocuments();
+        }
+    },
+    { immediate: true },
+);
+
+// Load document types on component mount
+onMounted(async () => {
+    await loadDocumentTypes();
 });
 </script>
 
@@ -295,6 +437,227 @@ onUnmounted(() => {
                                 />
                             </svg>
                             <p class="mt-2">Nenhum histórico de status disponível</p>
+                        </div>
+                    </div>
+
+                    <!-- Documents Section -->
+                    <div class="rounded-lg bg-amber-50 p-6 dark:bg-amber-900/20">
+                        <div class="mb-4 flex items-center justify-between">
+                            <h4 class="flex items-center gap-2 text-lg font-medium text-gray-700 dark:text-gray-300">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                                    />
+                                </svg>
+                                Documentos
+                                <span
+                                    v-if="hasDocuments"
+                                    class="rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800 dark:bg-amber-800 dark:text-amber-200"
+                                >
+                                    {{ entryDocuments.length }}
+                                </span>
+                            </h4>
+                            <Button @click="showDocumentUpload = !showDocumentUpload" variant="outline" size="sm" class="gap-2">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                                    />
+                                </svg>
+                                {{ showDocumentUpload ? 'Cancelar' : 'Enviar Documento' }}
+                            </Button>
+                        </div>
+
+                        <!-- Document Upload Form -->
+                        <div
+                            v-if="showDocumentUpload"
+                            class="mb-6 rounded-lg border border-amber-200 bg-white p-4 dark:border-amber-700 dark:bg-gray-800"
+                        >
+                            <h5 class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">Enviar Novo Documento</h5>
+
+                            <!-- File Input -->
+                            <div class="mb-4">
+                                <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"> Arquivo </label>
+                                <Input
+                                    ref="fileInput"
+                                    type="file"
+                                    @change="handleFileSelect"
+                                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
+                                    class="cursor-pointer"
+                                />
+                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                    Formatos aceitos: PDF, DOC, DOCX, JPG, PNG, TXT (máximo 10MB)
+                                </p>
+                            </div>
+
+                            <!-- Document Type -->
+                            <div class="mb-4">
+                                <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"> Tipo de Documento </label>
+                                <select
+                                    v-model="documentType"
+                                    class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                >
+                                    <option value="">Selecione um tipo</option>
+                                    <option v-for="(label, value) in documentTypes" :key="value" :value="value">
+                                        {{ label }}
+                                    </option>
+                                </select>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="mb-4">
+                                <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"> Descrição (opcional) </label>
+                                <Input v-model="documentDescription" placeholder="Descrição do documento..." class="w-full" />
+                            </div>
+
+                            <!-- Upload Actions -->
+                            <div class="flex flex-col gap-2">
+                                <div class="flex gap-2">
+                                    <Button @click="uploadDocument" :disabled="!canUpload || isUploading" class="flex-1">
+                                        <svg
+                                            v-if="isUploading"
+                                            class="mr-2 h-4 w-4 animate-spin"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                            />
+                                        </svg>
+                                        {{ isUploading ? 'Enviando...' : 'Enviar Documento' }}
+                                    </Button>
+                                    <Button @click="resetUploadForm" variant="outline" :disabled="isUploading"> Limpar </Button>
+                                </div>
+
+                                <!-- Success Message -->
+                                <div
+                                    v-if="uploadSuccess"
+                                    class="rounded-md bg-green-50 p-3 text-sm text-green-800 dark:bg-green-900/20 dark:text-green-200"
+                                >
+                                    {{ uploadSuccess }}
+                                </div>
+
+                                <!-- Error Message -->
+                                <div v-if="uploadError" class="rounded-md bg-red-50 p-3 text-sm text-red-800 dark:bg-red-900/20 dark:text-red-200">
+                                    {{ uploadError }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Documents List -->
+                        <div v-if="hasDocuments" class="space-y-3">
+                            <div
+                                v-for="document in entryDocuments"
+                                :key="document.id"
+                                class="flex items-center justify-between rounded-lg border bg-white p-4 shadow-sm dark:border-gray-600 dark:bg-gray-800"
+                            >
+                                <div class="flex items-start gap-3">
+                                    <!-- File Icon -->
+                                    <div class="rounded-md bg-gray-100 p-2 dark:bg-gray-700">
+                                        <svg
+                                            v-if="document.is_pdf"
+                                            class="h-5 w-5 text-red-600"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                                            />
+                                        </svg>
+                                        <svg
+                                            v-else-if="document.is_image"
+                                            class="h-5 w-5 text-blue-600"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                            />
+                                        </svg>
+                                        <svg v-else class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                            />
+                                        </svg>
+                                    </div>
+
+                                    <!-- Document Info -->
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                            {{ document.original_name }}
+                                        </p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                                            {{ document.document_type_label }} • {{ document.formatted_file_size }}
+                                        </p>
+                                        <p v-if="document.description" class="mt-1 text-xs text-gray-600 dark:text-gray-300">
+                                            {{ document.description }}
+                                        </p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                                            {{ formatDate(document.created_at) }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Document Actions -->
+                                <div class="flex gap-2">
+                                    <Button @click="downloadDocument(document.id, document.original_name)" variant="outline" size="sm" class="gap-1">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                            />
+                                        </svg>
+                                        Baixar
+                                    </Button>
+                                    <Button @click="deleteDocument(document.id)" variant="destructive" size="sm" class="gap-1">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                            />
+                                        </svg>
+                                        Excluir
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- No Documents Message -->
+                        <div v-else class="py-8 text-center text-gray-500 dark:text-gray-400">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                                />
+                            </svg>
+                            <p class="mt-2">Nenhum documento anexado</p>
+                            <p class="text-sm">Clique em "Enviar Documento" para adicionar arquivos</p>
                         </div>
                     </div>
 

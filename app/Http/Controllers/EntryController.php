@@ -48,7 +48,9 @@ class EntryController extends Controller
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
-        $entry = Entry::with(['patient', 'createdBy', 'currentStatus', 'statusTransitions.fromStatus', 'statusTransitions.toStatus', 'statusTransitions.user'])->findOrFail($id);
+        $entry = Entry::with(['patient', 'createdBy', 'currentStatus', 'statusTransitions.fromStatus', 'statusTransitions.toStatus', 'statusTransitions.user', 'documents'])
+            ->withCount('documents')
+            ->findOrFail($id);
 
         return response()->json(['entry' => $entry], Response::HTTP_OK);
     }
@@ -70,7 +72,8 @@ class EntryController extends Controller
             'scheduled_only' => 'nullable|boolean',
         ]);
 
-        $query = Entry::with(['patient', 'createdBy', 'currentStatus', 'statusTransitions.fromStatus', 'statusTransitions.toStatus', 'statusTransitions.user']);
+        $query = Entry::with(['patient', 'createdBy', 'currentStatus', 'statusTransitions.fromStatus', 'statusTransitions.toStatus', 'statusTransitions.user'])
+            ->withCount('documents');
 
         // Filter by active entries (non-final status)
         if (!empty($validatedData['active_only'])) {
@@ -155,6 +158,7 @@ class EntryController extends Controller
 
         $completedStatus = EntryStatus::findBySlug(EntryStatus::COMPLETED);
         $query = Entry::with(['patient', 'createdBy', 'currentStatus', 'statusTransitions.fromStatus', 'statusTransitions.toStatus', 'statusTransitions.user'])
+            ->withCount('documents')
             ->where('current_status_id', $completedStatus->id);
 
         // Filter by date range
@@ -367,6 +371,7 @@ class EntryController extends Controller
 
         $nonFinalStatuses = EntryStatus::where('is_final', false)->pluck('id');
         $query = Entry::with(['patient', 'createdBy', 'currentStatus', 'statusTransitions.fromStatus', 'statusTransitions.toStatus', 'statusTransitions.user'])
+            ->withCount('documents')
             ->whereIn('current_status_id', $nonFinalStatuses);
 
         // Filter by date range
@@ -413,6 +418,7 @@ class EntryController extends Controller
         ]);
 
         $query = Entry::with(['patient', 'createdBy', 'currentStatus', 'statusTransitions.fromStatus', 'statusTransitions.toStatus', 'statusTransitions.user'])
+            ->withCount('documents')
             ->whereHas('statusTransitions', function ($q) {
                 $q->whereNotNull('scheduled_date');
             });

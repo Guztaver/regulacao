@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EntryController;
+use App\Http\Controllers\EntryDocumentController;
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/entries', [EntryController::class, 'index'])->name('entries.index');
@@ -22,4 +23,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/entries/{id}/schedule-exam', [EntryController::class, 'scheduleExam'])->name('entries.schedule-exam');
     Route::put('/entries/{id}/mark-exam-ready', [EntryController::class, 'markExamReady'])->name('entries.mark-exam-ready');
     Route::put('/entries/{id}/cancel', [EntryController::class, 'cancel'])->name('entries.cancel');
+
+    // Entry document routes
+    Route::get('/entry-documents/types', [EntryDocumentController::class, 'getDocumentTypes'])->name('entry-documents.types');
+    Route::post('/entries/{entryId}/documents', [EntryDocumentController::class, 'store'])->name('entry-documents.store');
+    Route::get('/entries/{entryId}/documents', [EntryDocumentController::class, 'index'])->name('entry-documents.index');
+    Route::get('/entries/{entryId}/documents/{documentId}', [EntryDocumentController::class, 'show'])->name('entry-documents.show');
+    Route::get('/entries/{entryId}/documents/{documentId}/download', [EntryDocumentController::class, 'download'])->name('entry-documents.download');
+    Route::delete('/entries/{entryId}/documents/{documentId}', [EntryDocumentController::class, 'destroy'])->name('entry-documents.destroy');
 });

@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Test Print Functionality</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            .test-button {
+                background: #007bff;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 5px;
+                cursor: pointer;
+                margin: 10px 0;
+                font-size: 16px;
+            }
+            .test-button:hover {
+                background: #0056b3;
+            }
+            .info {
+                background: #f8f9fa;
+                border: 1px solid #dee2e6;
+                border-radius: 5px;
+                padding: 15px;
+                margin: 10px 0;
+            }
+            .code {
+                background: #f1f3f4;
+                padding: 10px;
+                border-radius: 3px;
+                font-family: monospace;
+                margin: 10px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Print Functionality Test</h1>
+
+        <div class="info">
+            <h2>Test Entry Print</h2>
+            <p>This test will open the print view for the existing entry in your database.</p>
+            <p><strong>Entry ID:</strong> <span id="entry-id">01981db7-c60d-73c7-a5c2-6388901c85c5</span></p>
+            <p>
+                <strong>Document Types:</strong> Now showing user-friendly names instead of slugs (e.g., "Solicitação Médica" instead of
+                "medical_request")
+            </p>
+        </div>
+
+        <button class="test-button" onclick="testPrint()">🖨️ Test Print Entry</button>
+
+        <div class="info">
+            <h3>What this test does:</h3>
+            <ul>
+                <li>Opens the print view in a new window</li>
+                <li>Automatically triggers print dialog</li>
+                <li>Shows all entry data in A4 format</li>
+                <li>Includes patient info, status history, documents, and timeline</li>
+            </ul>
+        </div>
+
+        <div class="info">
+            <h3>Expected URLs:</h3>
+            <div class="code">Print URL: /api/entries/{entry-id}/print</div>
+            <div class="code">Full URL: http://localhost:8000/api/entries/01981db7-c60d-73c7-a5c2-6388901c85c5/print</div>
+        </div>
+
+        <div class="info">
+            <h3>Troubleshooting:</h3>
+            <ul>
+                <li>Make sure Laravel server is running: <code>php artisan serve</code></li>
+                <li>Check if you're logged in to the system</li>
+                <li>Verify the entry exists in the database</li>
+                <li>Check browser console for any errors</li>
+            </ul>
+        </div>
+
+        <script>
+            function testPrint() {
+                const entryId = document.getElementById('entry-id').textContent;
+                const printUrl = `/api/entries/${entryId}/print`;
+
+                console.log('Opening print URL:', printUrl);
+
+                // Open in new window
+                const printWindow = window.open(printUrl, '_blank', 'width=800,height=600');
+
+                if (!printWindow) {
+                    alert('Print window blocked by browser. Please allow pop-ups for this site.');
+                    return;
+                }
+
+                // Alternative: redirect current window if pop-up is blocked
+                // window.location.href = printUrl;
+            }
+
+            // Test if we can reach the API
+            function testAPI() {
+                fetch('/api/health')
+                    .then((response) => response.json())
+                    .then((data) => {
+                        console.log('API Health Check:', data);
+                    })
+                    .catch((error) => {
+                        console.error('API Error:', error);
+                    });
+            }
+
+            // Run API test on page load
+            window.addEventListener('load', testAPI);
+        </script>
+    </body>
+</html>

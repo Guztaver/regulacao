@@ -189,14 +189,6 @@ async function downloadDocument(documentId: string, fileName: string) {
     }
 }
 
-function formatFileSize(bytes: number): string {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-}
-
 // Watch for entry changes to load documents
 watch(
     () => props.entry?.id,
@@ -212,6 +204,15 @@ watch(
 onMounted(async () => {
     await loadDocumentTypes();
 });
+
+// Print function
+function printEntry() {
+    if (!props.entry?.id) return;
+
+    // Open print page in new window
+    const printUrl = `/api/entries/${props.entry.id}/print`;
+    window.open(printUrl, '_blank');
+}
 </script>
 
 <template>
@@ -235,14 +236,30 @@ onMounted(async () => {
                     </svg>
                     {{ t.entryDetails }}
                 </h3>
-                <button
-                    @click="closeModal"
-                    class="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-white"
-                >
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
+                <div class="flex items-center gap-2">
+                    <button
+                        @click="printEntry"
+                        class="cursor-pointer rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-white"
+                        title="Imprimir entrada"
+                    >
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                            />
+                        </svg>
+                    </button>
+                    <button
+                        @click="closeModal"
+                        class="cursor-pointer rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-white"
+                    >
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             <!-- Scrollable Content -->
@@ -691,6 +708,28 @@ onMounted(async () => {
                     <p class="mt-4 text-lg text-gray-500 dark:text-gray-400">Nenhuma entrada selecionada</p>
                 </div>
             </div>
+
+            <!-- Footer with Print Button -->
+            <!-- <div v-if="entry" class="flex-shrink-0 border-t border-gray-200 p-6 dark:border-gray-700">
+                <div class="flex items-center justify-between">
+                    <div class="text-sm text-gray-500 dark:text-gray-400">Entrada criada em {{ formatDate(entry.created_at) }}</div>
+                    <div class="flex gap-2">
+
+                        <Button @click="printEntry" variant="outline" size="sm" class="gap-2">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                                />
+                            </svg>
+                            Imprimir Entrada
+                        </Button>
+                        <Button @click="closeModal" variant="secondary" size="sm"> Fechar </Button>
+                    </div>
+                </div>
+            </div> -->
         </div>
     </div>
 </template>

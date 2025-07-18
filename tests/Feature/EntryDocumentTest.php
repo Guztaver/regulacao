@@ -68,7 +68,7 @@ class EntryDocumentTest extends TestCase
 
         // Verify file was stored
         $document = EntryDocument::where('entry_id', $this->entry->id)->first();
-        Storage::disk('public')->assertExists($document->file_path);
+        Storage::assertExists('public/' . $document->file_path);
     }
 
     public function test_can_list_entry_documents(): void
@@ -297,10 +297,10 @@ class EntryDocumentTest extends TestCase
             'file_path' => $filePath,
         ]);
 
-        Storage::disk('public')->assertExists($document->file_path);
+        Storage::assertExists('public/' . $document->file_path);
 
         $document->delete();
 
-        Storage::disk('public')->assertMissing($document->file_path);
+        Storage::assertMissing('public/' . $document->file_path);
     }
 }

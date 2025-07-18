@@ -186,6 +186,18 @@ class EntryDocument extends Model
         'imaging_result' => 'Resultado de Imagem',
         'consultation_note' => 'Nota de Consulta',
         'discharge_summary' => 'Resumo de Alta',
+        'insurance_card' => 'Cartão do Convênio',
+        'sus_card' => 'Cartão SUS',
+        'identification' => 'Documento de Identidade',
+        'medical_history' => 'Histórico Médico',
+        'consent_form' => 'Termo de Consentimento',
+        'pre_authorization' => 'Pré-Autorização',
+        'treatment_plan' => 'Plano de Tratamento',
+        'surgery_report' => 'Relatório Cirúrgico',
+        'anesthesia_record' => 'Ficha Anestésica',
+        'vital_signs' => 'Sinais Vitais',
+        'medication_list' => 'Lista de Medicamentos',
+        'allergy_record' => 'Registro de Alergias',
         'other' => 'Outros',
     ];
 

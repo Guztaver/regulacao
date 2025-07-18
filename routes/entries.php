@@ -11,6 +11,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/entries/completed', [EntryController::class, 'completed'])->name('entries.completed');
     Route::post('/entries', [EntryController::class, 'store'])->name('entries.store');
     Route::get('/entries/{id}', [EntryController::class, 'show'])->name('entries.show');
+    Route::get('/entries/{id}/print', [EntryController::class, 'print'])->name('entries.print');
     Route::delete('/entries/{id}', [EntryController::class, 'destroy'])->name('entries.destroy');
 
     // Status management routes

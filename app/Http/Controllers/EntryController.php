@@ -450,4 +450,25 @@ class EntryController extends Controller
 
         return response()->json($entries, JsonResponse::HTTP_OK);
     }
+
+    public function print(Request $request, $id)
+    {
+        // Ensure user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        $entry = Entry::with([
+            'patient',
+            'createdBy',
+            'currentStatus',
+            'statusTransitions.fromStatus',
+            'statusTransitions.toStatus',
+            'statusTransitions.user',
+            'documents',
+            'timeline'
+        ])->findOrFail($id);
+
+        return view('entries.print', compact('entry'));
+    }
 }

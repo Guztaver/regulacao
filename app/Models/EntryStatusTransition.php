@@ -24,6 +24,7 @@ class EntryStatusTransition extends Model
         'reason',
         'metadata',
         'transitioned_at',
+        'scheduled_date',
     ];
 
     /**
@@ -36,6 +37,7 @@ class EntryStatusTransition extends Model
         return [
             'metadata' => 'array',
             'transitioned_at' => 'datetime',
+            'scheduled_date' => 'datetime',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];

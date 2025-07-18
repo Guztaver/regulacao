@@ -129,7 +129,7 @@ class PatientDocumentController extends Controller
             return response()->json(['message' => 'File not found'], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        return Storage::disk('public')->download($document->file_path, $document->original_name);
+        return Storage::download('public/' . $document->file_path, $document->original_name);
     }
 
     public function destroy(string $patientId, string $documentId): JsonResponse

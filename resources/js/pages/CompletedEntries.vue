@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import EntryInfoModal from '@/components/EntryInfoModal.vue';
+import PrintButton from '@/components/print/PrintButton.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -399,6 +400,9 @@ onMounted(() => {
                                     </td>
                                     <td class="px-6 py-4 text-sm whitespace-nowrap">
                                         <div class="flex gap-2">
+                                            <!-- Print Button -->
+                                            <PrintButton :entry="entry" size="sm" :show-text="false" />
+
                                             <Button size="sm" variant="outline" @click="uncompleteEntry(entry.id)" :disabled="loading">
                                                 <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path

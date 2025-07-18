@@ -77,9 +77,9 @@ function loadCompletedEntries() {
     params.append('completed', 'true');
 
     axios
-        .get(`/api/entries?${params.toString()}`)
+        .get(`/api/entries/completed?${params.toString()}`)
         .then((response) => {
-            entries.value = (response.data.data || response.data) as CompletedEntry[];
+            entries.value = response.data.entries as CompletedEntry[];
         })
         .catch((err) => {
             console.error(err);

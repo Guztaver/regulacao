@@ -14,7 +14,9 @@ Route::get('dashboard', static fn () => Inertia::render('Dashboard'))->middlewar
 
 Route::get('entries/active', static fn () => Inertia::render('ActiveEntries'))->middleware(['auth', 'verified'])->name('entries.active.page');
 Route::get('entries/scheduled', static fn () => Inertia::render('ScheduledEntries'))->middleware(['auth', 'verified'])->name('entries.scheduled.page');
+Route::get('entries/exam-ready', static fn () => Inertia::render('ExamReadyEntries'))->middleware(['auth', 'verified'])->name('entries.exam-ready.page');
 Route::get('entries/completed', static fn () => Inertia::render('CompletedEntries'))->middleware(['auth', 'verified'])->name('entries.completed.page');
+Route::get('entries/cancelled', static fn () => Inertia::render('CancelledEntries'))->middleware(['auth', 'verified'])->name('entries.cancelled.page');
 
 Route::get('patients', static fn () => Inertia::render('PatientList'))->middleware(['auth', 'verified'])->name('patients.list.page');
 Route::get('patients/{id}', static fn (string $id) => Inertia::render('PatientView', ['patientId' => $id]))->middleware(['auth', 'verified'])->name('patients.view.page');

@@ -147,10 +147,22 @@ export function useEntryApi() {
             api.get('/api/entries/scheduled', params),
 
         /**
+         * Get exam ready entries with optional filters
+         */
+        getExamReadyEntries: (params?: { date_from?: string; date_to?: string; patient_name?: string; entry_id?: string; limit?: number }) =>
+            api.get('/api/entries/exam-ready', params),
+
+        /**
          * Get completed entries with optional filters
          */
         getCompletedEntries: (params?: { date_from?: string; date_to?: string; patient_name?: string; entry_id?: string; limit?: number }) =>
             api.get('/api/entries/completed', params),
+
+        /**
+         * Get cancelled entries with optional filters
+         */
+        getCancelledEntries: (params?: { date_from?: string; date_to?: string; patient_name?: string; entry_id?: string; limit?: number }) =>
+            api.get('/api/entries/cancelled', params),
 
         /**
          * Get a specific entry by ID

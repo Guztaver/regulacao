@@ -385,10 +385,10 @@ class EntryController extends Controller
             'limit' => 'nullable|integer|min:1|max:1000',
         ]);
 
-        $nonFinalStatuses = EntryStatus::where('is_final', false)->pluck('id');
+        $pendingStatus = EntryStatus::findBySlug(EntryStatus::PENDING);
         $query = Entry::with(['patient', 'createdBy', 'currentStatus', 'statusTransitions.fromStatus', 'statusTransitions.toStatus', 'statusTransitions.user'])
             ->withCount('documents')
-            ->whereIn('current_status_id', $nonFinalStatuses);
+            ->where('current_status_id', $pendingStatus->id);
 
         // Filter by date range
         if (!empty($validatedData['date_from'])) {
@@ -433,11 +433,10 @@ class EntryController extends Controller
             'limit' => 'nullable|integer|min:1|max:1000',
         ]);
 
+        $scheduledStatus = EntryStatus::findBySlug(EntryStatus::EXAM_SCHEDULED);
         $query = Entry::with(['patient', 'createdBy', 'currentStatus', 'statusTransitions.fromStatus', 'statusTransitions.toStatus', 'statusTransitions.user'])
             ->withCount('documents')
-            ->whereHas('statusTransitions', function ($q) {
-                $q->whereNotNull('scheduled_date');
-            });
+            ->where('current_status_id', $scheduledStatus->id);
 
         // Filter by date range
         if (!empty($validatedData['date_from'])) {
@@ -463,6 +462,100 @@ class EntryController extends Controller
         $limit = $validatedData['limit'] ?? 50; // Default to 50
 
         $entries = $query->oldest('created_at')->limit($limit)->get();
+
+        return response()->json($entries, JsonResponse::HTTP_OK);
+    }
+
+    public function examReady(Request $request): JsonResponse
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $validatedData = $request->validate([
+            'date_from' => 'nullable|date',
+            'date_to' => 'nullable|date|after_or_equal:date_from',
+            'patient_name' => 'nullable|string|max:255',
+            'entry_id' => 'nullable|string|exists:entries,id',
+            'limit' => 'nullable|integer|min:1|max:1000',
+        ]);
+
+        $examReadyStatus = EntryStatus::findBySlug(EntryStatus::EXAM_READY);
+        $query = Entry::with(['patient', 'createdBy', 'currentStatus', 'statusTransitions.fromStatus', 'statusTransitions.toStatus', 'statusTransitions.user'])
+            ->withCount('documents')
+            ->where('current_status_id', $examReadyStatus->id);
+
+        // Filter by date range
+        if (!empty($validatedData['date_from'])) {
+            $query->whereDate('created_at', '>=', $validatedData['date_from']);
+        }
+        if (!empty($validatedData['date_to'])) {
+            $query->whereDate('created_at', '<=', $validatedData['date_to']);
+        }
+
+        // Filter by patient name
+        if (!empty($validatedData['patient_name'])) {
+            $query->whereHas('patient', function ($q) use ($validatedData) {
+                $q->where('name', 'LIKE', '%' . $validatedData['patient_name'] . '%');
+            });
+        }
+
+        // Find by specific entry ID
+        if (!empty($validatedData['entry_id'])) {
+            $query->where('id', $validatedData['entry_id']);
+        }
+
+        // Limit results
+        $limit = $validatedData['limit'] ?? 50; // Default to 50
+
+        $entries = $query->latest('created_at')->limit($limit)->get();
+
+        return response()->json($entries, JsonResponse::HTTP_OK);
+    }
+
+    public function cancelled(Request $request): JsonResponse
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $validatedData = $request->validate([
+            'date_from' => 'nullable|date',
+            'date_to' => 'nullable|date|after_or_equal:date_from',
+            'patient_name' => 'nullable|string|max:255',
+            'entry_id' => 'nullable|string|exists:entries,id',
+            'limit' => 'nullable|integer|min:1|max:1000',
+        ]);
+
+        $cancelledStatus = EntryStatus::findBySlug(EntryStatus::CANCELLED);
+        $query = Entry::with(['patient', 'createdBy', 'currentStatus', 'statusTransitions.fromStatus', 'statusTransitions.toStatus', 'statusTransitions.user'])
+            ->withCount('documents')
+            ->where('current_status_id', $cancelledStatus->id);
+
+        // Filter by date range
+        if (!empty($validatedData['date_from'])) {
+            $query->whereDate('created_at', '>=', $validatedData['date_from']);
+        }
+        if (!empty($validatedData['date_to'])) {
+            $query->whereDate('created_at', '<=', $validatedData['date_to']);
+        }
+
+        // Filter by patient name
+        if (!empty($validatedData['patient_name'])) {
+            $query->whereHas('patient', function ($q) use ($validatedData) {
+                $q->where('name', 'LIKE', '%' . $validatedData['patient_name'] . '%');
+            });
+        }
+
+        // Find by specific entry ID
+        if (!empty($validatedData['entry_id'])) {
+            $query->where('id', $validatedData['entry_id']);
+        }
+
+        // Limit results
+        $limit = $validatedData['limit'] ?? 50; // Default to 50
+
+        $entries = $query->latest('created_at')->limit($limit)->get();
 
         return response()->json($entries, JsonResponse::HTTP_OK);
     }

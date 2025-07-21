@@ -31,7 +31,7 @@ class EntryController extends Controller
 
     public function destroy(Request $request, $id): JsonResponse
     {
-        // Ensure user is authenticated
+
         if (!Auth::check()) {
             return response()->json(['error' => 'Autenticação obrigatória'], Response::HTTP_UNAUTHORIZED);
         }
@@ -44,7 +44,7 @@ class EntryController extends Controller
 
     public function show(Request $request, $id): JsonResponse
     {
-        // Ensure user is authenticated
+
         if (!Auth::check()) {
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
@@ -58,7 +58,7 @@ class EntryController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        // Ensure user is authenticated
+
         if (!Auth::check()) {
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
@@ -127,7 +127,7 @@ class EntryController extends Controller
 
     public function complete(Request $request, $id): JsonResponse
     {
-        // Ensure user is authenticated
+
         if (!Auth::check()) {
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
@@ -144,7 +144,7 @@ class EntryController extends Controller
 
     public function completed(Request $request): JsonResponse
     {
-        // Ensure user is authenticated
+
         if (!Auth::check()) {
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
@@ -202,7 +202,7 @@ class EntryController extends Controller
 
     public function scheduleExam(Request $request, $id): JsonResponse
     {
-        // Ensure user is authenticated
+
         if (!Auth::check()) {
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
@@ -231,7 +231,7 @@ class EntryController extends Controller
 
     public function markExamReady(Request $request, $id): JsonResponse
     {
-        // Ensure user is authenticated
+
         if (!Auth::check()) {
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
@@ -248,7 +248,6 @@ class EntryController extends Controller
 
     public function getStatuses(Request $request): JsonResponse
     {
-        // Ensure user is authenticated
         if (!Auth::check()) {
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
@@ -260,7 +259,6 @@ class EntryController extends Controller
 
     public function getNextStatuses(Request $request, $id): JsonResponse
     {
-        // Ensure user is authenticated
         if (!Auth::check()) {
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
@@ -273,7 +271,7 @@ class EntryController extends Controller
 
     public function transitionStatus(Request $request, $id): JsonResponse
     {
-        // Ensure user is authenticated
+
         if (!Auth::check()) {
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
@@ -334,9 +332,26 @@ class EntryController extends Controller
         }
     }
 
-    public function cancel(Request $request, $id): JsonResponse
+    public function getStatusHistory(Request $request, $id): JsonResponse
     {
         // Ensure user is authenticated
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $entry = Entry::findOrFail($id);
+
+        $transitions = $entry->statusTransitions()
+            ->with(['fromStatus', 'toStatus', 'user:id,name'])
+            ->orderBy('transitioned_at', 'desc')
+            ->get();
+
+        return response()->json(['transitions' => $transitions], JsonResponse::HTTP_OK);
+    }
+
+    public function cancel(Request $request, $id): JsonResponse
+    {
+
         if (!Auth::check()) {
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
@@ -357,7 +372,7 @@ class EntryController extends Controller
 
     public function active(Request $request): JsonResponse
     {
-        // Ensure user is authenticated
+
         if (!Auth::check()) {
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
@@ -405,7 +420,7 @@ class EntryController extends Controller
 
     public function scheduled(Request $request): JsonResponse
     {
-        // Ensure user is authenticated
+
         if (!Auth::check()) {
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
@@ -447,14 +462,14 @@ class EntryController extends Controller
         // Limit results
         $limit = $validatedData['limit'] ?? 50; // Default to 50
 
-        $entries = $query->latest('created_at')->limit($limit)->get();
+        $entries = $query->oldest('created_at')->limit($limit)->get();
 
         return response()->json($entries, JsonResponse::HTTP_OK);
     }
 
     public function print(Request $request, $id)
     {
-        // Ensure user is authenticated
+
         if (!Auth::check()) {
             return redirect()->route('login');
         }

@@ -6,6 +6,7 @@ import { useTranslations } from '@/composables/useTranslations';
 import type { Entry, EntryDocument } from '@/types';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import StatusBadge from './StatusBadge.vue';
+import StatusHistoryModal from './StatusHistoryModal.vue';
 import Timeline from './Timeline.vue';
 
 interface Props {
@@ -32,6 +33,7 @@ const documentDescription = ref('');
 const documentTypes = ref<Record<string, string>>({});
 const entryDocuments = ref<EntryDocument[]>([]);
 const showDocumentUpload = ref(false);
+const showStatusHistory = ref(false);
 
 // Computed properties
 const hasDocuments = computed(() => entryDocuments.value.length > 0);
@@ -238,6 +240,15 @@ function printEntry() {
                 </h3>
                 <div class="flex items-center gap-2">
                     <button
+                        @click="showStatusHistory = true"
+                        class="cursor-pointer rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-white"
+                        title="Ver histórico de status"
+                    >
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </button>
+                    <button
                         @click="printEntry"
                         class="cursor-pointer rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-white"
                         title="Imprimir entrada"
@@ -323,14 +334,6 @@ function printEntry() {
                                 <h4 class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">{{ t.title }}</h4>
                                 <p class="text-sm leading-relaxed text-gray-900 dark:text-gray-100">
                                     {{ entry.title }}
-                                </p>
-                            </div>
-
-                            <!-- Brought By -->
-                            <div v-if="entry.brought_by" class="rounded-lg bg-purple-50 p-4 dark:bg-purple-900/20">
-                                <h4 class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">Trazido por</h4>
-                                <p class="text-sm leading-relaxed text-gray-900 dark:text-gray-100">
-                                    {{ entry.brought_by }}
                                 </p>
                             </div>
 
@@ -718,4 +721,7 @@ function printEntry() {
             </div>
         </div>
     </div>
+
+    <!-- Status History Modal -->
+    <StatusHistoryModal v-model:open="showStatusHistory" :entry="entry" @error="(message) => console.error('Status history error:', message)" />
 </template>

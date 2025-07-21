@@ -57,10 +57,14 @@
                 </ul>
             </div>
         </Teleport>
+
+        <!-- Cancellation Reason Modal -->
+        <CancellationReasonModal v-model:open="showCancellationModal" :entry="props.entry" @confirm="handleCancellationConfirm" />
     </div>
 </template>
 
 <script setup lang="ts">
+import CancellationReasonModal from '@/components/CancellationReasonModal.vue';
 import { handleApiError, useEntryApi } from '@/composables/useApi';
 import { useTranslations } from '@/composables/useTranslations';
 import type { Entry, EntryStatus } from '@/types';
@@ -88,6 +92,8 @@ const isLoading = ref(false);
 const allStatuses = ref<EntryStatus[]>([]);
 const dropdownButton = ref<HTMLElement>();
 const dropdownStyle = ref({});
+const showCancellationModal = ref(false);
+const pendingCancelStatusId = ref<number | null>(null);
 
 const entryApi = useEntryApi();
 const { t } = useTranslations();
@@ -126,12 +132,12 @@ async function loadAllStatuses() {
     }
 }
 
-async function transitionToStatus(statusId: number) {
+async function transitionToStatus(statusId: number, reason?: string) {
     if (!props.entry.id || statusId === props.entry.current_status_id) return;
     isLoading.value = true;
     try {
         const target = allStatuses.value.find((s) => s.id === statusId);
-        await entryApi.transitionStatus(props.entry.id, statusId);
+        await entryApi.transitionStatus(props.entry.id, statusId, reason);
         const updated = { ...props.entry };
         if (target) {
             updated.current_status = target;
@@ -192,9 +198,25 @@ function closeDropdown() {
 }
 
 function selectStatus(id: number) {
-    if (id !== props.entry.current_status_id) {
+    if (id === props.entry.current_status_id) return;
+
+    // Check if this is a transition to cancelled status
+    const targetStatus = allStatuses.value.find((s) => s.id === id);
+    if (targetStatus?.slug === 'cancelled') {
+        pendingCancelStatusId.value = id;
+        showCancellationModal.value = true;
+        closeDropdown();
+    } else {
         transitionToStatus(id);
     }
+}
+
+function handleCancellationConfirm(reason: string) {
+    if (pendingCancelStatusId.value) {
+        transitionToStatus(pendingCancelStatusId.value, reason);
+        pendingCancelStatusId.value = null;
+    }
+    showCancellationModal.value = false;
 }
 
 onMounted(() => {

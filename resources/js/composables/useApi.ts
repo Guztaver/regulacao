@@ -178,6 +178,11 @@ export function useEntryApi() {
         getNextStatuses: (id: string) => api.get(`/api/entries/${id}/next-statuses`),
 
         /**
+         * Get status history for an entry
+         */
+        getStatusHistory: (id: string) => api.get(`/api/entries/${id}/status-history`),
+
+        /**
          * Transition an entry to a new status
          */
         transitionStatus: (id: string, statusId: number, reason?: string, metadata?: Record<string, any>) =>

@@ -17,6 +17,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Status management routes
     Route::get('/entry-statuses', [EntryController::class, 'getStatuses'])->name('entries.statuses');
     Route::get('/entries/{id}/next-statuses', [EntryController::class, 'getNextStatuses'])->name('entries.next-statuses');
+    Route::get('/entries/{id}/status-history', [EntryController::class, 'getStatusHistory'])->name('entries.status-history');
     Route::put('/entries/{id}/transition-status', [EntryController::class, 'transitionStatus'])->name('entries.transition-status');
 
     // Legacy status routes (backward compatibility)

@@ -15,7 +15,7 @@ class PatientController extends Controller
     {
         $validatedData = $request->validated();
 
-        $patient = new Patient();
+        $patient = new Patient;
         $patient->fill($validatedData);
         $patient->created_by = Auth::id(); // Never null - auth is required via form request
         $patient->save();
@@ -26,7 +26,7 @@ class PatientController extends Controller
     public function index(Request $request): JsonResponse
     {
         // Ensure user is authenticated
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -38,21 +38,21 @@ class PatientController extends Controller
         $query = Patient::query();
 
         // Search functionality
-        if (!empty($validatedData['search'])) {
+        if (! empty($validatedData['search'])) {
             $search = $validatedData['search'];
             $query->where(function ($q) use ($search) {
-                $q->where('name', 'LIKE', '%' . $search . '%')
-                  ->orWhere('email', 'LIKE', '%' . $search . '%')
-                  ->orWhere('sus_number', 'LIKE', '%' . $search . '%');
+                $q->where('name', 'LIKE', '%'.$search.'%')
+                    ->orWhere('email', 'LIKE', '%'.$search.'%')
+                    ->orWhere('sus_number', 'LIKE', '%'.$search.'%');
             });
         }
 
         $limit = $validatedData['limit'] ?? 50;
         $patients = $query->with('createdBy')
-                         ->withCount('entries')
-                         ->latest('created_at')
-                         ->limit($limit)
-                         ->get();
+            ->withCount('entries')
+            ->latest('created_at')
+            ->limit($limit)
+            ->get();
 
         return response()->json($patients, Response::HTTP_OK);
     }
@@ -60,7 +60,7 @@ class PatientController extends Controller
     public function destroy(Request $request, $id): JsonResponse
     {
         // Ensure user is authenticated
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return response()->json(['error' => 'Autenticação obrigatória'], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -73,13 +73,13 @@ class PatientController extends Controller
     public function show(Request $request, $id): JsonResponse
     {
         // Ensure user is authenticated
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
         $patient = Patient::with(['entries.patient', 'createdBy'])
-                          ->withCount(['entries'])
-                          ->findOrFail($id);
+            ->withCount(['entries'])
+            ->findOrFail($id);
 
         return response()->json([
             'patient' => $patient,
@@ -87,14 +87,14 @@ class PatientController extends Controller
                 'total_entries' => $patient->entries_count,
                 'active_entries' => $patient->entries->where('completed', false)->count(),
                 'completed_entries' => $patient->entries->where('completed', true)->count(),
-            ]
+            ],
         ], Response::HTTP_OK);
     }
 
     public function update(Request $request, $id): JsonResponse
     {
         // Ensure user is authenticated
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -103,14 +103,14 @@ class PatientController extends Controller
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'phone' => 'nullable|string|max:20',
-            'sus_number' => 'nullable|string|size:15|unique:patients,sus_number,' . $id,
+            'sus_number' => 'nullable|string|size:15|unique:patients,sus_number,'.$id,
         ]);
 
         $patient->update($validatedData);
 
         return response()->json([
             'message' => 'Paciente atualizado com sucesso',
-            'patient' => $patient
+            'patient' => $patient,
         ], Response::HTTP_OK);
     }
 }

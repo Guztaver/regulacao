@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Entry;
 use App\Models\EntryDocument;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class EntryDocumentSeeder extends Seeder
@@ -19,6 +18,7 @@ class EntryDocumentSeeder extends Seeder
 
         if ($entries->isEmpty()) {
             $this->command->info('No entries found. Please run EntrySeeder first.');
+
             return;
         }
 
@@ -41,7 +41,7 @@ class EntryDocumentSeeder extends Seeder
                     'lab_result',
                     'imaging_result',
                     'consultation_note',
-                    'other'
+                    'other',
                 ];
 
                 for ($i = 0; $i < $documentCount; $i++) {

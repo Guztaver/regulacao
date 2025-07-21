@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -26,7 +26,7 @@ return new class extends Migration
                 'completed',
                 'exam_scheduled',
                 'exam_scheduled_date',
-                'exam_ready'
+                'exam_ready',
             ]);
         });
 
@@ -98,7 +98,7 @@ return new class extends Migration
                     'reason' => 'Exame agendado durante migração',
                     'metadata' => json_encode([
                         'scheduled_date' => $entry->exam_scheduled_date,
-                        'migrated_from_boolean_fields' => true
+                        'migrated_from_boolean_fields' => true,
                     ]),
                     'transitioned_at' => $examScheduledTime,
                     'created_at' => now(),
@@ -122,9 +122,9 @@ return new class extends Migration
 
             if ($entry->completed) {
                 $fromStatusId = $examReadyStatusId;
-                if (!$entry->exam_ready && $entry->exam_scheduled) {
+                if (! $entry->exam_ready && $entry->exam_scheduled) {
                     $fromStatusId = $examScheduledStatusId;
-                } elseif (!$entry->exam_ready && !$entry->exam_scheduled) {
+                } elseif (! $entry->exam_ready && ! $entry->exam_scheduled) {
                     $fromStatusId = $pendingStatusId;
                 }
 

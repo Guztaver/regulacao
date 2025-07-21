@@ -4,9 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Log;
 
 class EntryStatus extends Model
 {
@@ -101,6 +100,8 @@ class EntryStatus extends Model
 
     /**
      * Get status by slug.
+     *
+     * @return static|null
      */
     public static function findBySlug(string $slug): ?self
     {
@@ -108,11 +109,39 @@ class EntryStatus extends Model
     }
 
     /**
+     * Get status by slug or throw exception.
+     *
+     * @return static
+     *
+     * @throws \RuntimeException
+     */
+    public static function findBySlugOrFail(string $slug): self
+    {
+        $status = static::findBySlug($slug);
+
+        if (! $status) {
+            throw new \RuntimeException("EntryStatus with slug '{$slug}' not found.");
+        }
+
+        return $status;
+    }
+
+    /**
      * Get the default pending status.
+     *
+     * @return static
+     *
+     * @throws \RuntimeException
      */
     public static function getDefaultStatus(): self
     {
-        return static::findBySlug('pending') ?? static::active()->ordered()->first();
+        $defaultStatus = static::findBySlug('pending') ?? static::active()->ordered()->first();
+
+        if (! $defaultStatus) {
+            throw new \RuntimeException('No default status found. Please ensure at least one active EntryStatus exists.');
+        }
+
+        return $defaultStatus;
     }
 
     /**
@@ -133,7 +162,7 @@ class EntryStatus extends Model
         $canTransition = in_array($toStatus->slug, $allowedTransitions[$this->slug] ?? []);
 
         // Only log when transition is not allowed for debugging
-        if (!$canTransition) {
+        if (! $canTransition) {
             Log::warning('Status transition not allowed', [
                 'from_status' => $this->slug,
                 'to_status' => $toStatus->slug,
@@ -146,6 +175,8 @@ class EntryStatus extends Model
 
     /**
      * Get the next possible statuses from this status.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, static>
      */
     public function getNextStatuses(): \Illuminate\Database\Eloquent\Collection
     {
@@ -177,8 +208,12 @@ class EntryStatus extends Model
      * Status constants for easy reference.
      */
     public const PENDING = 'pending';
+
     public const EXAM_SCHEDULED = 'exam_scheduled';
+
     public const EXAM_READY = 'exam_ready';
+
     public const COMPLETED = 'completed';
+
     public const CANCELLED = 'cancelled';
 }

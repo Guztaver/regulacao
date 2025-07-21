@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
-use App\Models\Patient;
 use App\Models\Entry;
+use App\Models\Patient;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
@@ -21,33 +21,33 @@ class AuthenticationBarrierTest extends TestCase
         // Test GET /api/patients
         $response = $this->getJson('/api/patients');
         $response->assertStatus(401)
-                 ->assertJson(['message' => 'Unauthenticated.']);
+            ->assertJson(['message' => 'Unauthenticated.']);
 
         // Test POST /api/patients
         $response = $this->postJson('/api/patients', [
             'name' => 'Test Patient',
-            'email' => 'test@example.com'
+            'email' => 'test@example.com',
         ]);
         $response->assertStatus(401)
-                 ->assertJson(['message' => 'Unauthenticated.']);
+            ->assertJson(['message' => 'Unauthenticated.']);
 
         // Test GET /api/patients/{id}
         $response = $this->getJson('/api/patients/123');
         $response->assertStatus(401)
-                 ->assertJson(['message' => 'Unauthenticated.']);
+            ->assertJson(['message' => 'Unauthenticated.']);
 
         // Test PUT /api/patients/{id}
         $response = $this->putJson('/api/patients/123', [
             'name' => 'Updated Patient',
-            'email' => 'updated@example.com'
+            'email' => 'updated@example.com',
         ]);
         $response->assertStatus(401)
-                 ->assertJson(['message' => 'Unauthenticated.']);
+            ->assertJson(['message' => 'Unauthenticated.']);
 
         // Test DELETE /api/patients/{id}
         $response = $this->deleteJson('/api/patients/123');
         $response->assertStatus(401)
-                 ->assertJson(['message' => 'Unauthenticated.']);
+            ->assertJson(['message' => 'Unauthenticated.']);
     }
 
     /**
@@ -58,35 +58,35 @@ class AuthenticationBarrierTest extends TestCase
         // Test GET /api/entries
         $response = $this->getJson('/api/entries');
         $response->assertStatus(401)
-                 ->assertJson(['message' => 'Unauthenticated.']);
+            ->assertJson(['message' => 'Unauthenticated.']);
 
         // Test POST /api/entries
         $response = $this->postJson('/api/entries', [
             'patient_id' => '123',
-            'title' => 'Test Entry'
+            'title' => 'Test Entry',
         ]);
         $response->assertStatus(401)
-                 ->assertJson(['message' => 'Unauthenticated.']);
+            ->assertJson(['message' => 'Unauthenticated.']);
 
         // Test GET /api/entries/{id}
         $response = $this->getJson('/api/entries/123');
         $response->assertStatus(401)
-                 ->assertJson(['message' => 'Unauthenticated.']);
+            ->assertJson(['message' => 'Unauthenticated.']);
 
         // Test DELETE /api/entries/{id}
         $response = $this->deleteJson('/api/entries/123');
         $response->assertStatus(401)
-                 ->assertJson(['message' => 'Unauthenticated.']);
+            ->assertJson(['message' => 'Unauthenticated.']);
 
         // Test PUT /api/entries/{id}/complete
         $response = $this->putJson('/api/entries/123/complete');
         $response->assertStatus(401)
-                 ->assertJson(['message' => 'Unauthenticated.']);
+            ->assertJson(['message' => 'Unauthenticated.']);
 
         // Test GET /api/entries/completed
         $response = $this->getJson('/api/entries/completed');
         $response->assertStatus(401)
-                 ->assertJson(['message' => 'Unauthenticated.']);
+            ->assertJson(['message' => 'Unauthenticated.']);
     }
 
     /**
@@ -97,35 +97,35 @@ class AuthenticationBarrierTest extends TestCase
         // Test GET /api/entries/{entryId}/documents
         $response = $this->getJson('/api/entries/123/documents');
         $response->assertStatus(401)
-                 ->assertJson(['message' => 'Unauthenticated.']);
+            ->assertJson(['message' => 'Unauthenticated.']);
 
         // Test POST /api/entries/{entryId}/documents
         $response = $this->postJson('/api/entries/123/documents', [
             'document_type' => 'medical_request',
-            'description' => 'Test document'
+            'description' => 'Test document',
         ]);
         $response->assertStatus(401)
-                 ->assertJson(['message' => 'Unauthenticated.']);
+            ->assertJson(['message' => 'Unauthenticated.']);
 
         // Test GET /api/entries/{entryId}/documents/{documentId}
         $response = $this->getJson('/api/entries/123/documents/456');
         $response->assertStatus(401)
-                 ->assertJson(['message' => 'Unauthenticated.']);
+            ->assertJson(['message' => 'Unauthenticated.']);
 
         // Test DELETE /api/entries/{entryId}/documents/{documentId}
         $response = $this->deleteJson('/api/entries/123/documents/456');
         $response->assertStatus(401)
-                 ->assertJson(['message' => 'Unauthenticated.']);
+            ->assertJson(['message' => 'Unauthenticated.']);
 
         // Test GET /api/entries/{entryId}/documents/{documentId}/download
         $response = $this->getJson('/api/entries/123/documents/456/download');
         $response->assertStatus(401)
-                 ->assertJson(['message' => 'Unauthenticated.']);
+            ->assertJson(['message' => 'Unauthenticated.']);
 
         // Test GET /api/entry-documents/types
         $response = $this->getJson('/api/entry-documents/types');
         $response->assertStatus(401)
-                 ->assertJson(['message' => 'Unauthenticated.']);
+            ->assertJson(['message' => 'Unauthenticated.']);
     }
 
     /**
@@ -134,7 +134,7 @@ class AuthenticationBarrierTest extends TestCase
     public function test_authenticated_users_can_access_endpoints(): void
     {
         $user = User::factory()->create([
-            'email_verified_at' => now()
+            'email_verified_at' => now(),
         ]);
 
         $this->actingAs($user);
@@ -158,7 +158,7 @@ class AuthenticationBarrierTest extends TestCase
     public function test_patient_creation_requires_authentication_and_sets_created_by(): void
     {
         $user = User::factory()->create([
-            'email_verified_at' => now()
+            'email_verified_at' => now(),
         ]);
 
         $this->actingAs($user);
@@ -166,17 +166,17 @@ class AuthenticationBarrierTest extends TestCase
         $patientData = [
             'name' => 'João Silva',
             'phone' => '11999999999',
-            'sus_number' => '123456789012345'
+            'sus_number' => '123456789012345',
         ];
 
         $response = $this->postJson('/api/patients', $patientData);
 
         $response->assertStatus(201)
-                 ->assertJson(['message' => 'Paciente criado com sucesso']);
+            ->assertJson(['message' => 'Paciente criado com sucesso']);
 
         $this->assertDatabaseHas('patients', [
             'name' => 'João Silva',
-            'created_by' => $user->id
+            'created_by' => $user->id,
         ]);
 
         $patient = Patient::where('name', 'João Silva')->first();
@@ -190,29 +190,29 @@ class AuthenticationBarrierTest extends TestCase
     public function test_entry_creation_requires_authentication_and_sets_created_by(): void
     {
         $user = User::factory()->create([
-            'email_verified_at' => now()
+            'email_verified_at' => now(),
         ]);
 
         $patient = Patient::factory()->create([
-            'created_by' => $user->id
+            'created_by' => $user->id,
         ]);
 
         $this->actingAs($user);
 
         $entryData = [
             'patient_id' => $patient->id,
-            'title' => 'Consulta de rotina'
+            'title' => 'Consulta de rotina',
         ];
 
         $response = $this->postJson('/api/entries', $entryData);
 
         $response->assertStatus(201)
-                 ->assertJson(['message' => 'Entrada criada com sucesso']);
+            ->assertJson(['message' => 'Entrada criada com sucesso']);
 
         $this->assertDatabaseHas('entries', [
             'patient_id' => $patient->id,
             'title' => 'Consulta de rotina',
-            'created_by' => $user->id
+            'created_by' => $user->id,
         ]);
 
         $entry = Entry::where('title', 'Consulta de rotina')->first();
@@ -226,7 +226,7 @@ class AuthenticationBarrierTest extends TestCase
     public function test_created_by_cannot_be_null(): void
     {
         $user = User::factory()->create([
-            'email_verified_at' => now()
+            'email_verified_at' => now(),
         ]);
 
         // Test that trying to create a patient without created_by throws exception
@@ -236,7 +236,7 @@ class AuthenticationBarrierTest extends TestCase
         Patient::create([
             'name' => 'Test Patient',
             'email' => 'test@example.com',
-            'created_by' => null
+            'created_by' => null,
         ]);
     }
 
@@ -246,7 +246,7 @@ class AuthenticationBarrierTest extends TestCase
     public function test_patient_validation_rules(): void
     {
         $user = User::factory()->create([
-            'email_verified_at' => now()
+            'email_verified_at' => now(),
         ]);
 
         $this->actingAs($user);
@@ -254,28 +254,28 @@ class AuthenticationBarrierTest extends TestCase
         // Test required fields
         $response = $this->postJson('/api/patients', []);
         $response->assertStatus(422)
-                 ->assertJsonValidationErrors(['name']);
+            ->assertJsonValidationErrors(['name']);
 
         // Test SUS number format
         $response = $this->postJson('/api/patients', [
             'name' => 'Test Patient',
-            'sus_number' => 'invalid-sus'
+            'sus_number' => 'invalid-sus',
         ]);
         $response->assertStatus(422)
-                 ->assertJsonValidationErrors(['sus_number']);
+            ->assertJsonValidationErrors(['sus_number']);
 
         // Test unique SUS number
         Patient::factory()->create([
             'sus_number' => '123456789012345',
-            'created_by' => $user->id
+            'created_by' => $user->id,
         ]);
 
         $response = $this->postJson('/api/patients', [
             'name' => 'Another Patient',
-            'sus_number' => '123456789012345'
+            'sus_number' => '123456789012345',
         ]);
         $response->assertStatus(422)
-                 ->assertJsonValidationErrors(['sus_number']);
+            ->assertJsonValidationErrors(['sus_number']);
     }
 
     /**
@@ -284,7 +284,7 @@ class AuthenticationBarrierTest extends TestCase
     public function test_entry_validation_rules(): void
     {
         $user = User::factory()->create([
-            'email_verified_at' => now()
+            'email_verified_at' => now(),
         ]);
 
         $this->actingAs($user);
@@ -292,15 +292,15 @@ class AuthenticationBarrierTest extends TestCase
         // Test required fields
         $response = $this->postJson('/api/entries', []);
         $response->assertStatus(422)
-                 ->assertJsonValidationErrors(['patient_id', 'title']);
+            ->assertJsonValidationErrors(['patient_id', 'title']);
 
         // Test patient_id exists
         $response = $this->postJson('/api/entries', [
             'patient_id' => 'non-existent-id',
-            'title' => 'Test Entry'
+            'title' => 'Test Entry',
         ]);
         $response->assertStatus(422)
-                 ->assertJsonValidationErrors(['patient_id']);
+            ->assertJsonValidationErrors(['patient_id']);
     }
 
     /**

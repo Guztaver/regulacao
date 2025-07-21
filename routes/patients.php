@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\PatientController;
-
 use App\Http\Controllers\PatientDocumentController;
 use Illuminate\Support\Facades\Route;
 

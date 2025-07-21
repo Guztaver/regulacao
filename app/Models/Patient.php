@@ -9,13 +9,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Notifications\Notifiable;
-use App\Models\User;
 use Symfony\Component\Uid\Uuid;
 
 /**
  * @property Uuid $id
  * @property string $name
-
  * @property string $phone
  * @property string|null $sus_number
  * @property int $created_by
@@ -23,7 +21,7 @@ use Symfony\Component\Uid\Uuid;
 class Patient extends Model
 {
     /** @use HasFactory<PatientFactory> */
-    use HasFactory, Notifiable, HasUuids;
+    use HasFactory, HasUuids, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -34,7 +32,7 @@ class Patient extends Model
         'name',
         'phone',
         'sus_number',
-        'created_by'
+        'created_by',
     ];
 
     /**
@@ -74,8 +72,6 @@ class Patient extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
-
-
 
     /**
      * Boot the model and add model events

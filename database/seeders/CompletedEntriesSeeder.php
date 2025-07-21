@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Entry;
 use App\Models\Patient;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class CompletedEntriesSeeder extends Seeder
@@ -22,8 +21,9 @@ class CompletedEntriesSeeder extends Seeder
         // WARNING: This creates DEMO DATA ONLY - not for production use
         $this->command->warn('⚠️  This seeder creates test data only. Do not use in production!');
 
-        if (!$this->command->confirm('Do you want to create demo patients and entries?')) {
+        if (! $this->command->confirm('Do you want to create demo patients and entries?')) {
             $this->command->info('Seeder cancelled by user.');
+
             return;
         }
 
@@ -31,16 +31,16 @@ class CompletedEntriesSeeder extends Seeder
         $patients = [
             [
                 'name' => 'John Doe',
-                'phone' => '+1234567890'
+                'phone' => '+1234567890',
             ],
             [
                 'name' => 'Jane Smith',
-                'phone' => '+1234567891'
+                'phone' => '+1234567891',
             ],
             [
                 'name' => 'Bob Johnson',
-                'phone' => '+1234567892'
-            ]
+                'phone' => '+1234567892',
+            ],
         ];
 
         $createdPatients = [];
@@ -78,7 +78,7 @@ class CompletedEntriesSeeder extends Seeder
                 'title' => 'Physical therapy session completed',
                 'completed' => true,
                 'created_at' => now()->subHours(12),
-            ]
+            ],
         ];
 
         foreach ($completedEntries as $entryData) {
@@ -97,7 +97,7 @@ class CompletedEntriesSeeder extends Seeder
         $incompleteEntries = [
             'Cardiology appointment scheduled',
             'MRI scan pending',
-            'Follow-up consultation needed'
+            'Follow-up consultation needed',
         ];
 
         foreach ($incompleteEntries as $title) {
@@ -111,8 +111,8 @@ class CompletedEntriesSeeder extends Seeder
         }
 
         $this->command->info('✅ Demo data seeder finished!');
-        $this->command->info('Created ' . count($completedEntries) . ' completed entries');
-        $this->command->info('Created ' . count($incompleteEntries) . ' incomplete entries');
+        $this->command->info('Created '.count($completedEntries).' completed entries');
+        $this->command->info('Created '.count($incompleteEntries).' incomplete entries');
         $this->command->warn('⚠️  Remember: This is test data only!');
     }
 }

@@ -14,7 +14,7 @@ class StoreEntryRequest extends FormRequest
     public function authorize(): bool
     {
         // Ensure user is authenticated
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return false;
         }
 
@@ -34,24 +34,24 @@ class StoreEntryRequest extends FormRequest
             'patient_id' => [
                 'required',
                 'string',
-                'exists:patients,id'
+                'exists:patients,id',
             ],
             'title' => [
                 'required',
                 'string',
                 'max:255',
                 'min:3',
-                'regex:/^[a-zA-ZÀ-ÿñÑ\s\d\.\,\-\:\/]+$/u' // Letters, numbers, basic punctuation
+                'regex:/^[a-zA-ZÀ-ÿñÑ\s\d\.\,\-\:\/]+$/u', // Letters, numbers, basic punctuation
             ],
             'brought_by' => [
                 'nullable',
                 'string',
                 'max:255',
-                'regex:/^[a-zA-ZÀ-ÿñÑ\s\d\.\,\-\:\/]+$/u' // Letters, numbers, basic punctuation
+                'regex:/^[a-zA-ZÀ-ÿñÑ\s\d\.\,\-\:\/]+$/u', // Letters, numbers, basic punctuation
             ],
             'completed' => [
                 'sometimes',
-                'boolean'
+                'boolean',
             ],
         ];
     }
@@ -83,9 +83,9 @@ class StoreEntryRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             // Ensure user is still authenticated during validation
-            if (!Auth::check()) {
+            if (! Auth::check()) {
                 throw ValidationException::withMessages([
-                    'auth' => 'Usuário deve estar autenticado para criar entradas.'
+                    'auth' => 'Usuário deve estar autenticado para criar entradas.',
                 ]);
             }
 
@@ -105,7 +105,7 @@ class StoreEntryRequest extends FormRequest
             // Check if patient exists and user has access
             $patient = \App\Models\Patient::find($patientId);
 
-            if (!$patient) {
+            if (! $patient) {
                 $validator->errors()->add('patient_id', 'O paciente selecionado não foi encontrado.');
             }
         }

@@ -10,7 +10,6 @@ use App\Models\EntryTimeline;
 use App\Models\Patient;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Storage;
 
 class PrintTestSeeder extends Seeder
 {
@@ -27,14 +26,15 @@ class PrintTestSeeder extends Seeder
         // WARNING: This creates DEMO DATA ONLY - not for production use
         $this->command->warn('⚠️  This seeder creates test data only. Do not use in production!');
 
-        if (!$this->command->confirm('Do you want to create demo data for print testing?')) {
+        if (! $this->command->confirm('Do you want to create demo data for print testing?')) {
             $this->command->info('Seeder cancelled by user.');
+
             return;
         }
 
         // Create a test user if none exists
         $user = User::first();
-        if (!$user) {
+        if (! $user) {
             $user = User::create([
                 'name' => 'Test User',
                 'email' => 'test@example.com',
@@ -156,7 +156,7 @@ class PrintTestSeeder extends Seeder
             ],
             [
                 'action' => 'Agendamento Realizado',
-                'description' => 'Exame agendado para ' . now()->addDays(3)->format('d/m/Y'),
+                'description' => 'Exame agendado para '.now()->addDays(3)->format('d/m/Y'),
                 'performed_at' => $baseTime->addDays(2),
                 'metadata' => ['facility' => 'Centro de Diagnóstico'],
             ],
@@ -218,7 +218,7 @@ class PrintTestSeeder extends Seeder
 
         foreach ($documents as $docData) {
             // Create a fake file path
-            $filePath = 'entry_documents/' . $entry->id . '/' . uniqid() . '_' . $docData['original_name'];
+            $filePath = 'entry_documents/'.$entry->id.'/'.uniqid().'_'.$docData['original_name'];
 
             EntryDocument::create([
                 'entry_id' => $entry->id,
@@ -235,9 +235,9 @@ class PrintTestSeeder extends Seeder
         $this->command->info('✅ Test data created successfully!');
         $this->command->info("📋 Created entry with ID: {$entry->id}");
         $this->command->info("👤 Patient: {$patient->name} (ID: {$patient->id})");
-        $this->command->info("📄 Documents: " . count($documents));
-        $this->command->info("🔄 Status transitions: 4");
-        $this->command->info("📅 Timeline entries: " . count($timelineEntries));
+        $this->command->info('📄 Documents: '.count($documents));
+        $this->command->info('🔄 Status transitions: 4');
+        $this->command->info('📅 Timeline entries: '.count($timelineEntries));
         $this->command->info('');
         $this->command->info("🖨️  You can now test the print functionality with entry ID: {$entry->id}");
         $this->command->info("🌐 Print URL: /api/entries/{$entry->id}/print");

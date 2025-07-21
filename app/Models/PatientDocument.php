@@ -51,7 +51,7 @@ class PatientDocument extends Model
             'file_path' => 'required|string|max:500',
             'mime_type' => 'required|string|max:100',
             'file_size' => 'required|integer|min:1',
-            'document_type' => 'nullable|string|in:' . implode(',', array_keys(self::DOCUMENT_TYPES)),
+            'document_type' => 'nullable|string|in:'.implode(',', array_keys(self::DOCUMENT_TYPES)),
             'description' => 'nullable|string|max:500',
         ];
     }
@@ -95,7 +95,7 @@ class PatientDocument extends Model
             $bytes /= 1024;
         }
 
-        return round($bytes, 2) . ' ' . $units[$i];
+        return round($bytes, 2).' '.$units[$i];
     }
 
     /**

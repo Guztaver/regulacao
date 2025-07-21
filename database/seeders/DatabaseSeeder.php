@@ -18,8 +18,9 @@ class DatabaseSeeder extends Seeder
         // WARNING: This creates TEST DATA ONLY - not for production use
         $this->command->warn('⚠️  This seeder creates test data only. Do not use in production!');
 
-        if (!$this->command->confirm('Do you want to create a test user?')) {
+        if (! $this->command->confirm('Do you want to create a test user?')) {
             $this->command->info('Seeder cancelled by user.');
+
             return;
         }
 

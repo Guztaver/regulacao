@@ -14,7 +14,7 @@ class StorePatientRequest extends FormRequest
     public function authorize(): bool
     {
         // Ensure user is authenticated
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return false;
         }
 
@@ -36,7 +36,7 @@ class StorePatientRequest extends FormRequest
                 'string',
                 'max:255',
                 'min:2',
-                'regex:/^[a-zA-ZÀ-ÿñÑ\s]+$/u' // Only letters, accents, and spaces
+                'regex:/^[a-zA-ZÀ-ÿñÑ\s]+$/u', // Only letters, accents, and spaces
             ],
 
             'phone' => [
@@ -44,14 +44,14 @@ class StorePatientRequest extends FormRequest
                 'string',
                 'max:20',
                 'min:10',
-                'regex:/^[\d\s\(\)\-\+]+$/' // Numbers, spaces, parentheses, hyphens, plus
+                'regex:/^[\d\s\(\)\-\+]+$/', // Numbers, spaces, parentheses, hyphens, plus
             ],
             'sus_number' => [
                 'nullable',
                 'string',
                 'size:15',
                 'unique:patients,sus_number',
-                'regex:/^[\d\s]+$/' // Only numbers and spaces for SUS number
+                'regex:/^[\d\s]+$/', // Only numbers and spaces for SUS number
             ],
         ];
     }
@@ -85,9 +85,9 @@ class StorePatientRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             // Ensure user is still authenticated during validation
-            if (!Auth::check()) {
+            if (! Auth::check()) {
                 throw ValidationException::withMessages([
-                    'auth' => 'Usuário deve estar autenticado para criar pacientes.'
+                    'auth' => 'Usuário deve estar autenticado para criar pacientes.',
                 ]);
             }
 
@@ -108,7 +108,7 @@ class StorePatientRequest extends FormRequest
             $cleanSus = preg_replace('/\s+/', '', $susNumber);
 
             // SUS number should be exactly 15 digits
-            if (strlen($cleanSus) !== 15 || !ctype_digit($cleanSus)) {
+            if (strlen($cleanSus) !== 15 || ! ctype_digit($cleanSus)) {
                 $validator->errors()->add('sus_number', 'O número do SUS deve ter exatamente 15 dígitos.');
             }
         }

@@ -17,19 +17,19 @@ class EnsureAuthenticated
     public function handle(Request $request, Closure $next): Response
     {
         // Check if user is authenticated
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return response()->json([
                 'error' => 'Authentication required',
-                'message' => 'You must be logged in to access this resource'
+                'message' => 'You must be logged in to access this resource',
             ], Response::HTTP_UNAUTHORIZED);
         }
 
         // Check if user account is still active/valid
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'error' => 'Invalid user session',
-                'message' => 'User session is invalid or expired'
+                'message' => 'User session is invalid or expired',
             ], Response::HTTP_UNAUTHORIZED);
         }
 

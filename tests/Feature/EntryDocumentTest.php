@@ -16,6 +16,7 @@ class EntryDocumentTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private Entry $entry;
 
     protected function setUp(): void

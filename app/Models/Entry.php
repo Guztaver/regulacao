@@ -12,7 +12,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use App\Models\User;
 
 /**
  * @property Uuid $patient_id
@@ -23,7 +22,7 @@ use App\Models\User;
 class Entry extends Model
 {
     /** @use HasFactory<EntryFactory> */
-    use HasFactory, Notifiable, HasUuids;
+    use HasFactory, HasUuids, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -135,13 +134,13 @@ class Entry extends Model
             'reason' => $reason,
         ]);
 
-        if (!$newStatus) {
+        if (! $newStatus) {
             Log::error('Status not found', ['status_id' => $statusId]);
             throw new \InvalidArgumentException("Status with ID {$statusId} not found");
         }
 
         // Check if transition is allowed
-        if ($currentStatus && !$currentStatus->canTransitionTo($newStatus)) {
+        if ($currentStatus && ! $currentStatus->canTransitionTo($newStatus)) {
             Log::error('Transition not allowed', [
                 'from' => $currentStatus->slug,
                 'to' => $newStatus->slug,
@@ -184,16 +183,18 @@ class Entry extends Model
      */
     public function markAsCompleted(?string $reason = null): bool
     {
-        $completedStatus = EntryStatus::findBySlug(EntryStatus::COMPLETED);
+        $completedStatus = EntryStatus::findBySlugOrFail(EntryStatus::COMPLETED);
+
         return $this->transitionTo($completedStatus->id, $reason ?? 'Entrada marcada como concluída');
     }
 
     /**
      * Schedule an exam for this entry.
      */
-    public function scheduleExam(string $scheduledDate, ?string $reason = null): bool
+    public function scheduleExam(?string $scheduledDate = null, ?string $reason = null): bool
     {
-        $examScheduledStatus = EntryStatus::findBySlug(EntryStatus::EXAM_SCHEDULED);
+        $examScheduledStatus = EntryStatus::findBySlugOrFail(EntryStatus::EXAM_SCHEDULED);
+
         return $this->transitionTo(
             $examScheduledStatus->id,
             $reason ?? 'Exame agendado',
@@ -206,7 +207,8 @@ class Entry extends Model
      */
     public function markExamReady(?string $reason = null): bool
     {
-        $examReadyStatus = EntryStatus::findBySlug(EntryStatus::EXAM_READY);
+        $examReadyStatus = EntryStatus::findBySlugOrFail(EntryStatus::EXAM_READY);
+
         return $this->transitionTo($examReadyStatus->id, $reason ?? 'Exam results are ready');
     }
 
@@ -215,7 +217,8 @@ class Entry extends Model
      */
     public function cancel(?string $reason = null): bool
     {
-        $cancelledStatus = EntryStatus::findBySlug(EntryStatus::CANCELLED);
+        $cancelledStatus = EntryStatus::findBySlugOrFail(EntryStatus::CANCELLED);
+
         return $this->transitionTo($cancelledStatus->id, $reason ?? 'Entrada cancelada');
     }
 
@@ -251,7 +254,7 @@ class Entry extends Model
         return in_array($this->currentStatus?->slug, [
             EntryStatus::EXAM_SCHEDULED,
             EntryStatus::EXAM_READY,
-            EntryStatus::COMPLETED
+            EntryStatus::COMPLETED,
         ]);
     }
 
@@ -300,7 +303,12 @@ class Entry extends Model
 
             // Set default status if not provided
             if (empty($entry->current_status_id)) {
-                $entry->current_status_id = EntryStatus::getDefaultStatus()->id;
+                try {
+                    $defaultStatus = EntryStatus::getDefaultStatus();
+                    $entry->current_status_id = $defaultStatus->id;
+                } catch (\RuntimeException $e) {
+                    throw new \InvalidArgumentException('Cannot create entry: '.$e->getMessage());
+                }
             }
         });
 
@@ -347,13 +355,13 @@ class Entry extends Model
                 // Skip logging if only timestamps changed
                 unset($changes['updated_at']);
 
-                if (!empty($changes)) {
+                if (! empty($changes)) {
                     // Status transitions are handled by the transitionTo method
                     // Log other field changes
                     $statusFields = ['current_status_id'];
                     $nonStatusChanges = array_diff_key($changes, array_flip($statusFields));
 
-                    if (!empty($nonStatusChanges)) {
+                    if (! empty($nonStatusChanges)) {
                         EntryTimeline::logAction(
                             $entry->id,
                             Auth::id(),

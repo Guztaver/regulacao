@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreEntryRequest;
 use App\Models\Entry;
 use App\Models\EntryStatus;
-use App\Models\EntryTimeline;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,7 +17,7 @@ class EntryController extends Controller
     {
         $validatedData = $request->validated();
 
-        $entry = new Entry();
+        $entry = new Entry;
         $entry->patient_id = $validatedData['patient_id'];
         $entry->title = $validatedData['title'];
         $entry->brought_by = $validatedData['brought_by'] ?? null;
@@ -28,11 +27,10 @@ class EntryController extends Controller
         return response()->json(['message' => 'Entrada criada com sucesso', 'entry' => $entry], Response::HTTP_CREATED);
     }
 
-
     public function destroy(Request $request, $id): JsonResponse
     {
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return response()->json(['error' => 'Autenticação obrigatória'], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -45,7 +43,7 @@ class EntryController extends Controller
     public function show(Request $request, $id): JsonResponse
     {
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -59,7 +57,7 @@ class EntryController extends Controller
     public function index(Request $request): JsonResponse
     {
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -77,13 +75,13 @@ class EntryController extends Controller
             ->withCount('documents');
 
         // Filter by active entries (non-final status)
-        if (!empty($validatedData['active_only'])) {
+        if (! empty($validatedData['active_only'])) {
             $nonFinalStatuses = EntryStatus::where('is_final', false)->pluck('id');
             $query->whereIn('current_status_id', $nonFinalStatuses);
         }
 
         // Filter by scheduled entries (entries with scheduled_exam_date)
-        if (!empty($validatedData['scheduled_only'])) {
+        if (! empty($validatedData['scheduled_only'])) {
             $query->whereHas('statusTransitions', function ($q) {
                 $q->whereHas('toStatus', function ($statusQuery) {
                     $statusQuery->where('slug', EntryStatus::EXAM_SCHEDULED);
@@ -98,22 +96,22 @@ class EntryController extends Controller
         }
 
         // Filter by date range
-        if (!empty($validatedData['date_from'])) {
+        if (! empty($validatedData['date_from'])) {
             $query->whereDate('created_at', '>=', $validatedData['date_from']);
         }
-        if (!empty($validatedData['date_to'])) {
+        if (! empty($validatedData['date_to'])) {
             $query->whereDate('created_at', '<=', $validatedData['date_to']);
         }
 
         // Filter by patient name
-        if (!empty($validatedData['patient_name'])) {
+        if (! empty($validatedData['patient_name'])) {
             $query->whereHas('patient', function ($q) use ($validatedData) {
-                $q->where('name', 'LIKE', '%' . $validatedData['patient_name'] . '%');
+                $q->where('name', 'LIKE', '%'.$validatedData['patient_name'].'%');
             });
         }
 
         // Find by specific entry ID
-        if (!empty($validatedData['entry_id'])) {
+        if (! empty($validatedData['entry_id'])) {
             $query->where('id', $validatedData['entry_id']);
         }
 
@@ -128,7 +126,7 @@ class EntryController extends Controller
     public function complete(Request $request, $id): JsonResponse
     {
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -136,6 +134,7 @@ class EntryController extends Controller
 
         try {
             $entry->markAsCompleted();
+
             return response()->json(['message' => 'Entrada concluída com sucesso'], JsonResponse::HTTP_OK);
         } catch (\InvalidArgumentException $e) {
             return response()->json(['error' => $e->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
@@ -145,7 +144,7 @@ class EntryController extends Controller
     public function completed(Request $request): JsonResponse
     {
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -157,28 +156,28 @@ class EntryController extends Controller
             'limit' => 'nullable|integer|min:1|max:1000',
         ]);
 
-        $completedStatus = EntryStatus::findBySlug(EntryStatus::COMPLETED);
+        $completedStatus = EntryStatus::findBySlugOrFail(EntryStatus::COMPLETED);
         $query = Entry::with(['patient', 'createdBy', 'currentStatus', 'statusTransitions.fromStatus', 'statusTransitions.toStatus', 'statusTransitions.user'])
             ->withCount('documents')
             ->where('current_status_id', $completedStatus->id);
 
         // Filter by date range
-        if (!empty($validatedData['date_from'])) {
+        if (! empty($validatedData['date_from'])) {
             $query->whereDate('created_at', '>=', $validatedData['date_from']);
         }
-        if (!empty($validatedData['date_to'])) {
+        if (! empty($validatedData['date_to'])) {
             $query->whereDate('created_at', '<=', $validatedData['date_to']);
         }
 
         // Filter by patient name
-        if (!empty($validatedData['patient_name'])) {
+        if (! empty($validatedData['patient_name'])) {
             $query->whereHas('patient', function ($q) use ($validatedData) {
-                $q->where('name', 'LIKE', '%' . $validatedData['patient_name'] . '%');
+                $q->where('name', 'LIKE', '%'.$validatedData['patient_name'].'%');
             });
         }
 
         // Find by specific entry ID
-        if (!empty($validatedData['entry_id'])) {
+        if (! empty($validatedData['entry_id'])) {
             $query->where('id', $validatedData['entry_id']);
         }
 
@@ -195,15 +194,15 @@ class EntryController extends Controller
                 'date_to' => $validatedData['date_to'] ?? null,
                 'patient_name' => $validatedData['patient_name'] ?? null,
                 'entry_id' => $validatedData['entry_id'] ?? null,
-                'limit' => $limit
-            ]
+                'limit' => $limit,
+            ],
         ], JsonResponse::HTTP_OK);
     }
 
     public function scheduleExam(Request $request, $id): JsonResponse
     {
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -222,7 +221,7 @@ class EntryController extends Controller
 
             return response()->json([
                 'message' => 'Exame agendado com sucesso',
-                'entry' => $entry->fresh(['currentStatus', 'patient'])
+                'entry' => $entry->fresh(['currentStatus', 'patient']),
             ], JsonResponse::HTTP_OK);
         } catch (\InvalidArgumentException $e) {
             return response()->json(['error' => $e->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
@@ -232,7 +231,7 @@ class EntryController extends Controller
     public function markExamReady(Request $request, $id): JsonResponse
     {
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -240,6 +239,7 @@ class EntryController extends Controller
 
         try {
             $entry->markExamReady();
+
             return response()->json(['message' => 'Exam marked as ready'], JsonResponse::HTTP_OK);
         } catch (\InvalidArgumentException $e) {
             return response()->json(['error' => $e->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
@@ -248,7 +248,7 @@ class EntryController extends Controller
 
     public function getStatuses(Request $request): JsonResponse
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -259,7 +259,7 @@ class EntryController extends Controller
 
     public function getNextStatuses(Request $request, $id): JsonResponse
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -272,7 +272,7 @@ class EntryController extends Controller
     public function transitionStatus(Request $request, $id): JsonResponse
     {
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -310,7 +310,7 @@ class EntryController extends Controller
 
             return response()->json([
                 'message' => 'Status atualizado com sucesso',
-                'entry' => $entry->fresh(['currentStatus', 'statusTransitions'])
+                'entry' => $entry->fresh(['currentStatus', 'statusTransitions']),
             ], JsonResponse::HTTP_OK);
         } catch (\InvalidArgumentException $e) {
             Log::error('Status Transition Failed', [
@@ -335,7 +335,7 @@ class EntryController extends Controller
     public function getStatusHistory(Request $request, $id): JsonResponse
     {
         // Ensure user is authenticated
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -352,7 +352,7 @@ class EntryController extends Controller
     public function cancel(Request $request, $id): JsonResponse
     {
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -364,6 +364,7 @@ class EntryController extends Controller
 
         try {
             $entry->cancel($validatedData['reason'] ?? null);
+
             return response()->json(['message' => 'Entrada cancelada com sucesso'], JsonResponse::HTTP_OK);
         } catch (\InvalidArgumentException $e) {
             return response()->json(['error' => $e->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
@@ -373,7 +374,7 @@ class EntryController extends Controller
     public function active(Request $request): JsonResponse
     {
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -385,28 +386,28 @@ class EntryController extends Controller
             'limit' => 'nullable|integer|min:1|max:1000',
         ]);
 
-        $pendingStatus = EntryStatus::findBySlug(EntryStatus::PENDING);
+        $pendingStatus = EntryStatus::findBySlugOrFail(EntryStatus::PENDING);
         $query = Entry::with(['patient', 'createdBy', 'currentStatus', 'statusTransitions.fromStatus', 'statusTransitions.toStatus', 'statusTransitions.user'])
             ->withCount('documents')
             ->where('current_status_id', $pendingStatus->id);
 
         // Filter by date range
-        if (!empty($validatedData['date_from'])) {
+        if (! empty($validatedData['date_from'])) {
             $query->whereDate('created_at', '>=', $validatedData['date_from']);
         }
-        if (!empty($validatedData['date_to'])) {
+        if (! empty($validatedData['date_to'])) {
             $query->whereDate('created_at', '<=', $validatedData['date_to']);
         }
 
         // Filter by patient name
-        if (!empty($validatedData['patient_name'])) {
+        if (! empty($validatedData['patient_name'])) {
             $query->whereHas('patient', function ($q) use ($validatedData) {
-                $q->where('name', 'LIKE', '%' . $validatedData['patient_name'] . '%');
+                $q->where('name', 'LIKE', '%'.$validatedData['patient_name'].'%');
             });
         }
 
         // Find by specific entry ID
-        if (!empty($validatedData['entry_id'])) {
+        if (! empty($validatedData['entry_id'])) {
             $query->where('id', $validatedData['entry_id']);
         }
 
@@ -421,7 +422,7 @@ class EntryController extends Controller
     public function scheduled(Request $request): JsonResponse
     {
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -433,28 +434,28 @@ class EntryController extends Controller
             'limit' => 'nullable|integer|min:1|max:1000',
         ]);
 
-        $scheduledStatus = EntryStatus::findBySlug(EntryStatus::EXAM_SCHEDULED);
+        $scheduledStatus = EntryStatus::findBySlugOrFail(EntryStatus::EXAM_SCHEDULED);
         $query = Entry::with(['patient', 'createdBy', 'currentStatus', 'statusTransitions.fromStatus', 'statusTransitions.toStatus', 'statusTransitions.user'])
             ->withCount('documents')
             ->where('current_status_id', $scheduledStatus->id);
 
         // Filter by date range
-        if (!empty($validatedData['date_from'])) {
+        if (! empty($validatedData['date_from'])) {
             $query->whereDate('created_at', '>=', $validatedData['date_from']);
         }
-        if (!empty($validatedData['date_to'])) {
+        if (! empty($validatedData['date_to'])) {
             $query->whereDate('created_at', '<=', $validatedData['date_to']);
         }
 
         // Filter by patient name
-        if (!empty($validatedData['patient_name'])) {
+        if (! empty($validatedData['patient_name'])) {
             $query->whereHas('patient', function ($q) use ($validatedData) {
-                $q->where('name', 'LIKE', '%' . $validatedData['patient_name'] . '%');
+                $q->where('name', 'LIKE', '%'.$validatedData['patient_name'].'%');
             });
         }
 
         // Find by specific entry ID
-        if (!empty($validatedData['entry_id'])) {
+        if (! empty($validatedData['entry_id'])) {
             $query->where('id', $validatedData['entry_id']);
         }
 
@@ -468,7 +469,7 @@ class EntryController extends Controller
 
     public function examReady(Request $request): JsonResponse
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -480,28 +481,28 @@ class EntryController extends Controller
             'limit' => 'nullable|integer|min:1|max:1000',
         ]);
 
-        $examReadyStatus = EntryStatus::findBySlug(EntryStatus::EXAM_READY);
+        $examReadyStatus = EntryStatus::findBySlugOrFail(EntryStatus::EXAM_READY);
         $query = Entry::with(['patient', 'createdBy', 'currentStatus', 'statusTransitions.fromStatus', 'statusTransitions.toStatus', 'statusTransitions.user'])
             ->withCount('documents')
             ->where('current_status_id', $examReadyStatus->id);
 
         // Filter by date range
-        if (!empty($validatedData['date_from'])) {
+        if (! empty($validatedData['date_from'])) {
             $query->whereDate('created_at', '>=', $validatedData['date_from']);
         }
-        if (!empty($validatedData['date_to'])) {
+        if (! empty($validatedData['date_to'])) {
             $query->whereDate('created_at', '<=', $validatedData['date_to']);
         }
 
         // Filter by patient name
-        if (!empty($validatedData['patient_name'])) {
+        if (! empty($validatedData['patient_name'])) {
             $query->whereHas('patient', function ($q) use ($validatedData) {
-                $q->where('name', 'LIKE', '%' . $validatedData['patient_name'] . '%');
+                $q->where('name', 'LIKE', '%'.$validatedData['patient_name'].'%');
             });
         }
 
         // Find by specific entry ID
-        if (!empty($validatedData['entry_id'])) {
+        if (! empty($validatedData['entry_id'])) {
             $query->where('id', $validatedData['entry_id']);
         }
 
@@ -515,7 +516,7 @@ class EntryController extends Controller
 
     public function cancelled(Request $request): JsonResponse
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -527,28 +528,28 @@ class EntryController extends Controller
             'limit' => 'nullable|integer|min:1|max:1000',
         ]);
 
-        $cancelledStatus = EntryStatus::findBySlug(EntryStatus::CANCELLED);
+        $cancelledStatus = EntryStatus::findBySlugOrFail(EntryStatus::CANCELLED);
         $query = Entry::with(['patient', 'createdBy', 'currentStatus', 'statusTransitions.fromStatus', 'statusTransitions.toStatus', 'statusTransitions.user'])
             ->withCount('documents')
             ->where('current_status_id', $cancelledStatus->id);
 
         // Filter by date range
-        if (!empty($validatedData['date_from'])) {
+        if (! empty($validatedData['date_from'])) {
             $query->whereDate('created_at', '>=', $validatedData['date_from']);
         }
-        if (!empty($validatedData['date_to'])) {
+        if (! empty($validatedData['date_to'])) {
             $query->whereDate('created_at', '<=', $validatedData['date_to']);
         }
 
         // Filter by patient name
-        if (!empty($validatedData['patient_name'])) {
+        if (! empty($validatedData['patient_name'])) {
             $query->whereHas('patient', function ($q) use ($validatedData) {
-                $q->where('name', 'LIKE', '%' . $validatedData['patient_name'] . '%');
+                $q->where('name', 'LIKE', '%'.$validatedData['patient_name'].'%');
             });
         }
 
         // Find by specific entry ID
-        if (!empty($validatedData['entry_id'])) {
+        if (! empty($validatedData['entry_id'])) {
             $query->where('id', $validatedData['entry_id']);
         }
 
@@ -563,7 +564,7 @@ class EntryController extends Controller
     public function print(Request $request, $id)
     {
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('login');
         }
 
@@ -575,7 +576,7 @@ class EntryController extends Controller
             'statusTransitions.toStatus',
             'statusTransitions.user',
             'documents.uploadedBy',
-            'timeline'
+            'timeline',
         ])->findOrFail($id);
 
         $currentUser = Auth::user();

@@ -28,13 +28,13 @@ class EntryDocumentFactory extends Factory
         $documentTypes = array_keys(EntryDocument::DOCUMENT_TYPES);
         $extensions = ['pdf', 'jpg', 'png', 'doc', 'docx', 'txt'];
         $extension = $this->faker->randomElement($extensions);
-        $fileName = $this->faker->uuid() . '.' . $extension;
+        $fileName = $this->faker->uuid().'.'.$extension;
 
         return [
             'entry_id' => Entry::factory(),
-            'original_name' => $this->faker->words(3, true) . '.' . $extension,
+            'original_name' => $this->faker->words(3, true).'.'.$extension,
             'file_name' => $fileName,
-            'file_path' => 'entry-documents/' . $this->faker->uuid() . '/' . $fileName,
+            'file_path' => 'entry-documents/'.$this->faker->uuid().'/'.$fileName,
             'mime_type' => $this->getMimeType($extension),
             'file_size' => $this->faker->numberBetween(1024, 10485760), // 1KB to 10MB
             'document_type' => $this->faker->randomElement($documentTypes),
@@ -65,7 +65,7 @@ class EntryDocumentFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'document_type' => 'medical_request',
-            'description' => 'Solicitação médica para ' . $this->faker->words(3, true),
+            'description' => 'Solicitação médica para '.$this->faker->words(3, true),
         ]);
     }
 
@@ -76,7 +76,7 @@ class EntryDocumentFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'document_type' => 'exam_result',
-            'description' => 'Resultado de exame de ' . $this->faker->words(2, true),
+            'description' => 'Resultado de exame de '.$this->faker->words(2, true),
         ]);
     }
 
@@ -87,7 +87,7 @@ class EntryDocumentFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'document_type' => 'medical_report',
-            'description' => 'Relatório médico sobre ' . $this->faker->words(3, true),
+            'description' => 'Relatório médico sobre '.$this->faker->words(3, true),
         ]);
     }
 
@@ -98,7 +98,7 @@ class EntryDocumentFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'document_type' => 'prescription',
-            'description' => 'Receita médica para ' . $this->faker->words(2, true),
+            'description' => 'Receita médica para '.$this->faker->words(2, true),
         ]);
     }
 
@@ -107,12 +107,12 @@ class EntryDocumentFactory extends Factory
      */
     public function pdf(): static
     {
-        $fileName = $this->faker->uuid() . '.pdf';
+        $fileName = $this->faker->uuid().'.pdf';
 
         return $this->state(fn (array $attributes) => [
-            'original_name' => $this->faker->words(3, true) . '.pdf',
+            'original_name' => $this->faker->words(3, true).'.pdf',
             'file_name' => $fileName,
-            'file_path' => 'entry-documents/' . $this->faker->uuid() . '/' . $fileName,
+            'file_path' => 'entry-documents/'.$this->faker->uuid().'/'.$fileName,
             'mime_type' => 'application/pdf',
         ]);
     }
@@ -123,12 +123,12 @@ class EntryDocumentFactory extends Factory
     public function image(): static
     {
         $extension = $this->faker->randomElement(['jpg', 'png']);
-        $fileName = $this->faker->uuid() . '.' . $extension;
+        $fileName = $this->faker->uuid().'.'.$extension;
 
         return $this->state(fn (array $attributes) => [
-            'original_name' => $this->faker->words(3, true) . '.' . $extension,
+            'original_name' => $this->faker->words(3, true).'.'.$extension,
             'file_name' => $fileName,
-            'file_path' => 'entry-documents/' . $this->faker->uuid() . '/' . $fileName,
+            'file_path' => 'entry-documents/'.$this->faker->uuid().'/'.$fileName,
             'mime_type' => $extension === 'jpg' ? 'image/jpeg' : 'image/png',
         ]);
     }

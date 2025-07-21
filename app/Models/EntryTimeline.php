@@ -79,10 +79,16 @@ class EntryTimeline extends Model
      * Timeline action constants
      */
     public const ACTION_CREATED = 'created';
+
     public const ACTION_UPDATED = 'updated';
+
     public const ACTION_COMPLETED = 'completed';
+
     public const ACTION_UNCOMPLETED = 'uncompleted';
+
     public const ACTION_EXAM_SCHEDULED = 'exam_scheduled';
+
     public const ACTION_EXAM_READY = 'exam_ready';
+
     public const ACTION_DELETED = 'deleted';
 }

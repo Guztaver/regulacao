@@ -15,7 +15,7 @@ class EntryDocumentController extends Controller
     public function store(Request $request, string $entryId): JsonResponse
     {
         // Ensure user is authenticated
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return response()->json(['error' => 'Authentication required'], JsonResponse::HTTP_UNAUTHORIZED);
         }
 
@@ -23,14 +23,14 @@ class EntryDocumentController extends Controller
 
         $validatedData = $request->validate([
             'file' => 'required|file|max:10240', // 10MB max
-            'document_type' => 'required|string|in:' . implode(',', array_keys(EntryDocument::DOCUMENT_TYPES)),
+            'document_type' => 'required|string|in:'.implode(',', array_keys(EntryDocument::DOCUMENT_TYPES)),
             'description' => 'nullable|string|max:500',
         ]);
 
         $file = $request->file('file');
         $originalName = $file->getClientOriginalName();
-        $fileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
-        $filePath = $file->storeAs('entry-documents/' . $entryId, $fileName, 'public');
+        $fileName = Str::uuid().'.'.$file->getClientOriginalExtension();
+        $filePath = $file->storeAs('entry-documents/'.$entryId, $fileName, 'public');
 
         $document = EntryDocument::create([
             'entry_id' => $entryId,
@@ -46,14 +46,14 @@ class EntryDocumentController extends Controller
 
         return response()->json([
             'message' => 'Documento enviado com sucesso',
-            'document' => $document->load('entry')
+            'document' => $document->load('entry'),
         ], JsonResponse::HTTP_CREATED);
     }
 
     public function index(string $entryId): JsonResponse
     {
         // Ensure user is authenticated
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return response()->json(['error' => 'Authentication required'], JsonResponse::HTTP_UNAUTHORIZED);
         }
 
@@ -63,34 +63,33 @@ class EntryDocumentController extends Controller
             ->with('uploadedBy')
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(fn ($document) =>
-                [
-                    'id' => $document->id,
-                    'original_name' => $document->original_name,
-                    'file_name' => $document->file_name,
-                    'mime_type' => $document->mime_type,
-                    'file_size' => $document->file_size,
-                    'formatted_file_size' => $document->formatted_file_size,
-                    'document_type' => $document->document_type,
-                    'document_type_label' => $document->document_type_label,
-                    'description' => $document->description,
-                    'url' => $document->url,
-                    'is_image' => $document->isImage(),
-                    'is_pdf' => $document->isPdf(),
-                    'uploaded_by' => $document->uploadedBy?->name,
-                    'created_at' => $document->created_at,
-                ]);
+            ->map(fn ($document) => [
+                'id' => $document->id,
+                'original_name' => $document->original_name,
+                'file_name' => $document->file_name,
+                'mime_type' => $document->mime_type,
+                'file_size' => $document->file_size,
+                'formatted_file_size' => $document->formatted_file_size,
+                'document_type' => $document->document_type,
+                'document_type_label' => $document->document_type_label,
+                'description' => $document->description,
+                'url' => $document->url,
+                'is_image' => $document->isImage(),
+                'is_pdf' => $document->isPdf(),
+                'uploaded_by' => $document->uploadedBy?->name,
+                'created_at' => $document->created_at,
+            ]);
 
         return response()->json([
             'entry' => $entry,
-            'documents' => $documents
+            'documents' => $documents,
         ], JsonResponse::HTTP_OK);
     }
 
     public function show(string $entryId, string $documentId): JsonResponse
     {
         // Ensure user is authenticated
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return response()->json(['error' => 'Authentication required'], JsonResponse::HTTP_UNAUTHORIZED);
         }
 
@@ -114,31 +113,31 @@ class EntryDocumentController extends Controller
                 'uploaded_by' => $document->uploadedBy?->name,
                 'created_at' => $document->created_at,
             ],
-            'entry' => $entry
+            'entry' => $entry,
         ], JsonResponse::HTTP_OK);
     }
 
     public function download(string $entryId, string $documentId)
     {
         // Ensure user is authenticated
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return response()->json(['error' => 'Authentication required'], JsonResponse::HTTP_UNAUTHORIZED);
         }
 
         $entry = Entry::findOrFail($entryId);
         $document = $entry->documents()->findOrFail($documentId);
 
-        if (!Storage::disk('public')->exists($document->file_path)) {
+        if (! Storage::disk('public')->exists($document->file_path)) {
             return response()->json(['message' => 'File not found'], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        return Storage::download('public/' . $document->file_path, $document->original_name);
+        return Storage::download('public/'.$document->file_path, $document->original_name);
     }
 
     public function destroy(string $entryId, string $documentId): JsonResponse
     {
         // Ensure user is authenticated
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return response()->json(['error' => 'Authentication required'], JsonResponse::HTTP_UNAUTHORIZED);
         }
 
@@ -148,19 +147,19 @@ class EntryDocumentController extends Controller
         $document->delete();
 
         return response()->json([
-            'message' => 'Documento excluído com sucesso'
+            'message' => 'Documento excluído com sucesso',
         ], JsonResponse::HTTP_OK);
     }
 
     public function getDocumentTypes(): JsonResponse
     {
         // Ensure user is authenticated
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return response()->json(['error' => 'Authentication required'], JsonResponse::HTTP_UNAUTHORIZED);
         }
 
         return response()->json([
-            'document_types' => EntryDocument::DOCUMENT_TYPES
+            'document_types' => EntryDocument::DOCUMENT_TYPES,
         ], JsonResponse::HTTP_OK);
     }
 }

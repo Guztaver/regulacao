@@ -34,8 +34,9 @@ class SeedExistingTimelines extends Command
 
         foreach ($entries as $entry) {
             // Check if entry already has timeline data
-            if (!$this->option('force') && $entry->timeline()->exists()) {
+            if (! $this->option('force') && $entry->timeline()->exists()) {
                 $this->line("Entry {$entry->id} already has timeline data, skipping...");
+
                 continue;
             }
 

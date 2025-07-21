@@ -7,7 +7,6 @@ namespace Database\Factories;
  */
 class PatientFactory extends \Illuminate\Database\Eloquent\Factories\Factory
 {
-
     public function definition()
     {
         return [

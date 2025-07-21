@@ -2,10 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use App\Http\Controllers\EntryController;
-
 // Sanctum CSRF route for SPA authentication
 use Laravel\Sanctum\Http\Controllers\CsrfCookieController;
+
 Route::get('/sanctum/csrf-cookie', [CsrfCookieController::class, 'show'])->middleware('web');
 
 Route::get('/', static fn () => Inertia::render('Welcome'))->name('home');

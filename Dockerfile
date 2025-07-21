@@ -19,8 +19,6 @@ COPY resources/ resources/
 COPY public/ public/
 COPY vite.config.ts ./
 COPY tsconfig.json ./
-COPY tailwind.config.js ./
-COPY postcss.config.js ./
 
 # Build assets
 RUN npm run build

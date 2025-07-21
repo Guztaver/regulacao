@@ -94,7 +94,8 @@ Makefile
 Procfile
 nixpacks.toml
 railway.toml
-fly/
+fly.toml
+fly-deploy.sh
 
 # Temporary files
 *.tmp

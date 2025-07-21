@@ -43,6 +43,12 @@ class StoreEntryRequest extends FormRequest
                 'min:3',
                 'regex:/^[a-zA-ZÀ-ÿñÑ\s\d\.\,\-\:\/]+$/u' // Letters, numbers, basic punctuation
             ],
+            'brought_by' => [
+                'nullable',
+                'string',
+                'max:255',
+                'regex:/^[a-zA-ZÀ-ÿñÑ\s\d\.\,\-\:\/]+$/u' // Letters, numbers, basic punctuation
+            ],
             'completed' => [
                 'sometimes',
                 'boolean'
@@ -64,6 +70,8 @@ class StoreEntryRequest extends FormRequest
             'title.min' => 'O título deve ter pelo menos 3 caracteres.',
             'title.max' => 'O título não pode ter mais de 255 caracteres.',
             'title.regex' => 'O título contém caracteres não permitidos.',
+            'brought_by.max' => 'O campo "Trazido por" não pode ter mais de 255 caracteres.',
+            'brought_by.regex' => 'O campo "Trazido por" contém caracteres não permitidos.',
             'completed.boolean' => 'O status de conclusão deve ser verdadeiro ou falso.',
         ];
     }
@@ -113,6 +121,10 @@ class StoreEntryRequest extends FormRequest
 
         if ($this->has('title')) {
             $data['title'] = trim($this->input('title'));
+        }
+
+        if ($this->has('brought_by')) {
+            $data['brought_by'] = trim($this->input('brought_by'));
         }
 
         if ($this->has('patient_id')) {

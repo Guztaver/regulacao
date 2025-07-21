@@ -55,6 +55,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 const entry = reactive({
     patient_id: '',
     title: '',
+    brought_by: '',
 });
 
 // State management
@@ -320,6 +321,7 @@ async function createEntry() {
         Object.assign(entry, {
             patient_id: '',
             title: '',
+            brought_by: '',
         });
         onPatientCleared();
 
@@ -437,6 +439,11 @@ watch([message, error, entryMessage, entryError], () => {
                                     <div>
                                         <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Título</label>
                                         <Input type="text" v-model="entry.title" placeholder="Digite o título da entrada" class="mt-1" required />
+                                    </div>
+
+                                    <div>
+                                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Trazido por</label>
+                                        <Input type="text" v-model="entry.brought_by" placeholder="Ex: Responsável, Agente SUS, etc." class="mt-1" />
                                     </div>
 
                                     <DialogFooter>

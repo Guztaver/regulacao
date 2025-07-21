@@ -21,6 +21,7 @@ class EntryController extends Controller
         $entry = new Entry();
         $entry->patient_id = $validatedData['patient_id'];
         $entry->title = $validatedData['title'];
+        $entry->brought_by = $validatedData['brought_by'] ?? null;
         $entry->created_by = Auth::id(); // Never null - auth is required via form request
         $entry->save();
 

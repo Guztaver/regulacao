@@ -160,7 +160,7 @@ export function useEntryApi() {
         /**
          * Create a new entry
          */
-        createEntry: (data: { patient_id: string; title: string }) => api.post('/api/entries', data),
+        createEntry: (data: { patient_id: string; title: string; brought_by?: string }) => api.post('/api/entries', data),
 
         /**
          * Delete an entry

@@ -33,6 +33,7 @@ class Entry extends Model
     protected $fillable = [
         'patient_id',
         'title',
+        'brought_by',
         'current_status_id',
         'created_by',
     ];
@@ -45,6 +46,7 @@ class Entry extends Model
         return [
             'patient_id' => 'required|exists:patients,id',
             'title' => 'required|string|max:255',
+            'brought_by' => 'nullable|string|max:255',
             'current_status_id' => 'required|exists:entry_statuses,id',
             'created_by' => 'required|exists:users,id',
         ];
@@ -321,7 +323,7 @@ class Entry extends Model
                     $entry->created_by,
                     EntryTimeline::ACTION_CREATED,
                     'Entrada criada',
-                    ['title' => $entry->title]
+                    ['title' => $entry->title, 'brought_by' => $entry->brought_by]
                 );
             }
         });
@@ -372,7 +374,7 @@ class Entry extends Model
                     Auth::id(),
                     EntryTimeline::ACTION_DELETED,
                     'Entrada excluída',
-                    ['title' => $entry->title]
+                    ['title' => $entry->title, 'brought_by' => $entry->brought_by]
                 );
             }
         });

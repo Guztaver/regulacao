@@ -326,6 +326,14 @@ function printEntry() {
                                 </p>
                             </div>
 
+                            <!-- Brought By -->
+                            <div v-if="entry.brought_by" class="rounded-lg bg-purple-50 p-4 dark:bg-purple-900/20">
+                                <h4 class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">Trazido por</h4>
+                                <p class="text-sm leading-relaxed text-gray-900 dark:text-gray-100">
+                                    {{ entry.brought_by }}
+                                </p>
+                            </div>
+
                             <!-- Status Description -->
                             <div v-if="entry.current_status?.description" class="rounded-lg bg-yellow-50 p-4 dark:bg-yellow-900/20">
                                 <h4 class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">Descrição do Status</h4>

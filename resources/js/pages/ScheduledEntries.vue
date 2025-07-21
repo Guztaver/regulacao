@@ -458,9 +458,6 @@ watch([message, error], () => {
                                     <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
                                         <div class="flex flex-col">
                                             <span class="font-medium">{{ entry.patient?.name || 'Paciente Desconhecido' }}</span>
-                                            <span v-if="entry.patient?.email" class="text-xs text-gray-500 dark:text-gray-400">
-                                                {{ entry.patient.email }}
-                                            </span>
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">

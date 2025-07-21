@@ -15,7 +15,7 @@ use Symfony\Component\Uid\Uuid;
 /**
  * @property Uuid $id
  * @property string $name
- * @property string $email
+
  * @property string $phone
  * @property string|null $sus_number
  * @property int $created_by
@@ -32,7 +32,6 @@ class Patient extends Model
      */
     protected $fillable = [
         'name',
-        'email',
         'phone',
         'sus_number',
         'created_by'
@@ -45,7 +44,6 @@ class Patient extends Model
     {
         return [
             'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:patients,email',
             'phone' => 'nullable|string|max:20',
             'sus_number' => 'nullable|string|size:15|unique:patients,sus_number',
             'created_by' => 'required|exists:users,id',

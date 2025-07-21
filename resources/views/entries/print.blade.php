@@ -58,10 +58,7 @@
                 <div class="info-label">Nome Completo</div>
                 <div class="info-value">{{ $entry->patient->name ?? 'N/A' }}</div>
             </div>
-            <div class="info-item">
-                <div class="info-label">E-mail</div>
-                <div class="info-value">{{ $entry->patient->email ?? 'N/A' }}</div>
-            </div>
+
             <div class="info-item">
                 <div class="info-label">Telefone</div>
                 <div class="info-value">{{ $entry->patient->phone ?? 'N/A' }}</div>

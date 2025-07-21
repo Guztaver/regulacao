@@ -18,7 +18,7 @@ interface Emits {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    placeholder: 'Digite o nome ou email do paciente...',
+    placeholder: 'Digite o nome do paciente...',
     required: false,
     disabled: false,
 });
@@ -59,7 +59,7 @@ const searchPatients = async (term: string) => {
 
 const selectPatient = (patient: Patient) => {
     selectedPatient.value = patient;
-    searchTerm.value = `${patient.name} (${patient.email})`;
+    searchTerm.value = patient.name;
     showDropdown.value = false;
     emit('update:modelValue', patient.id);
     emit('patient-selected', patient);
@@ -85,7 +85,7 @@ watch(
     searchTerm,
     (newValue) => {
         // If user is typing and we had a selection, clear it
-        if (selectedPatient.value && newValue !== `${selectedPatient.value.name} (${selectedPatient.value.email})`) {
+        if (selectedPatient.value && newValue !== selectedPatient.value.name) {
             selectedPatient.value = null;
             emit('update:modelValue', '');
         }
@@ -183,7 +183,6 @@ if (typeof document !== 'undefined') {
             >
                 <div class="flex flex-col">
                     <span class="font-medium text-gray-900 dark:text-white">{{ patient.name }}</span>
-                    <span v-if="patient.email" class="text-sm text-gray-500 dark:text-gray-400">{{ patient.email }}</span>
                     <span v-if="patient.sus_number" class="text-xs text-gray-400 dark:text-gray-500"> SUS: {{ patient.sus_number }} </span>
                 </div>
             </button>

@@ -12,7 +12,6 @@ class PatientFactory extends \Illuminate\Database\Eloquent\Factories\Factory
     {
         return [
             'name' => $this->faker->name(),
-            'email' => $this->faker->unique()->safeEmail(),
             'phone' => $this->faker->phoneNumber(),
         ];
     }

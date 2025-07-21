@@ -20,7 +20,6 @@ interface User {
 interface Patient {
     id: string;
     name: string;
-    email: string;
     phone: string;
     sus_number?: string;
     entries_count?: number;
@@ -49,7 +48,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 const patient: Patient = reactive({
     id: '',
     name: '',
-    email: '',
     phone: '',
     sus_number: '',
 });
@@ -85,7 +83,6 @@ function createPatient() {
         .then((response) => {
             message.value = response.data.message;
             patient.name = '';
-            patient.email = '';
             patient.phone = '';
             patient.sus_number = '';
             isPatientModalOpen.value = false;
@@ -229,10 +226,7 @@ onMounted(() => {
                                     <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t.name }}</label>
                                     <Input type="text" v-model="patient.name" :placeholder="t.enterPatientName" class="mt-1" required />
                                 </div>
-                                <div>
-                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t.email }}</label>
-                                    <Input type="email" v-model="patient.email" :placeholder="t.enterEmailAddress" class="mt-1" required />
-                                </div>
+
                                 <div>
                                     <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t.phone }}</label>
                                     <Input type="text" v-model="patient.phone" :placeholder="t.enterPhoneNumber" class="mt-1" />
@@ -276,7 +270,7 @@ onMounted(() => {
                         <Input
                             type="text"
                             v-model="filters.search"
-                            placeholder="Search by name, email, or SUS number..."
+                            placeholder="Search by name or SUS number..."
                             class="pl-10"
                             @input="loadPatients"
                         />
@@ -419,7 +413,6 @@ onMounted(() => {
                                     <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
                                         <div class="flex flex-col">
                                             <span class="font-medium">{{ patient.name }}</span>
-                                            <span class="text-gray-500 dark:text-gray-400">{{ patient.email }}</span>
                                             <span v-if="patient.phone" class="text-xs text-gray-400">{{ patient.phone }}</span>
                                         </div>
                                     </td>

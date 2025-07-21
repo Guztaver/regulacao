@@ -430,7 +430,7 @@ watch([message, error, entryMessage, entryError], () => {
                                                 v-model="entry.patient_id"
                                                 @patient-selected="onPatientSelected"
                                                 @patient-cleared="onPatientCleared"
-                                                placeholder="Digite o nome ou email do paciente..."
+                                                placeholder="Digite o nome do paciente..."
                                                 required
                                             />
                                         </div>

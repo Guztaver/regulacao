@@ -31,17 +31,14 @@ class CompletedEntriesSeeder extends Seeder
         $patients = [
             [
                 'name' => 'John Doe',
-                'email' => 'john@example.com',
                 'phone' => '+1234567890'
             ],
             [
                 'name' => 'Jane Smith',
-                'email' => 'jane@example.com',
                 'phone' => '+1234567891'
             ],
             [
                 'name' => 'Bob Johnson',
-                'email' => 'bob@example.com',
                 'phone' => '+1234567892'
             ]
         ];
@@ -49,7 +46,7 @@ class CompletedEntriesSeeder extends Seeder
         $createdPatients = [];
         foreach ($patients as $patientData) {
             $patient = Patient::firstOrCreate(
-                ['email' => $patientData['email']],
+                ['name' => $patientData['name']],
                 $patientData
             );
             $createdPatients[] = $patient;

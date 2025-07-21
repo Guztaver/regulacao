@@ -390,13 +390,6 @@ function getCancellationReason(): string {
                                 </p>
                             </div>
 
-                            <div v-if="entry.patient.email">
-                                <span class="text-xs text-gray-600 dark:text-gray-400">{{ t.email }}:</span>
-                                <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                                    {{ entry.patient.email }}
-                                </p>
-                            </div>
-
                             <div v-if="entry.patient.sus_number">
                                 <span class="text-xs text-gray-600 dark:text-gray-400">{{ t.susNumber }}:</span>
                                 <code class="mt-1 block rounded bg-gray-100 px-2 py-1 font-mono text-sm dark:bg-gray-600">

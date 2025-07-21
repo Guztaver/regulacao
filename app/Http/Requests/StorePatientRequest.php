@@ -38,12 +38,7 @@ class StorePatientRequest extends FormRequest
                 'min:2',
                 'regex:/^[a-zA-ZÀ-ÿñÑ\s]+$/u' // Only letters, accents, and spaces
             ],
-            'email' => [
-                'required',
-                'email',
-                'max:255',
-                'unique:patients,email'
-            ],
+
             'phone' => [
                 'nullable',
                 'string',

@@ -165,7 +165,6 @@ class AuthenticationBarrierTest extends TestCase
 
         $patientData = [
             'name' => 'João Silva',
-            'email' => 'joao@example.com',
             'phone' => '11999999999',
             'sus_number' => '123456789012345'
         ];
@@ -177,11 +176,10 @@ class AuthenticationBarrierTest extends TestCase
 
         $this->assertDatabaseHas('patients', [
             'name' => 'João Silva',
-            'email' => 'joao@example.com',
             'created_by' => $user->id
         ]);
 
-        $patient = Patient::where('email', 'joao@example.com')->first();
+        $patient = Patient::where('name', 'João Silva')->first();
         $this->assertNotNull($patient->created_by);
         $this->assertEquals($user->id, $patient->created_by);
     }

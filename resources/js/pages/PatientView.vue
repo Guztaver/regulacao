@@ -48,7 +48,6 @@ const summary = ref({
 
 const editingPatient = reactive({
     name: '',
-    email: '',
     phone: '',
     sus_number: '',
 });
@@ -77,7 +76,6 @@ function loadPatient() {
             // Populate edit form
             if (patient.value) {
                 editingPatient.name = patient.value.name;
-                editingPatient.email = patient.value.email || '';
                 editingPatient.phone = patient.value.phone || '';
                 editingPatient.sus_number = patient.value.sus_number || '';
             }
@@ -214,10 +212,7 @@ onMounted(() => {
                                         <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Name *</label>
                                         <Input type="text" v-model="editingPatient.name" class="mt-1" required />
                                     </div>
-                                    <div>
-                                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Email *</label>
-                                        <Input type="email" v-model="editingPatient.email" class="mt-1" required />
-                                    </div>
+
                                     <div>
                                         <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Phone</label>
                                         <Input type="text" v-model="editingPatient.phone" class="mt-1" />
@@ -267,10 +262,7 @@ onMounted(() => {
                                     <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Name</p>
                                     <p class="text-lg font-medium">{{ patient?.name }}</p>
                                 </div>
-                                <div>
-                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Email</p>
-                                    <p>{{ patient?.email }}</p>
-                                </div>
+
                                 <div v-if="patient?.phone">
                                     <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Phone</p>
                                     <p>{{ patient.phone }}</p>

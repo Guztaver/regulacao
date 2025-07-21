@@ -45,7 +45,6 @@ class PrintTestSeeder extends Seeder
         // Create test patient
         $patient = Patient::create([
             'name' => 'João Silva Santos',
-            'email' => 'joao.silva@example.com',
             'phone' => '(11) 98765-4321',
             'sus_number' => '123456789012345',
             'created_by' => $user->id,

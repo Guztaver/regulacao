@@ -82,7 +82,7 @@ jobs:
 
       - name: Install PHP dependencies
         if: needs.changes.outputs.backend == 'true'
-        run: composer install --no-interaction --prefer-dist --no-dev
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
       - name: Install Node dependencies
         if: needs.changes.outputs.frontend == 'true'

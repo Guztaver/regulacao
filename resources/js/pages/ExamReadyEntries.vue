@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import EntryInfoModal from '@/components/EntryInfoModal.vue';
-import ExamScheduleModal from '@/components/ExamScheduleModal.vue';
 import StatusTransitionDropdown from '@/components/StatusTransitionDropdown.vue';
 import PrintButton from '@/components/print/PrintButton.vue';
 import { Button } from '@/components/ui/button';
@@ -499,8 +498,6 @@ watch([message, error], () => {
                                             <!-- Print Button -->
                                             <PrintButton :entry="entry" size="sm" :show-text="false" />
 
-                                            <!-- Exam Schedule Modal -->
-                                            <ExamScheduleModal :entry="entry" @exam-scheduled="onStatusChanged" @error="onStatusError" />
                                             <!-- Delete Button -->
                                             <Button size="sm" variant="destructive" @click="deleteEntry(entry.id)" :disabled="loading">
                                                 <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

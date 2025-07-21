@@ -6,13 +6,13 @@
             @click="openDropdown"
             :disabled="props.disabled || isLoading"
             :class="[
-                'inline-flex items-center rounded-md border border-gray-300 bg-white shadow-sm transition-colors duration-200',
-                'hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none',
-                'disabled:cursor-not-allowed disabled:opacity-50',
+                'inline-flex items-center justify-center rounded-md border border-gray-300 bg-white transition-colors duration-200',
+                'hover:bg-gray-50 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none',
+                'font-medium whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-50',
                 dropdownClasses,
             ]"
         >
-            <svg v-if="isLoading" :class="['mr-2 animate-spin', iconSize]" fill="none" viewBox="0 0 24 24">
+            <svg v-if="isLoading" :class="['animate-spin', iconSize]" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path
                     class="opacity-75"
@@ -20,11 +20,11 @@
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 ></path>
             </svg>
-            <svg v-else :class="['mr-2', iconSize]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg v-else :class="[iconSize]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
             </svg>
             {{ t.status }}
-            <svg :class="['ml-2', iconSize]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg :class="[iconSize]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
         </button>
@@ -101,11 +101,11 @@ const { t } = useTranslations();
 const dropdownClasses = computed(() => {
     switch (props.size) {
         case 'sm':
-            return 'text-xs px-2 py-1';
+            return 'h-8 text-sm px-3 py-1.5 gap-1.5';
         case 'lg':
-            return 'text-sm px-4 py-2';
+            return 'h-10 text-sm px-6 py-2 gap-2';
         default:
-            return 'text-sm px-3 py-1.5';
+            return 'h-9 text-sm px-4 py-2 gap-2';
     }
 });
 

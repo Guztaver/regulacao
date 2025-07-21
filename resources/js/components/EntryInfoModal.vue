@@ -215,6 +215,17 @@ function printEntry() {
     const printUrl = `/api/entries/${props.entry.id}/print`;
     window.open(printUrl, '_blank');
 }
+
+function getCancellationReason(): string {
+    if (!props.entry?.status_transitions) return '';
+
+    // Find the most recent transition to cancelled status
+    const cancelTransition = props.entry.status_transitions
+        .filter((transition) => transition.to_status?.slug === 'cancelled')
+        .sort((a, b) => new Date(b.transitioned_at).getTime() - new Date(a.transitioned_at).getTime())[0];
+
+    return cancelTransition?.reason || 'Motivo não informado';
+}
 </script>
 
 <template>
@@ -308,7 +319,7 @@ function printEntry() {
                             </div>
 
                             <!-- Entry Basic Info -->
-                            <div class="space-y-4 rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
+                            <div class="min-h-[200px] space-y-4 rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
                                 <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Informações Básicas</h4>
 
                                 <div>
@@ -338,10 +349,15 @@ function printEntry() {
                             </div>
 
                             <!-- Status Description -->
-                            <div v-if="entry.current_status?.description" class="rounded-lg bg-yellow-50 p-4 dark:bg-yellow-900/20">
-                                <h4 class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">Descrição do Status</h4>
+                            <div
+                                v-if="entry.current_status?.description || (entry.current_status?.slug === 'cancelled' && getCancellationReason())"
+                                class="min-h-[200px] rounded-lg bg-yellow-50 p-4 dark:bg-yellow-900/20"
+                            >
+                                <h4 class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    {{ entry.current_status?.slug === 'cancelled' ? 'Motivo do Cancelamento' : 'Descrição do Status' }}
+                                </h4>
                                 <p class="text-sm leading-relaxed text-gray-900 dark:text-gray-100">
-                                    {{ entry.current_status.description }}
+                                    {{ entry.current_status?.slug === 'cancelled' ? getCancellationReason() : entry.current_status?.description }}
                                 </p>
                             </div>
                         </div>
@@ -404,67 +420,6 @@ function printEntry() {
                                 </code>
                             </div>
                             <p class="text-xs text-gray-500 dark:text-gray-400">Detalhes do paciente não disponíveis nesta visualização</p>
-                        </div>
-                    </div>
-
-                    <!-- Status Transitions -->
-                    <div class="rounded-lg bg-gray-50 p-6 dark:bg-gray-700">
-                        <h4 class="mb-4 flex items-center gap-2 text-lg font-medium text-gray-700 dark:text-gray-300">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-                                />
-                            </svg>
-                            Histórico de Status
-                        </h4>
-
-                        <div v-if="entry.status_transitions && entry.status_transitions.length > 0" class="space-y-3">
-                            <div
-                                v-for="transition in entry.status_transitions"
-                                :key="transition.id"
-                                class="flex items-start space-x-3 rounded-lg border bg-white p-4 shadow-sm dark:bg-gray-800"
-                            >
-                                <div
-                                    class="mt-1 h-3 w-3 flex-shrink-0 rounded-full"
-                                    :style="{ backgroundColor: transition.to_status?.color || '#6B7280' }"
-                                ></div>
-                                <div class="min-w-0 flex-1">
-                                    <div class="mb-2 flex items-center justify-between">
-                                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                            {{
-                                                transition.from_status
-                                                    ? `${transition.from_status.name} → ${transition.to_status?.name}`
-                                                    : `Definido para ${transition.to_status?.name}`
-                                            }}
-                                        </p>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400">
-                                            {{ formatDate(transition.transitioned_at) }}
-                                        </p>
-                                    </div>
-                                    <p v-if="transition.reason" class="mb-2 text-sm text-gray-600 dark:text-gray-300">
-                                        {{ transition.reason }}
-                                    </p>
-                                    <p v-if="transition.scheduled_date" class="mb-1 text-xs text-purple-600 dark:text-purple-400">
-                                        📅 {{ t.scheduled }}: {{ formatDate(transition.scheduled_date) }}
-                                    </p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">por {{ transition.user?.name || t.unknown }}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div v-else class="py-8 text-center text-gray-500 dark:text-gray-400">
-                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                                />
-                            </svg>
-                            <p class="mt-2">Nenhum histórico de status disponível</p>
                         </div>
                     </div>
 

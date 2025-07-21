@@ -1,0 +1,55 @@
+# GitHub Sponsors funding configuration
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository
+
+# GitHub Sponsors
+github: # Add your GitHub username here if you have GitHub Sponsors enabled
+# github: yourusername
+
+# Open Collective
+# open_collective: regulacao-list
+
+# Ko-fi
+# ko_fi: # Add your Ko-fi username
+
+# Tidelift
+# tidelift: # Add your Tidelift package name
+
+# Community Bridge
+# community_bridge: # Add your Community Bridge project name
+
+# Liberapay
+# liberapay: # Add your Liberapay username
+
+# IssueHunt
+# issuehunt: # Add your IssueHunt username
+
+# Otechie
+# otechie: # Add your Otechie username
+
+# LFX Crowdfunding
+# lfx_crowdfunding: # Add your LFX Crowdfunding project name
+
+# Patreon
+# patreon: # Add your Patreon username
+
+# Buy Me a Coffee
+# buy_me_a_coffee: # Add your Buy Me a Coffee username
+
+# Custom funding URLs
+custom:
+  - "https://pix.me/regulacao-list"  # PIX for Brazilian supporters
+  # - "https://paypal.me/regulacao-list"
+  # - "https://opencollective.com/regulacao-list"
+  # - "https://contribua.org/regulacao-list"
+
+# Additional information for supporters
+#
+# This project is focused on improving healthcare management in Brazil.
+# Your support helps us:
+# - 🏥 Maintain and improve healthcare data management features
+# - 🔒 Ensure LGPD compliance and data security
+# - 🚀 Optimize performance and deployment infrastructure
+# - 📚 Create comprehensive documentation and guides
+# - 🌟 Add new features requested by the healthcare community
+#
+# Thank you for supporting open-source healthcare technology! 🙏

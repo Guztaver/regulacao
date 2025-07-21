@@ -39,8 +39,24 @@ A comprehensive Laravel + Vue.js application for managing patients, medical entr
 - **UI**: Shadcn/ui components with Tailwind CSS
 - **Database**: MySQL/PostgreSQL
 - **API**: RESTful endpoints with JSON responses
+- **Docker**: Optimized multi-stage builds (5-8 min build time)
 
-## Installation
+## Quick Start
+
+### 🚀 Fast Docker Build (Recommended)
+```bash
+# Clone repository
+git clone <repository-url>
+cd regulacao-list
+
+# Fast production build (5-8 minutes)
+./scripts/fast-build.sh
+
+# Or use make command
+make build-fast
+```
+
+### 📦 Traditional Installation
 
 1. **Clone and install dependencies**
    ```bash

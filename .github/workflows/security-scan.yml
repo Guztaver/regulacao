@@ -1,0 +1,287 @@
+name: Security Scan
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Docker image tag to scan (default: latest)'
+        required: false
+        default: 'latest'
+        type: string
+      severity:
+        description: 'Vulnerability severity levels to include'
+        required: false
+        default: 'CRITICAL,HIGH,MEDIUM'
+        type: choice
+        options:
+          - 'CRITICAL'
+          - 'CRITICAL,HIGH'
+          - 'CRITICAL,HIGH,MEDIUM'
+          - 'CRITICAL,HIGH,MEDIUM,LOW'
+          - 'ALL'
+      scan_type:
+        description: 'Type of security scan to perform'
+        required: false
+        default: 'vuln'
+        type: choice
+        options:
+          - 'vuln'
+          - 'secret'
+          - 'vuln,secret'
+          - 'vuln,secret,config'
+  schedule:
+    # Run security scan daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  push:
+    branches:
+      - main
+    paths:
+      - 'Dockerfile'
+      - '.dockerignore'
+      - 'docker/**'
+      - 'fly/**'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set scan parameters
+        id: params
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "image_tag=${{ inputs.image_tag }}" >> $GITHUB_OUTPUT
+            echo "severity=${{ inputs.severity }}" >> $GITHUB_OUTPUT
+            echo "scan_type=${{ inputs.scan_type }}" >> $GITHUB_OUTPUT
+          else
+            echo "image_tag=latest" >> $GITHUB_OUTPUT
+            echo "severity=CRITICAL,HIGH,MEDIUM" >> $GITHUB_OUTPUT
+            echo "scan_type=vuln,secret" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set up Docker Buildx
+        if: github.event_name == 'push'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build image for scanning (if triggered by push)
+        if: github.event_name == 'push'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: production
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:security-scan
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Determine image to scan
+        id: image
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:security-scan" >> $GITHUB_OUTPUT
+          else
+            echo "ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.params.outputs.image_tag }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check if image exists
+        run: |
+          echo "Checking if image exists: ${{ steps.image.outputs.ref }}"
+          if docker manifest inspect ${{ steps.image.outputs.ref }} >/dev/null 2>&1; then
+            echo "✅ Image found and accessible"
+          else
+            echo "❌ Image not found or not accessible"
+            echo "Available tags for ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:"
+            # This might fail if no images exist, which is fine
+            docker run --rm quay.io/skopeo/skopeo list-tags docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} || echo "No tags found or registry not accessible"
+            exit 1
+          fi
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.image.outputs.ref }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: ${{ steps.params.outputs.severity }}
+          scanners: ${{ steps.params.outputs.scan_type }}
+          timeout: '15m'
+          exit-code: '0'
+
+      - name: Run Trivy for console output
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.image.outputs.ref }}
+          format: 'table'
+          severity: ${{ steps.params.outputs.severity }}
+          scanners: ${{ steps.params.outputs.scan_type }}
+          timeout: '15m'
+          exit-code: '0'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Parse security results
+        if: always()
+        run: |
+          if [ -f "trivy-results.sarif" ]; then
+            # Count vulnerabilities by severity
+            CRITICAL=$(jq '[.runs[].results[] | select(.level == "error")] | length' trivy-results.sarif 2>/dev/null || echo "0")
+            HIGH=$(jq '[.runs[].results[] | select(.level == "warning")] | length' trivy-results.sarif 2>/dev/null || echo "0")
+            MEDIUM=$(jq '[.runs[].results[] | select(.level == "note")] | length' trivy-results.sarif 2>/dev/null || echo "0")
+            TOTAL=$(jq '[.runs[].results[]] | length' trivy-results.sarif 2>/dev/null || echo "0")
+
+            echo "CRITICAL_COUNT=$CRITICAL" >> $GITHUB_ENV
+            echo "HIGH_COUNT=$HIGH" >> $GITHUB_ENV
+            echo "MEDIUM_COUNT=$MEDIUM" >> $GITHUB_ENV
+            echo "TOTAL_COUNT=$TOTAL" >> $GITHUB_ENV
+          else
+            echo "CRITICAL_COUNT=0" >> $GITHUB_ENV
+            echo "HIGH_COUNT=0" >> $GITHUB_ENV
+            echo "MEDIUM_COUNT=0" >> $GITHUB_ENV
+            echo "TOTAL_COUNT=0" >> $GITHUB_ENV
+          fi
+
+      - name: Create security report summary
+        if: always()
+        run: |
+          echo "## 🔒 Security Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Image Scanned:** \`${{ steps.image.outputs.ref }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Scan Type:** ${{ steps.params.outputs.scan_type }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Severity Filter:** ${{ steps.params.outputs.severity }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Scan Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Vulnerability Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔴 Critical | ${{ env.CRITICAL_COUNT }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🟠 High | ${{ env.HIGH_COUNT }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🟡 Medium | ${{ env.MEDIUM_COUNT }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Total** | **${{ env.TOTAL_COUNT }}** |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ env.TOTAL_COUNT }}" -eq "0" ]; then
+            echo "✅ **No vulnerabilities found!**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ **${{ env.TOTAL_COUNT }} vulnerabilities detected**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Check the **Security** tab for detailed vulnerability information." >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Healthcare Security Notes" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- 🏥 This application handles sensitive healthcare data" >> $GITHUB_STEP_SUMMARY
+          echo "- 📋 LGPD compliance requires addressing security vulnerabilities" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔒 Consider patient data security when prioritizing fixes" >> $GITHUB_STEP_SUMMARY
+          echo "- 🚨 Critical vulnerabilities should be addressed immediately" >> $GITHUB_STEP_SUMMARY
+
+      - name: Comment on PR (if applicable)
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const critical = ${{ env.CRITICAL_COUNT }};
+            const high = ${{ env.HIGH_COUNT }};
+            const medium = ${{ env.MEDIUM_COUNT }};
+            const total = ${{ env.TOTAL_COUNT }};
+
+            let emoji = "✅";
+            let status = "No vulnerabilities found";
+
+            if (critical > 0) {
+              emoji = "🔴";
+              status = `${critical} critical vulnerabilities found`;
+            } else if (high > 0) {
+              emoji = "🟠";
+              status = `${high} high severity vulnerabilities found`;
+            } else if (medium > 0) {
+              emoji = "🟡";
+              status = `${medium} medium severity vulnerabilities found`;
+            }
+
+            const body = `## ${emoji} Security Scan Results
+
+            **Status:** ${status}
+
+            | Severity | Count |
+            |----------|-------|
+            | 🔴 Critical | ${critical} |
+            | 🟠 High | ${high} |
+            | 🟡 Medium | ${medium} |
+            | **Total** | **${total}** |
+
+            ${total > 0 ? "⚠️ Please review and address security vulnerabilities before merging." : "✅ Security scan passed with no vulnerabilities detected."}
+
+            For detailed information, check the Security tab in the repository.`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+      - name: Fail workflow on critical vulnerabilities
+        if: env.CRITICAL_COUNT != '0' && github.event_name != 'schedule'
+        run: |
+          echo "❌ Critical vulnerabilities found: ${{ env.CRITICAL_COUNT }}"
+          echo "This workflow will fail to prevent merging code with critical security issues."
+          echo "Please address critical vulnerabilities before proceeding."
+          exit 1
+
+      - name: Archive scan results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-scan-results-${{ github.run_number }}
+          path: |
+            trivy-results.sarif
+          retention-days: 30
+
+  healthcare-security-check:
+    runs-on: ubuntu-latest
+    needs: security-scan
+    if: always()
+    steps:
+      - name: Healthcare security compliance check
+        run: |
+          echo "## 🏥 Healthcare Security Compliance" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### LGPD Compliance Considerations" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Regular security scanning is part of LGPD compliance" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Vulnerability management demonstrates due diligence" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Security documentation supports compliance audits" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "1. 📋 Review vulnerability details in Security tab" >> $GITHUB_STEP_SUMMARY
+          echo "2. 🔧 Prioritize fixes based on severity and healthcare impact" >> $GITHUB_STEP_SUMMARY
+          echo "3. 📝 Document remediation efforts for compliance" >> $GITHUB_STEP_SUMMARY
+          echo "4. 🔄 Re-run scan after applying fixes" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "For questions about healthcare security compliance, create an issue with the 'security' label." >> $GITHUB_STEP_SUMMARY

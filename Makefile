@@ -42,6 +42,22 @@ build-prod: ## Build production Docker image
 	@echo "Building production Docker image..."
 	docker build -t regulacao-list:prod .
 
+build-fast: ## Fast Docker build with optimizations
+	@echo "Running fast Docker build..."
+	./scripts/fast-build.sh
+
+build-fast-dev: ## Fast development build
+	@echo "Running fast development build..."
+	./scripts/fast-build.sh --target development
+
+build-fast-arm: ## Fast build for ARM64
+	@echo "Running fast ARM64 build..."
+	./scripts/fast-build.sh --platform linux/arm64
+
+build-fast-push: ## Fast build and push to registry
+	@echo "Running fast build with push..."
+	./scripts/fast-build.sh --push --registry-cache
+
 # Production commands
 prod: ## Start production environment
 	@echo "Starting production environment..."

@@ -1,0 +1,336 @@
+name: ✨ Feature Request
+description: Suggest an idea or enhancement for this project
+title: "[Feature]: "
+labels: ["enhancement", "needs-triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting a new feature! ✨
+
+        **Before submitting**, please:
+        - Search existing issues to avoid duplicates
+        - Consider if this aligns with the project's healthcare focus
+        - Think about Brazilian healthcare system requirements (SUS, LGPD, etc.)
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      description: Please confirm the following before submitting
+      options:
+        - label: I have searched existing issues and this is not a duplicate
+          required: true
+        - label: This feature aligns with the healthcare management purpose of this application
+          required: true
+        - label: I have considered Brazilian healthcare regulations (LGPD, SUS integration)
+          required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Feature Category
+      description: Which area of the application would this feature affect?
+      options:
+        - Patient Management
+        - Entry/Record Management
+        - Document Management
+        - User Authentication & Authorization
+        - Reporting & Analytics
+        - SUS Integration
+        - LGPD Compliance
+        - API/Backend
+        - UI/UX Improvements
+        - Performance & Optimization
+        - Security Enhancement
+        - Deployment/Infrastructure
+        - Integration with External Systems
+        - Mobile/Responsive Design
+        - Accessibility
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority Level
+      description: How important is this feature for healthcare workflows?
+      options:
+        - Critical (Essential for patient safety or legal compliance)
+        - High (Important for clinical workflow efficiency)
+        - Medium (Helpful improvement, enhances user experience)
+        - Low (Nice to have, minor enhancement)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: user_type
+    attributes:
+      label: Primary User Type
+      description: Who would primarily benefit from this feature?
+      options:
+        - Healthcare Professionals (Doctors, Nurses)
+        - Administrative Staff
+        - IT Administrators
+        - Patients/Citizens
+        - System Integrators
+        - Compliance Officers
+        - All Users
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem does this feature solve? What is the current pain point?
+      placeholder: |
+        Example: "Currently, healthcare professionals have to manually enter patient data multiple times across different forms, which is time-consuming and prone to errors. This affects patient care efficiency..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the feature you'd like to see implemented
+      placeholder: |
+        Example: "Implement an auto-fill feature that populates patient information across forms when a SUS number is entered. The system should validate the SUS number and retrieve existing patient data..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: user_story
+    attributes:
+      label: User Story
+      description: Describe this feature as a user story
+      placeholder: |
+        As a [type of user]
+        I want [some functionality]
+        So that [some benefit/value]
+
+        Example:
+        As a healthcare professional
+        I want to quickly access a patient's complete medical history by scanning their SUS card
+        So that I can provide better care without delays and reduce data entry errors
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance Criteria
+      description: Define specific, measurable criteria for this feature
+      placeholder: |
+        - [ ] User can enter/scan SUS number
+        - [ ] System validates SUS number format
+        - [ ] Patient data auto-populates if found
+        - [ ] Clear error message if SUS number not found
+        - [ ] LGPD consent is requested for new patients
+        - [ ] All actions are logged for audit trail
+        - [ ] Feature works on mobile devices
+        - [ ] Accessibility standards are met
+    validations:
+      required: true
+
+  - type: textarea
+    id: healthcare_compliance
+    attributes:
+      label: Healthcare Compliance Considerations
+      description: How does this feature relate to healthcare regulations and standards?
+      placeholder: |
+        **LGPD (Data Protection)**:
+        - What personal data will be processed?
+        - How will consent be obtained/managed?
+        - What are the data retention requirements?
+
+        **SUS Integration**:
+        - Does this require SUS system integration?
+        - Are there specific SUS data formats to follow?
+
+        **CFM Guidelines**:
+        - Does this affect medical record keeping?
+        - Are there professional practice implications?
+
+        **Audit Requirements**:
+        - What actions need to be logged?
+        - Who needs access to audit trails?
+    validations:
+      required: false
+
+  - type: textarea
+    id: technical_details
+    attributes:
+      label: Technical Implementation Ideas
+      description: Do you have ideas about how this could be implemented?
+      placeholder: |
+        **Backend Changes**:
+        - New API endpoints needed
+        - Database schema changes
+        - Integration requirements
+
+        **Frontend Changes**:
+        - New components or pages
+        - UI/UX considerations
+        - Mobile responsiveness
+
+        **External Integrations**:
+        - Third-party APIs
+        - SUS system connections
+        - Other healthcare systems
+
+        **Performance Considerations**:
+        - Expected load/usage
+        - Caching requirements
+        - Database optimization needs
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternative Solutions
+      description: Have you considered any alternative approaches or workarounds?
+      placeholder: |
+        - Alternative approach 1: ...
+        - Alternative approach 2: ...
+        - Current workaround: ...
+        - Why the proposed solution is better: ...
+    validations:
+      required: false
+
+  - type: textarea
+    id: mockups
+    attributes:
+      label: Mockups/Wireframes
+      description: Include any visual mockups, wireframes, or design ideas
+      placeholder: |
+        Drag and drop images here, or paste image URLs.
+
+        You can also describe the UI flow:
+        1. User navigates to...
+        2. User sees...
+        3. User clicks/enters...
+        4. System responds with...
+    validations:
+      required: false
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: Examples from Other Systems
+      description: Are there examples of this feature in other healthcare systems?
+      placeholder: |
+        - System X has a similar feature that works like...
+        - In the Brazilian healthcare context, system Y does...
+        - International examples include...
+        - What we could do differently/better...
+    validations:
+      required: false
+
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: Estimated Complexity
+      description: How complex do you think this feature would be to implement?
+      options:
+        - Simple (Few hours to a day)
+        - Medium (Few days to a week)
+        - Complex (Few weeks to a month)
+        - Very Complex (Multiple months)
+        - Unknown/Need Technical Assessment
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: impact_areas
+    attributes:
+      label: Potential Impact Areas
+      description: Which areas might be affected by this feature?
+      options:
+        - label: Database schema changes
+        - label: API changes (breaking or non-breaking)
+        - label: UI/UX changes
+        - label: Performance implications
+        - label: Security considerations
+        - label: LGPD compliance impact
+        - label: SUS integration changes
+        - label: Documentation updates needed
+        - label: Training/onboarding impact
+        - label: Mobile app considerations
+        - label: Accessibility requirements
+        - label: Internationalization (i18n) needs
+
+  - type: textarea
+    id: success_metrics
+    attributes:
+      label: Success Metrics
+      description: How would you measure the success of this feature?
+      placeholder: |
+        - Reduced time for patient data entry by X%
+        - Decreased data entry errors by X%
+        - Improved user satisfaction scores
+        - Increased compliance audit scores
+        - Faster patient check-in times
+        - Reduced support tickets related to...
+    validations:
+      required: false
+
+  - type: dropdown
+    id: urgency
+    attributes:
+      label: Implementation Urgency
+      description: When would this feature ideally be implemented?
+      options:
+        - ASAP (Critical for operations)
+        - Next Release (1-2 months)
+        - Future Release (3-6 months)
+        - Long-term Roadmap (6+ months)
+        - No Specific Timeline
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution Interest
+      description: How would you like to contribute to this feature?
+      options:
+        - label: I can help with requirements gathering and specification
+        - label: I can provide design mockups or UX guidance
+        - label: I would like to implement this feature
+        - label: I can help with testing and validation
+        - label: I can provide healthcare domain expertise
+        - label: I can help with documentation
+        - label: I will only provide the initial idea (no further involvement)
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Add any other context, screenshots, or information
+      placeholder: |
+        - Any regulatory requirements we should be aware of?
+        - Specific Brazilian healthcare context that's important?
+        - Regional variations that need to be considered?
+        - Integration with existing hospital systems?
+        - Timeline constraints or external dependencies?
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: final_checks
+    attributes:
+      label: Final Confirmation
+      description: Please confirm before submitting
+      options:
+        - label: This feature would benefit healthcare professionals and/or patients
+          required: true
+        - label: I understand this request will be publicly visible and discussed
+          required: true
+        - label: I'm willing to provide clarifications if needed
+          required: true

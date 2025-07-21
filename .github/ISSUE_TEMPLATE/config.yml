@@ -1,0 +1,20 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🔒 Security Vulnerability
+    url: https://github.com/yourusername/regulacao-list/security/advisories/new
+    about: Report security vulnerabilities privately through GitHub Security Advisories
+  - name: 💬 GitHub Discussions
+    url: https://github.com/yourusername/regulacao-list/discussions
+    about: Ask questions, share ideas, and discuss with the community
+  - name: 📚 Documentation
+    url: https://github.com/yourusername/regulacao-list#readme
+    about: Check our comprehensive documentation and guides
+  - name: 🏥 Healthcare Compliance Questions
+    url: https://github.com/yourusername/regulacao-list/discussions/categories/healthcare-compliance
+    about: Discuss LGPD, SUS integration, and Brazilian healthcare regulations
+  - name: 🚀 Performance & Optimization
+    url: https://github.com/yourusername/regulacao-list/discussions/categories/performance
+    about: Share performance tips, optimization strategies, and build improvements
+  - name: 🤝 Contributing Guide
+    url: https://github.com/yourusername/regulacao-list/blob/main/CONTRIBUTING.md
+    about: Learn how to contribute to the project effectively

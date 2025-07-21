@@ -1,0 +1,237 @@
+name: 🐛 Bug Report
+description: Report a bug or unexpected behavior
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to report a bug! 🐛
+
+        **Before submitting**, please:
+        - Search existing issues to avoid duplicates
+        - Check if this might be a security vulnerability (use private reporting instead)
+        - Ensure you're using a supported version
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      description: Please confirm the following before submitting
+      options:
+        - label: I have searched existing issues and this is not a duplicate
+          required: true
+        - label: I am using a supported version of the application
+          required: true
+        - label: This is not a security vulnerability (I would report privately if it was)
+          required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      description: In which environment did this bug occur?
+      options:
+        - Local Development
+        - Docker Development
+        - Staging
+        - Production
+        - Fly.io Deployment
+        - Railway Deployment
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Bug Severity
+      description: How severe is this bug?
+      options:
+        - Critical (Application crashes, data loss, security issue)
+        - High (Major feature broken, blocks workflow)
+        - Medium (Feature partially broken, workaround exists)
+        - Low (Minor issue, cosmetic problem)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Bug Category
+      description: Which area of the application is affected?
+      options:
+        - Patient Management
+        - Entry Management
+        - Document Upload/Management
+        - User Authentication
+        - Database/Data
+        - API/Backend
+        - UI/Frontend
+        - Performance
+        - Security
+        - Deployment/Infrastructure
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Bug Summary
+      description: A clear and concise description of what the bug is
+      placeholder: "Example: Patient SUS number validation fails for valid numbers starting with 0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Detailed steps to reproduce the behavior
+      placeholder: |
+        1. Go to 'Patient Management'
+        2. Click on 'Add New Patient'
+        3. Enter SUS number '012345678901234'
+        4. Click 'Save'
+        5. See error message
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: A clear description of what you expected to happen
+      placeholder: "The patient should be saved successfully with the valid SUS number"
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: A clear description of what actually happened
+      placeholder: "Error message appears: 'Invalid SUS number format'"
+    validations:
+      required: true
+
+  - type: textarea
+    id: healthcare_impact
+    attributes:
+      label: Healthcare/Patient Impact
+      description: Does this bug affect patient care, data integrity, or compliance?
+      placeholder: |
+        - Patient data impact: None/Low/Medium/High
+        - LGPD compliance impact: None/Potential/Yes
+        - SUS integration impact: None/Yes
+        - Clinical workflow impact: None/Minor/Major
+    validations:
+      required: false
+
+  - type: textarea
+    id: system_info
+    attributes:
+      label: System Information
+      description: Information about your system and application version
+      render: markdown
+      placeholder: |
+        **Application Version**: (e.g., v1.2.3 or commit hash)
+        **PHP Version**: (e.g., 8.4.0)
+        **Laravel Version**: (e.g., 11.x)
+        **Node.js Version**: (e.g., 20.x)
+        **Database**: MySQL/PostgreSQL/SQLite
+        **Operating System**: (e.g., macOS 14, Ubuntu 22.04, Windows 11)
+        **Browser**: (e.g., Chrome 120, Firefox 121, Safari 17)
+        **Docker Version**: (if using Docker)
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Logs
+      description: Include any relevant error logs, console output, or debug information
+      render: text
+      placeholder: |
+        Paste logs here. Please remove any sensitive information like:
+        - Patient names, SUS numbers, emails
+        - API keys, passwords, tokens
+        - Internal IP addresses or server names
+
+        Laravel logs (storage/logs/laravel.log):
+        [2025-01-21 10:30:00] local.ERROR: ...
+
+        Browser console errors:
+        TypeError: Cannot read property...
+
+        Docker logs:
+        docker logs container_name
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots/Videos
+      description: Add screenshots or videos to help explain the problem
+      placeholder: |
+        Drag and drop images here, or paste image URLs.
+
+        Please blur or remove any sensitive healthcare information from screenshots:
+        - Patient names and personal data
+        - SUS numbers
+        - Medical information
+        - Email addresses
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here
+      placeholder: |
+        - Does this happen consistently or intermittently?
+        - Are there any workarounds you've found?
+        - When did this issue first appear?
+        - Are there specific conditions that trigger this bug?
+        - Any recent changes to your environment?
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: data_privacy
+    attributes:
+      label: Data Privacy Confirmation
+      description: Please confirm regarding sensitive data
+      options:
+        - label: I have removed or anonymized all patient data from this report
+          required: true
+        - label: I have not included any SUS numbers, patient names, or medical information
+          required: true
+        - label: I understand this issue will be publicly visible
+          required: true
+
+  - type: dropdown
+    id: availability
+    attributes:
+      label: Availability for Follow-up
+      description: Are you available to provide additional information if needed?
+      options:
+        - "Yes, I can provide more details if needed"
+        - "Limited availability"
+        - "No, please work with the information provided"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution Interest
+      description: Would you be interested in contributing to fix this bug?
+      options:
+        - label: I would like to work on fixing this bug
+        - label: I can help test the fix
+        - label: I can provide additional testing scenarios

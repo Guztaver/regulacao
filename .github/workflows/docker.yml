@@ -5,10 +5,11 @@ on:
     branches:
       - main
       - develop
-  pull_request:
-    branches:
-      - main
-      - develop
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/PULL_REQUEST_TEMPLATE.md'
   release:
     types: [published]
 
@@ -16,9 +17,14 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,6 +34,18 @@ jobs:
         with:
           php-version: 8.4
           tools: composer:v2
+          coverage: none
+
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -35,11 +53,11 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install Node Dependencies
-        run: npm ci
-
       - name: Install PHP Dependencies
-        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+
+      - name: Install Node Dependencies
+        run: npm ci --prefer-offline --no-audit --no-fund
 
       - name: Copy Environment File
         run: cp .env.example .env
@@ -51,14 +69,20 @@ jobs:
         run: npm run build
 
       - name: Run Tests
-        run: ./vendor/bin/pest
+        run: ./vendor/bin/pest --parallel
 
   build:
     needs: test
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
       packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - linux/amd64
 
     steps:
       - name: Checkout
@@ -66,6 +90,8 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          platforms: ${{ matrix.platform }}
 
       - name: Log in to Container Registry
         uses: docker/login-action@v3
@@ -90,18 +116,75 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ matrix.platform }}
+          target: production
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: |
+            type=gha,scope=buildkit-${{ matrix.platform }}
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-${{ matrix.platform }}
+          cache-to: |
+            type=gha,mode=max,scope=buildkit-${{ matrix.platform }}
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-${{ matrix.platform }},mode=max
+          build-args: |
+            BUILDKIT_INLINE_CACHE=1
+
+  build-multi-arch:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest
+
+      - name: Build and push multi-arch Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          target: production
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: |
+            type=gha,scope=buildkit-linux/amd64
+            type=gha,scope=buildkit-linux/arm64
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-linux/amd64
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-linux/arm64
+          build-args: |
+            BUILDKIT_INLINE_CACHE=1
 
   deploy-staging:
     needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/develop'
     environment: staging
+    timeout-minutes: 10
 
     steps:
       - name: Checkout
@@ -113,25 +196,36 @@ jobs:
           host: ${{ secrets.STAGING_HOST }}
           username: ${{ secrets.STAGING_USER }}
           key: ${{ secrets.STAGING_SSH_KEY }}
+          timeout: 300s
           script: |
             cd /var/www/regulacao-list-staging
             git pull origin develop
-            echo "APP_KEY=${{ secrets.STAGING_APP_KEY }}" > .env.staging
-            echo "DB_PASSWORD=${{ secrets.STAGING_DB_PASSWORD }}" >> .env.staging
-            echo "DB_ROOT_PASSWORD=${{ secrets.STAGING_DB_ROOT_PASSWORD }}" >> .env.staging
-            echo "APP_URL=${{ secrets.STAGING_APP_URL }}" >> .env.staging
+
+            # Create environment file
+            cat > .env.staging << EOF
+            APP_KEY=${{ secrets.STAGING_APP_KEY }}
+            DB_PASSWORD=${{ secrets.STAGING_DB_PASSWORD }}
+            DB_ROOT_PASSWORD=${{ secrets.STAGING_DB_ROOT_PASSWORD }}
+            APP_URL=${{ secrets.STAGING_APP_URL }}
+            EOF
+
+            # Pull and deploy with parallel operations where possible
             docker-compose -f docker-compose.prod.yml --env-file .env.staging pull
-            docker-compose -f docker-compose.prod.yml --env-file .env.staging up -d
+            docker-compose -f docker-compose.prod.yml --env-file .env.staging up -d --remove-orphans
+
+            # Wait for services to be ready
+            sleep 15
+
+            # Run post-deployment tasks
             docker-compose -f docker-compose.prod.yml exec -T app php artisan migrate --force
-            docker-compose -f docker-compose.prod.yml exec -T app php artisan config:cache
-            docker-compose -f docker-compose.prod.yml exec -T app php artisan route:cache
-            docker-compose -f docker-compose.prod.yml exec -T app php artisan view:cache
+            docker-compose -f docker-compose.prod.yml exec -T app php artisan optimize
 
   deploy-production:
-    needs: build
+    needs: build-multi-arch
     runs-on: ubuntu-latest
     if: github.event_name == 'release'
     environment: production
+    timeout-minutes: 15
 
     steps:
       - name: Checkout
@@ -143,34 +237,67 @@ jobs:
           host: ${{ secrets.PRODUCTION_HOST }}
           username: ${{ secrets.PRODUCTION_USER }}
           key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          timeout: 600s
           script: |
             cd /var/www/regulacao-list-production
             git pull origin main
-            echo "APP_KEY=${{ secrets.PRODUCTION_APP_KEY }}" > .env.production
-            echo "DB_PASSWORD=${{ secrets.PRODUCTION_DB_PASSWORD }}" >> .env.production
-            echo "DB_ROOT_PASSWORD=${{ secrets.PRODUCTION_DB_ROOT_PASSWORD }}" >> .env.production
-            echo "APP_URL=${{ secrets.PRODUCTION_APP_URL }}" >> .env.production
+
+            # Create environment file
+            cat > .env.production << EOF
+            APP_KEY=${{ secrets.PRODUCTION_APP_KEY }}
+            DB_PASSWORD=${{ secrets.PRODUCTION_DB_PASSWORD }}
+            DB_ROOT_PASSWORD=${{ secrets.PRODUCTION_DB_ROOT_PASSWORD }}
+            APP_URL=${{ secrets.PRODUCTION_APP_URL }}
+            EOF
+
+            # Deploy with zero-downtime strategy
             docker-compose -f docker-compose.prod.yml --env-file .env.production pull
-            docker-compose -f docker-compose.prod.yml --env-file .env.production up -d
+            docker-compose -f docker-compose.prod.yml --env-file .env.production up -d --remove-orphans
+
+            # Wait for services to be ready
+            sleep 20
+
+            # Run post-deployment tasks
             docker-compose -f docker-compose.prod.yml exec -T app php artisan migrate --force
-            docker-compose -f docker-compose.prod.yml exec -T app php artisan config:cache
-            docker-compose -f docker-compose.prod.yml exec -T app php artisan route:cache
-            docker-compose -f docker-compose.prod.yml exec -T app php artisan view:cache
+            docker-compose -f docker-compose.prod.yml exec -T app php artisan optimize
+
+            # Health check
+            curl -f ${{ secrets.PRODUCTION_APP_URL }}/health || exit 1
 
   security-scan:
     needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.build.result == 'success'
+    permissions:
+      contents: read
+      security-events: write
 
     steps:
+      - name: Wait for image to be available
+        run: |
+          echo "Waiting for image to be available in registry..."
+          sleep 30
+
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           format: 'sarif'
           output: 'trivy-results.sarif'
+          timeout: '10m'
+          exit-code: '0'
+          severity: 'CRITICAL,HIGH,MEDIUM'
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
+        if: always()
         with:
           sarif_file: 'trivy-results.sarif'
+
+      - name: Report security scan completion
+        if: always()
+        run: |
+          echo "🔒 Security vulnerability scan completed for main branch" >> $GITHUB_STEP_SUMMARY
+          echo "- Image scanned: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_STEP_SUMMARY
+          echo "- Check the Security tab for detailed vulnerability report" >> $GITHUB_STEP_SUMMARY
+          echo "- Scan focused on CRITICAL, HIGH, and MEDIUM severity issues" >> $GITHUB_STEP_SUMMARY

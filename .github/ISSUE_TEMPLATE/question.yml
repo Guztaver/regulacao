@@ -1,0 +1,252 @@
+name: ❓ Question / Discussion
+description: Ask a question or start a discussion about the project
+title: "[Question]: "
+labels: ["question", "discussion"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for your question! ❓
+
+        **Before asking**, please:
+        - Check existing documentation (README, wiki, docs)
+        - Search existing issues and discussions
+        - Review the Contributing Guide if it's about development
+
+        **For security questions**: Please use private security reporting instead of public issues.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      description: Please confirm the following before submitting
+      options:
+        - label: I have searched existing issues and discussions
+          required: true
+        - label: I have checked the documentation
+          required: true
+        - label: This is not a security-related question (I would report privately if it was)
+          required: true
+
+  - type: dropdown
+    id: question_type
+    attributes:
+      label: Question Type
+      description: What type of question is this?
+      options:
+        - General Usage
+        - Development/Technical
+        - Healthcare/Domain Specific
+        - Deployment/Infrastructure
+        - LGPD/Compliance
+        - SUS Integration
+        - Performance/Optimization
+        - Contributing/Community
+        - Feature Clarification
+        - Bug vs Expected Behavior
+        - Best Practices
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: audience
+    attributes:
+      label: Target Audience
+      description: Who do you think would be best to answer this question?
+      options:
+        - Project Maintainers
+        - Healthcare Professionals
+        - Developers/Contributors
+        - DevOps/Infrastructure
+        - Compliance/Legal Experts
+        - Anyone in the Community
+    validations:
+      required: false
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: What would you like to know?
+      placeholder: |
+        Please be as specific as possible. Include:
+        - What you're trying to achieve
+        - What you've already tried (if applicable)
+        - Any specific context or constraints
+
+        Example: "I'm trying to understand how patient data is encrypted in the system. I need to implement similar security measures for integration with our hospital's existing system. What encryption methods are used, and are there any specific Brazilian healthcare requirements I should be aware of?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context & Background
+      description: Provide any relevant background information
+      placeholder: |
+        - Your role (healthcare professional, developer, administrator, etc.)
+        - Your use case or scenario
+        - Your current setup or environment
+        - Any constraints or requirements you're working with
+        - Relevant regulations or standards you need to follow
+    validations:
+      required: false
+
+  - type: textarea
+    id: attempted_solutions
+    attributes:
+      label: What Have You Tried?
+      description: What steps have you already taken to find the answer?
+      placeholder: |
+        - Documentation sections I've read: ...
+        - Code/configuration I've examined: ...
+        - Similar issues I've found: ...
+        - External resources I've consulted: ...
+        - Tests or experiments I've performed: ...
+    validations:
+      required: false
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment (if relevant)
+      description: What environment is your question related to?
+      options:
+        - Not applicable
+        - Local Development
+        - Docker Development
+        - Staging
+        - Production
+        - Fly.io Deployment
+        - Railway Deployment
+        - Custom Deployment
+    validations:
+      required: false
+
+  - type: textarea
+    id: system_info
+    attributes:
+      label: System Information (if relevant)
+      description: Include system details if they're relevant to your question
+      render: markdown
+      placeholder: |
+        **Application Version**: (e.g., v1.2.3 or commit hash)
+        **PHP Version**: (e.g., 8.4.0)
+        **Laravel Version**: (e.g., 11.x)
+        **Database**: MySQL/PostgreSQL/SQLite
+        **Operating System**: (e.g., macOS 14, Ubuntu 22.04, Windows 11)
+        **Browser**: (e.g., Chrome 120, Firefox 121, Safari 17)
+        **Other relevant tools**: ...
+    validations:
+      required: false
+
+  - type: dropdown
+    id: urgency
+    attributes:
+      label: Urgency Level
+      description: How urgent is getting an answer to this question?
+      options:
+        - Low (General curiosity, planning for future)
+        - Medium (Needed for current work, but not blocking)
+        - High (Blocking current development/implementation)
+        - Critical (Affecting production or patient care)
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: healthcare_context
+    attributes:
+      label: Healthcare Context
+      description: Check if any of these apply to your question
+      options:
+        - label: Question involves patient data handling
+        - label: Question involves LGPD compliance
+        - label: Question involves SUS integration
+        - label: Question involves Brazilian healthcare regulations
+        - label: Question affects clinical workflows
+        - label: Question involves medical data standards
+        - label: Question affects patient safety considerations
+
+  - type: textarea
+    id: expected_answer
+    attributes:
+      label: Expected Answer Format
+      description: What kind of answer would be most helpful to you?
+      placeholder: |
+        - Step-by-step instructions
+        - Code examples
+        - Conceptual explanation
+        - Link to documentation
+        - Best practices guide
+        - Architectural overview
+        - Regulatory guidance
+        - Community discussion
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_info
+    attributes:
+      label: Additional Information
+      description: Any other details that might be helpful
+      placeholder: |
+        - Related questions you might have
+        - Future plans that might be relevant
+        - Other systems you're integrating with
+        - Specific deadlines or constraints
+        - Regional or organizational requirements
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: follow_up
+    attributes:
+      label: Follow-up Commitment
+      description: How will you engage with responses?
+      options:
+        - label: I will respond to clarifying questions
+        - label: I will test suggested solutions and provide feedback
+        - label: I will mark the issue as resolved when answered
+        - label: I will contribute back if I find additional solutions
+        - label: I will help others with similar questions in the future
+
+  - type: checkboxes
+    id: community_benefit
+    attributes:
+      label: Community Benefit
+      description: Could this question help others?
+      options:
+        - label: This might be a common question that others would benefit from
+        - label: The answer could improve documentation
+        - label: This might reveal a gap in current documentation
+        - label: The discussion could lead to feature improvements
+        - label: This is very specific to my use case only
+
+  - type: dropdown
+    id: expertise_level
+    attributes:
+      label: Your Expertise Level
+      description: What's your experience level with this type of technology?
+      options:
+        - Beginner (New to Laravel/Vue.js/Healthcare systems)
+        - Intermediate (Some experience with similar systems)
+        - Advanced (Experienced, looking for specific details)
+        - Expert (Deep knowledge, edge case or advanced scenario)
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: final_confirmation
+    attributes:
+      label: Final Confirmation
+      description: Please confirm before submitting
+      options:
+        - label: I have provided enough context for others to understand my question
+          required: true
+        - label: I understand this will be publicly visible
+          required: true
+        - label: I will engage constructively with responses
+          required: true

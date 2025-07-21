@@ -7,22 +7,30 @@
 README.md
 LICENSE.md
 *.md
+CHANGELOG.md
+DOCKER.md
+FLY.md
+RAILWAY.md
 
 # IDE
 .idea
 .vscode
 *.swp
 *.swo
+*.sublime-*
 
 # OS
 .DS_Store
 Thumbs.db
+.directory
+*.pid
 
 # Node.js
 node_modules
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+package-lock.json
 
 # Build artifacts
 /public/build
@@ -39,6 +47,9 @@ yarn-error.log*
 /coverage
 .nyc_output
 .phpunit.result.cache
+tests/
+/vendor/bin/pest
+/vendor/bin/phpunit
 
 # Logs
 /storage/logs/*
@@ -56,9 +67,12 @@ yarn-error.log*
 docker-compose*.yml
 Dockerfile*
 .dockerignore
+docker/
 
 # CI/CD
 .github
+.gitlab-ci.yml
+bitbucket-pipelines.yml
 
 # Development tools
 .prettierrc
@@ -66,8 +80,40 @@ Dockerfile*
 eslint.config.js
 phpunit.xml
 .editorconfig
+.php-cs-fixer.php
+.php-cs-fixer.cache
+phpstan.neon
+psalm.xml
+components.json
+
+# Deployment files
+fly-deploy.sh
+quick-deploy.sh
+railway-deploy.sh
+Makefile
+Procfile
+nixpacks.toml
+railway.toml
+fly/
 
 # Temporary files
 *.tmp
 *.temp
 /tmp
+*.backup
+*.orig
+*.rej
+*.patch
+
+# Large files that shouldn't be in containers
+*.zip
+*.tar.gz
+*.sql
+*.dump
+backup_*
+
+# Local config files
+artisan
+storage/framework/sessions/*
+storage/framework/cache/*
+storage/framework/views/*

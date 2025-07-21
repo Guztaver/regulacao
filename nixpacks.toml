@@ -1,0 +1,99 @@
+[phases.setup]
+nixPkgs = ["nodejs_20", "php84", "php84Packages.composer"]
+nixLibs = [
+    "openssl",
+    "libxml2",
+    "zlib",
+    "curl",
+    "libpng",
+    "libjpeg",
+    "freetype",
+    "sqlite",
+    "postgresql",
+    "oniguruma",
+    "libzip",
+    "icu",
+    "imagemagick",
+    "ghostscript",
+]
+nixOverlays = [
+    "https://github.com/railwayapp/nix-npm-overlay/archive/main.tar.gz",
+]
+aptPkgs = [
+    "php8.4-bcmath",
+    "php8.4-ctype",
+    "php8.4-curl",
+    "php8.4-dom",
+    "php8.4-fileinfo",
+    "php8.4-filter",
+    "php8.4-gd",
+    "php8.4-hash",
+    "php8.4-intl",
+    "php8.4-json",
+    "php8.4-mbstring",
+    "php8.4-mysql",
+    "php8.4-opcache",
+    "php8.4-pcntl",
+    "php8.4-pdo",
+    "php8.4-pgsql",
+    "php8.4-posix",
+    "php8.4-readline",
+    "php8.4-session",
+    "php8.4-simplexml",
+    "php8.4-sockets",
+    "php8.4-sqlite3",
+    "php8.4-tokenizer",
+    "php8.4-xml",
+    "php8.4-xmlwriter",
+    "php8.4-zip",
+]
+
+[phases.install]
+dependsOn = ["setup"]
+cmds = [
+    "echo '🔍 Checking installed versions:'",
+    "php -v",
+    "composer --version",
+    "node --version",
+    "npm --version",
+    "echo '📦 Installing PHP dependencies:'",
+    "composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist",
+    "echo '📦 Installing Node.js dependencies:'",
+    "npm ci --only=production",
+    "echo '🎨 Building frontend assets:'",
+    "npm run build",
+]
+
+[phases.build]
+dependsOn = ["install"]
+cmds = [
+    "echo '🔑 Generating application key if needed:'",
+    "php artisan key:generate --force --no-interaction || echo 'Key already exists'",
+    "echo '⚡ Caching Laravel configuration:'",
+    "php artisan config:cache",
+    "php artisan route:cache",
+    "php artisan view:cache",
+    "echo '🔗 Creating storage symlink:'",
+    "php artisan storage:link || echo 'Storage link already exists'",
+    "echo '📊 Optimizing application:'",
+    "php artisan optimize",
+]
+
+[start]
+cmd = "bash -c 'php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=$PORT'"
+
+[variables]
+NODE_ENV = "production"
+APP_ENV = "production"
+APP_DEBUG = "false"
+LOG_CHANNEL = "stderr"
+LOG_STDERR_FORMATTER = "Monolog\\Formatter\\JsonFormatter"
+CACHE_DRIVER = "database"
+SESSION_DRIVER = "database"
+QUEUE_CONNECTION = "database"
+SESSION_SECURE_COOKIE = "true"
+OPTIMIZE_CLEAR_COMPILED = "true"
+VIEW_CACHE_PATH = "/tmp/views"
+
+[staticAssets]
+"public" = "/"

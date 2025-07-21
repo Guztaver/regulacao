@@ -161,6 +161,28 @@ deploy-prod: ## Deploy to production via release
 	@echo "To deploy to production, create a release on GitHub"
 	@echo "This will trigger the production deployment workflow"
 
+deploy-railway: ## Deploy to Railway
+	@echo "Deploying to Railway..."
+	railway up
+	@echo "Deployment to Railway completed!"
+
+deploy-fly: ## Deploy to Fly.io
+	@echo "Deploying to Fly.io..."
+	./fly-deploy.sh
+	@echo "Deployment to Fly.io completed!"
+
+fly-init: ## Initialize Fly.io app
+	@echo "Initializing Fly.io app..."
+	./fly-deploy.sh init
+
+fly-status: ## Check Fly.io app status
+	@echo "Checking Fly.io app status..."
+	./fly-deploy.sh status
+
+fly-logs: ## View Fly.io app logs
+	@echo "Viewing Fly.io app logs..."
+	./fly-deploy.sh logs
+
 # Health check
 health: ## Check application health
 	@echo "Checking application health..."

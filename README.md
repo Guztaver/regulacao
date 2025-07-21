@@ -226,12 +226,94 @@ The system supports the following document categories:
 - Secure download through application routes
 - Automatic file cleanup when documents are deleted
 
+## Deployment
+
+This application supports multiple deployment platforms:
+
+### Option 1: Docker (Recommended for Production)
+
+Complete containerization with development and production configurations:
+
+```bash
+# Development setup
+make setup
+make dev
+
+# Production deployment
+make prod-build
+```
+
+See [DOCKER.md](DOCKER.md) for comprehensive Docker documentation including:
+- Multi-stage builds
+- Docker Compose configurations
+- GitHub Actions CI/CD
+- Production optimizations
+
+### Option 2: Railway (Nixpacks)
+
+One-click deployment with automatic dependency detection:
+
+```bash
+# Install Railway CLI
+npm install -g @railway/cli
+
+# Deploy to Railway
+railway login
+railway init
+railway up
+```
+
+See [RAILWAY.md](RAILWAY.md) for detailed Railway deployment guide including:
+- Nixpacks configuration
+- Database setup
+- Environment variables
+- Scaling and monitoring
+
+### Option 3: Fly.io (Global Edge)
+
+Global deployment with edge computing capabilities:
+
+```bash
+# Install Fly.io CLI
+curl -L https://fly.io/install.sh | sh
+
+# Automated deployment
+./fly-deploy.sh
+
+# Or manual deployment
+flyctl auth login
+flyctl launch
+flyctl deploy
+```
+
+See [FLY.md](FLY.md) for complete Fly.io deployment guide including:
+- Global scaling
+- Multi-region deployment
+- Performance optimization
+- Cost optimization
+
+### Option 4: Traditional Hosting
+
+Standard LAMP/LEMP stack deployment:
+
+1. Upload files to web server
+2. Configure environment variables
+3. Run migrations: `php artisan migrate --force`
+4. Build assets: `npm run build`
+5. Configure web server (Apache/Nginx)
+
+## Deployment Documentation
+
+- **[DOCKER.md](DOCKER.md)** - Complete Docker setup with CI/CD
+- **[RAILWAY.md](RAILWAY.md)** - Railway platform deployment
+- **[FLY.md](FLY.md)** - Fly.io global edge deployment
+
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Test thoroughly
+4. Test thoroughly (using Docker, Railway, Fly.io, or traditional setup)
 5. Submit a pull request
 
 ## License

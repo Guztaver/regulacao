@@ -1,0 +1,75 @@
+# fly.toml app configuration file generated for withered-sky-640 on 2025-07-21T10:37:28-03:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'regulacao-list-br'
+primary_region = 'gru'
+
+[experimental]
+auto_rollback = true
+
+[build]
+dockerfile = 'Dockerfile'
+
+[deploy]
+# release_command = 'php artisan migrate --force'
+
+[env]
+APP_DEBUG = 'false'
+APP_ENV = 'production'
+CACHE_DRIVER = 'database'
+DB_CONNECTION = 'mysql'
+LOG_CHANNEL = 'stderr'
+LOG_STDERR_FORMATTER = 'Monolog\Formatter\JsonFormatter'
+QUEUE_CONNECTION = 'database'
+SESSION_DRIVER = 'database'
+SESSION_SECURE_COOKIE = 'true'
+TRUSTED_PROXIES = '*'
+
+[processes]
+app = '/usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf'
+worker = 'php artisan queue:work --sleep=3 --tries=3 --max-time=3600'
+
+[[mounts]]
+source = "storage_volume"
+destination = "/var/www/html/storage/app"
+processes = ["app"]
+
+[[services]]
+protocol = 'tcp'
+internal_port = 8080
+processes = ['app']
+
+[[services.ports]]
+port = 80
+handlers = ['http']
+force_https = true
+
+[[services.ports]]
+port = 443
+handlers = ['tls', 'http']
+
+[services.concurrency]
+type = 'connections'
+hard_limit = 25
+soft_limit = 20
+
+[[services.tcp_checks]]
+interval = '15s'
+timeout = '2s'
+grace_period = '1s'
+
+[[services.http_checks]]
+interval = '10s'
+timeout = '2s'
+grace_period = '5s'
+method = 'get'
+path = '/health'
+protocol = 'http'
+tls_skip_verify = false
+
+[[vm]]
+cpu_kind = 'shared'
+cpus = 1
+memory_mb = 512

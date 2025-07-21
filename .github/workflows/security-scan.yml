@@ -82,6 +82,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Convert image name to lowercase
+        run: |
+          echo "IMAGE_NAME_LOWER=$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
       - name: Build image for scanning (if triggered by push)
         if: github.event_name == 'push'
         uses: docker/build-push-action@v5
@@ -89,7 +93,7 @@ jobs:
           context: .
           target: production
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:security-scan
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:security-scan
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -97,9 +101,9 @@ jobs:
         id: image
         run: |
           if [ "${{ github.event_name }}" = "push" ]; then
-            echo "ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:security-scan" >> $GITHUB_OUTPUT
+            echo "ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:security-scan" >> $GITHUB_OUTPUT
           else
-            echo "ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.params.outputs.image_tag }}" >> $GITHUB_OUTPUT
+            echo "ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:${{ steps.params.outputs.image_tag }}" >> $GITHUB_OUTPUT
           fi
 
       - name: Check if image exists
@@ -109,9 +113,9 @@ jobs:
             echo "✅ Image found and accessible"
           else
             echo "❌ Image not found or not accessible"
-            echo "Available tags for ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:"
+            echo "Available tags for ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:"
             # This might fail if no images exist, which is fine
-            docker run --rm quay.io/skopeo/skopeo list-tags docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} || echo "No tags found or registry not accessible"
+            docker run --rm quay.io/skopeo/skopeo list-tags docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }} || echo "No tags found or registry not accessible"
             exit 1
           fi
 
@@ -138,7 +142,7 @@ jobs:
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        if: always() && hashFiles('trivy-results.sarif') != ''
         with:
           sarif_file: 'trivy-results.sarif'
 
@@ -261,6 +265,7 @@ jobs:
           path: |
             trivy-results.sarif
           retention-days: 30
+          if-no-files-found: warn
 
   healthcare-security-check:
     runs-on: ubuntu-latest

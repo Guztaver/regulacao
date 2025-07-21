@@ -26,11 +26,18 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+          composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist --optimize-autoloader
           npm install
 
       - name: Run Pint
-        run: vendor/bin/pint
+        run: |
+          # Verify Pint is available
+          if [ ! -f "vendor/bin/pint" ]; then
+            echo "Pint binary not found, checking installation..."
+            ls -la vendor/bin/
+            composer dump-autoload --optimize
+          fi
+          vendor/bin/pint
 
       - name: Format Frontend
         run: npm run format

@@ -50,4 +50,11 @@ jobs:
         run: npm run build
 
       - name: Tests
-        run: ./vendor/bin/pest
+        run: |
+          # Verify Pest is available
+          if [ ! -f "./vendor/bin/pest" ]; then
+            echo "Pest binary not found, checking installation..."
+            ls -la vendor/bin/
+            composer dump-autoload --optimize
+          fi
+          ./vendor/bin/pest --parallel --processes=4

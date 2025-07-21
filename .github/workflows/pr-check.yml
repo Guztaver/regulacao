@@ -144,7 +144,7 @@ jobs:
           restore-keys: ${{ runner.os }}-composer-
 
       - name: Install PHP dependencies
-        run: composer install --no-interaction --prefer-dist
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -175,7 +175,14 @@ jobs:
           DB_PASSWORD: password
 
       - name: Run tests
-        run: ./vendor/bin/pest --parallel --processes=4
+        run: |
+          # Verify Pest is available
+          if [ ! -f "./vendor/bin/pest" ]; then
+            echo "Pest binary not found, checking installation..."
+            ls -la vendor/bin/
+            composer dump-autoload --optimize
+          fi
+          ./vendor/bin/pest --parallel --processes=4
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -208,11 +215,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Convert image name to lowercase
+        run: |
+          echo "IMAGE_NAME_LOWER=$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}
           tags: |
             type=ref,event=pr
 
@@ -259,10 +270,14 @@ jobs:
       security-events: write
 
     steps:
+      - name: Convert image name to lowercase
+        run: |
+          echo "IMAGE_NAME_LOWER=$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:pr-${{ github.event.number }}
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:pr-${{ github.event.number }}
           format: 'sarif'
           output: 'trivy-results.sarif'
           timeout: '5m'
@@ -271,7 +286,7 @@ jobs:
 
       - name: Upload Trivy scan results
         uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        if: always() && hashFiles('trivy-results.sarif') != ''
         with:
           sarif_file: 'trivy-results.sarif'
 

@@ -69,7 +69,14 @@ jobs:
         run: npm run build
 
       - name: Run Tests
-        run: ./vendor/bin/pest --parallel
+        run: |
+          # Verify Pest is available
+          if [ ! -f "./vendor/bin/pest" ]; then
+            echo "Pest binary not found, checking installation..."
+            ls -la vendor/bin/
+            composer dump-autoload --optimize
+          fi
+          ./vendor/bin/pest --parallel --processes=4
 
   build:
     needs: test
@@ -100,11 +107,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Convert image name to lowercase
+        id: image-name
+        run: |
+          echo "IMAGE_NAME_LOWER=$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -123,10 +135,10 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: |
             type=gha,scope=buildkit-${{ matrix.platform }}
-            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-${{ matrix.platform }}
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:buildcache-${{ matrix.platform }}
           cache-to: |
             type=gha,mode=max,scope=buildkit-${{ matrix.platform }}
-            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-${{ matrix.platform }},mode=max
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:buildcache-${{ matrix.platform }},mode=max
           build-args: |
             BUILDKIT_INLINE_CACHE=1
 
@@ -152,11 +164,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Convert image name to lowercase
+        id: image-name
+        run: |
+          echo "IMAGE_NAME_LOWER=$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
@@ -174,8 +191,8 @@ jobs:
           cache-from: |
             type=gha,scope=buildkit-linux/amd64
             type=gha,scope=buildkit-linux/arm64
-            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-linux/amd64
-            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-linux/arm64
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:buildcache-linux/amd64
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:buildcache-linux/arm64
           build-args: |
             BUILDKIT_INLINE_CACHE=1
 
@@ -278,10 +295,14 @@ jobs:
           echo "Waiting for image to be available in registry..."
           sleep 30
 
+      - name: Convert image name to lowercase
+        run: |
+          echo "IMAGE_NAME_LOWER=$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:latest
           format: 'sarif'
           output: 'trivy-results.sarif'
           timeout: '10m'
@@ -290,7 +311,7 @@ jobs:
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        if: always() && hashFiles('trivy-results.sarif') != ''
         with:
           sarif_file: 'trivy-results.sarif'
 
@@ -298,6 +319,6 @@ jobs:
         if: always()
         run: |
           echo "🔒 Security vulnerability scan completed for main branch" >> $GITHUB_STEP_SUMMARY
-          echo "- Image scanned: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_STEP_SUMMARY
+          echo "- Image scanned: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:latest" >> $GITHUB_STEP_SUMMARY
           echo "- Check the Security tab for detailed vulnerability report" >> $GITHUB_STEP_SUMMARY
           echo "- Scan focused on CRITICAL, HIGH, and MEDIUM severity issues" >> $GITHUB_STEP_SUMMARY

@@ -128,14 +128,14 @@ COPY . .
 # Copy built assets from node-builder
 COPY --from=node-builder /app/public/build ./public/build
 
-# Generate optimized autoloader and discover packages
-RUN composer dump-autoload --optimize \
-    && php artisan package:discover --ansi
-
 # Copy configuration files
 COPY fly/nginx.conf /etc/nginx/nginx.conf
 COPY fly/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY fly/entrypoint.sh /entrypoint.sh
+
+# Generate optimized autoloader and discover packages
+RUN composer dump-autoload --optimize \
+    && php artisan package:discover --ansi
 
 # Create directories, set permissions, and configure PHP in single layer
 RUN mkdir -p \

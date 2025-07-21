@@ -10,7 +10,7 @@ primary_region = 'gru'
 auto_rollback = true
 
 [build]
-dockerfile = 'Dockerfile'
+image = 'ghcr.io/guztaver/regulacao:latest'
 
 [deploy]
 # release_command = 'php artisan migrate --force'

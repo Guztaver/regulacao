@@ -17,6 +17,7 @@ class EntryFactory extends \Illuminate\Database\Eloquent\Factories\Factory
         return [
             'patient_id' => \App\Models\Patient::factory(),
             'title' => $this->faker->sentence(),
+            'created_by' => \App\Models\User::factory(),
         ];
     }
 }

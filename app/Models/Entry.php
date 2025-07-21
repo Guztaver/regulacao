@@ -195,6 +195,37 @@ class Entry extends Model
     {
         $examScheduledStatus = EntryStatus::findBySlugOrFail(EntryStatus::EXAM_SCHEDULED);
 
+        // If already in exam_scheduled status, update the transition metadata instead of creating new transition
+        if ($this->hasStatus(EntryStatus::EXAM_SCHEDULED)) {
+            // Update the most recent exam_scheduled transition with new scheduled date
+            $latestTransition = $this->statusTransitions()
+                ->whereHas('toStatus', function ($query) {
+                    $query->where('slug', EntryStatus::EXAM_SCHEDULED);
+                })
+                ->first();
+
+            if ($latestTransition) {
+                $metadata = $latestTransition->metadata ?? [];
+                $metadata['scheduled_date'] = $scheduledDate;
+                $metadata['updated_at'] = now()->toISOString();
+                $latestTransition->update([
+                    'metadata' => $metadata,
+                    'reason' => $reason ?? 'Exame reagendado',
+                ]);
+
+                // Log the rescheduling action
+                EntryTimeline::logAction(
+                    $this->id,
+                    Auth::id() ?? $this->created_by,
+                    EntryTimeline::ACTION_EXAM_SCHEDULED,
+                    $reason ?? 'Exame reagendado',
+                    ['scheduled_date' => $scheduledDate, 'rescheduled' => true]
+                );
+
+                return true;
+            }
+        }
+
         return $this->transitionTo(
             $examScheduledStatus->id,
             $reason ?? 'Exame agendado',

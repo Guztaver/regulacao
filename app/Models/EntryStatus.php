@@ -152,7 +152,7 @@ class EntryStatus extends Model
         // Define allowed transitions
         $allowedTransitions = [
             'pending' => ['exam_scheduled', 'completed', 'cancelled'],
-            'exam_scheduled' => ['exam_ready', 'completed', 'cancelled'],
+            'exam_scheduled' => ['exam_scheduled', 'exam_ready', 'completed', 'cancelled'],
             'exam_ready' => ['completed', 'cancelled'],
             // Allow transitions from final statuses back to active states
             'completed' => ['pending', 'exam_scheduled', 'exam_ready', 'cancelled'],
@@ -182,7 +182,7 @@ class EntryStatus extends Model
     {
         $allowedTransitions = [
             'pending' => ['exam_scheduled', 'completed', 'cancelled'],
-            'exam_scheduled' => ['exam_ready', 'completed', 'cancelled'],
+            'exam_scheduled' => ['exam_scheduled', 'exam_ready', 'completed', 'cancelled'],
             'exam_ready' => ['completed', 'cancelled'],
             // Allow transitions from final statuses back to active states
             'completed' => ['pending', 'exam_scheduled', 'exam_ready', 'cancelled'],

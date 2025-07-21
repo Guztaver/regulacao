@@ -90,40 +90,40 @@ class AuthenticationBarrierTest extends TestCase
     }
 
     /**
-     * Test that unauthenticated users cannot access patient document endpoints
+     * Test that unauthenticated users cannot access entry document endpoints
      */
     public function test_unauthenticated_users_cannot_access_document_endpoints(): void
     {
-        // Test GET /api/patients/{patientId}/documents
-        $response = $this->getJson('/api/patients/123/documents');
+        // Test GET /api/entries/{entryId}/documents
+        $response = $this->getJson('/api/entries/123/documents');
         $response->assertStatus(401)
                  ->assertJson(['message' => 'Unauthenticated.']);
 
-        // Test POST /api/patients/{patientId}/documents
-        $response = $this->postJson('/api/patients/123/documents', [
-            'document_type' => 'identity',
+        // Test POST /api/entries/{entryId}/documents
+        $response = $this->postJson('/api/entries/123/documents', [
+            'document_type' => 'medical_request',
             'description' => 'Test document'
         ]);
         $response->assertStatus(401)
                  ->assertJson(['message' => 'Unauthenticated.']);
 
-        // Test GET /api/patients/{patientId}/documents/{documentId}
-        $response = $this->getJson('/api/patients/123/documents/456');
+        // Test GET /api/entries/{entryId}/documents/{documentId}
+        $response = $this->getJson('/api/entries/123/documents/456');
         $response->assertStatus(401)
                  ->assertJson(['message' => 'Unauthenticated.']);
 
-        // Test DELETE /api/patients/{patientId}/documents/{documentId}
-        $response = $this->deleteJson('/api/patients/123/documents/456');
+        // Test DELETE /api/entries/{entryId}/documents/{documentId}
+        $response = $this->deleteJson('/api/entries/123/documents/456');
         $response->assertStatus(401)
                  ->assertJson(['message' => 'Unauthenticated.']);
 
-        // Test GET /api/patients/{patientId}/documents/{documentId}/download
-        $response = $this->getJson('/api/patients/123/documents/456/download');
+        // Test GET /api/entries/{entryId}/documents/{documentId}/download
+        $response = $this->getJson('/api/entries/123/documents/456/download');
         $response->assertStatus(401)
                  ->assertJson(['message' => 'Unauthenticated.']);
 
-        // Test GET /api/document-types
-        $response = $this->getJson('/api/document-types');
+        // Test GET /api/entry-documents/types
+        $response = $this->getJson('/api/entry-documents/types');
         $response->assertStatus(401)
                  ->assertJson(['message' => 'Unauthenticated.']);
     }
@@ -147,8 +147,8 @@ class AuthenticationBarrierTest extends TestCase
         $response = $this->getJson('/api/entries');
         $response->assertStatus(200);
 
-        // Test GET /api/document-types
-        $response = $this->getJson('/api/document-types');
+        // Test GET /api/entry-documents/types
+        $response = $this->getJson('/api/entry-documents/types');
         $response->assertStatus(200);
     }
 
@@ -254,28 +254,28 @@ class AuthenticationBarrierTest extends TestCase
         // Test required fields
         $response = $this->postJson('/api/patients', []);
         $response->assertStatus(422)
-                 ->assertJsonValidationErrors(['name', 'email']);
+                 ->assertJsonValidationErrors(['name']);
 
-        // Test email format
+        // Test SUS number format
         $response = $this->postJson('/api/patients', [
             'name' => 'Test Patient',
-            'email' => 'invalid-email'
+            'sus_number' => 'invalid-sus'
         ]);
         $response->assertStatus(422)
-                 ->assertJsonValidationErrors(['email']);
+                 ->assertJsonValidationErrors(['sus_number']);
 
-        // Test unique email
+        // Test unique SUS number
         Patient::factory()->create([
-            'email' => 'existing@example.com',
+            'sus_number' => '123456789012345',
             'created_by' => $user->id
         ]);
 
         $response = $this->postJson('/api/patients', [
             'name' => 'Another Patient',
-            'email' => 'existing@example.com'
+            'sus_number' => '123456789012345'
         ]);
         $response->assertStatus(422)
-                 ->assertJsonValidationErrors(['email']);
+                 ->assertJsonValidationErrors(['sus_number']);
     }
 
     /**
@@ -314,7 +314,7 @@ class AuthenticationBarrierTest extends TestCase
             ['POST', '/api/patients'],
             ['GET', '/api/entries'],
             ['POST', '/api/entries'],
-            ['GET', '/api/document-types'],
+            ['GET', '/api/entry-documents/types'],
         ];
 
         foreach ($protectedEndpoints as [$method, $endpoint]) {

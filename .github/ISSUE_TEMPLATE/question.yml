@@ -1,8 +1,7 @@
 name: ❓ Question / Discussion
 description: Ask a question or start a discussion about the project
-title: "[Question]: "
-labels: ["question", "discussion"]
-assignees: []
+title: '[Question]: '
+labels: ['question', 'discussion']
 
 body:
   - type: markdown

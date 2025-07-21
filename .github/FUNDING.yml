@@ -2,7 +2,7 @@
 # See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository
 
 # GitHub Sponsors
-github: # Add your GitHub username here if you have GitHub Sponsors enabled
+# github: # Add your GitHub username here if you have GitHub Sponsors enabled
 # github: yourusername
 
 # Open Collective
@@ -37,11 +37,10 @@ github: # Add your GitHub username here if you have GitHub Sponsors enabled
 
 # Custom funding URLs
 custom:
-  - "https://pix.me/regulacao-list"  # PIX for Brazilian supporters
+  - 'https://pix.me/regulacao-list' # PIX for Brazilian supporters
   # - "https://paypal.me/regulacao-list"
   # - "https://opencollective.com/regulacao-list"
   # - "https://contribua.org/regulacao-list"
-
 # Additional information for supporters
 #
 # This project is focused on improving healthcare management in Brazil.

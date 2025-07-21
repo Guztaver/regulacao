@@ -23,7 +23,6 @@ interface Patient {
     email: string;
     phone: string;
     sus_number?: string;
-    documents_count?: number;
     entries_count?: number;
     created_at?: string;
     created_by?: User;
@@ -129,11 +128,7 @@ function loadPatients() {
 }
 
 function deletePatient(id: string) {
-    if (
-        !confirm(
-            'Are you sure you want to delete this patient? This action cannot be undone and will also delete all associated entries and documents.',
-        )
-    ) {
+    if (!confirm('Are you sure you want to delete this patient? This action cannot be undone and will also delete all associated entries.')) {
         return;
     }
 
@@ -435,7 +430,6 @@ onMounted(() => {
                                     <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
                                         <div class="flex flex-col text-xs">
                                             <span>{{ patient.entries_count || 0 }} {{ t.entries.toLowerCase() }}</span>
-                                            <span>{{ patient.documents_count || 0 }} documentos</span>
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">

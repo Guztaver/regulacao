@@ -77,13 +77,7 @@ class Patient extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    /**
-     * Get the documents for the patient.
-     */
-    public function documents(): HasMany
-    {
-        return $this->hasMany(PatientDocument::class);
-    }
+
 
     /**
      * Boot the model and add model events

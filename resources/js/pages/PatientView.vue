@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
 import { useTranslations } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type Entry, type Patient } from '@/types';
@@ -18,26 +17,6 @@ interface Props {
 
 interface PatientViewEntry extends Entry {
     completed: boolean;
-}
-
-interface PatientDocument {
-    id: string;
-    original_name: string;
-    file_name: string;
-    mime_type: string;
-    file_size: number;
-    formatted_file_size: string;
-    document_type: string;
-    document_type_label: string;
-    description?: string;
-    url: string;
-    is_image: boolean;
-    is_pdf: boolean;
-    created_at: string;
-}
-
-interface DocumentType {
-    [key: string]: string;
 }
 
 const props = defineProps<Props>();
@@ -60,11 +39,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const patient = ref<Patient | null>(null);
-const documents = ref<PatientDocument[]>([]);
 const entries = ref<PatientViewEntry[]>([]);
-const documentTypes = ref<DocumentType>({});
 const summary = ref({
-    total_documents: 0,
     total_entries: 0,
     active_entries: 0,
     completed_entries: 0,
@@ -80,20 +56,11 @@ const editingPatient = reactive({
 const isEntryInfoModalOpen = ref(false);
 const selectedEntry = ref<PatientViewEntry | null>(null);
 
-const newDocument = reactive({
-    file: null as File | null,
-    document_type: '',
-    description: '',
-});
-
 // State management
 const loading = ref(false);
-const documentsLoading = ref(false);
 const message = ref('');
 const error = ref('');
 const isEditModalOpen = ref(false);
-const isDocumentModalOpen = ref(false);
-const uploadProgress = ref(0);
 
 // Load patient data
 function loadPatient() {
@@ -124,36 +91,6 @@ function loadPatient() {
         });
 }
 
-// Load patient documents
-function loadDocuments() {
-    documentsLoading.value = true;
-
-    axios
-        .get(`/api/patients/${props.patientId}/documents`)
-        .then((response) => {
-            documents.value = response.data.documents;
-        })
-        .catch((err) => {
-            console.error('Error loading documents:', err);
-            error.value = 'Failed to load documents';
-        })
-        .finally(() => {
-            documentsLoading.value = false;
-        });
-}
-
-// Load document types
-function loadDocumentTypes() {
-    axios
-        .get('/api/document-types')
-        .then((response) => {
-            documentTypes.value = response.data.document_types;
-        })
-        .catch((err) => {
-            console.error('Error loading document types:', err);
-        });
-}
-
 // Update patient
 function updatePatient() {
     loading.value = true;
@@ -179,97 +116,6 @@ function updatePatient() {
         .finally(() => {
             loading.value = false;
         });
-}
-
-// Upload document
-function uploadDocument() {
-    if (!newDocument.file) {
-        error.value = 'Please select a file';
-        return;
-    }
-
-    const formData = new FormData();
-    formData.append('file', newDocument.file);
-    formData.append('document_type', newDocument.document_type);
-    if (newDocument.description) {
-        formData.append('description', newDocument.description);
-    }
-
-    loading.value = true;
-    error.value = '';
-    message.value = '';
-
-    axios
-        .post(`/api/patients/${props.patientId}/documents`, formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-            onUploadProgress: (progressEvent) => {
-                if (progressEvent.total) {
-                    uploadProgress.value = Math.round((progressEvent.loaded / progressEvent.total) * 100);
-                }
-            },
-        })
-        .then((response) => {
-            message.value = response.data.message;
-            newDocument.file = null;
-            newDocument.document_type = '';
-            newDocument.description = '';
-            uploadProgress.value = 0;
-            isDocumentModalOpen.value = false;
-            loadDocuments();
-            loadPatient(); // Refresh counts
-        })
-        .catch((err) => {
-            console.error('Error uploading document:', err);
-            if (err.response?.data?.errors) {
-                const errors = Object.values(err.response.data.errors).flat();
-                error.value = errors.join(', ');
-            } else {
-                error.value = 'Failed to upload document';
-            }
-        })
-        .finally(() => {
-            loading.value = false;
-            uploadProgress.value = 0;
-        });
-}
-
-// Delete document
-function deleteDocument(documentId: string) {
-    if (!confirm('Are you sure you want to delete this document? This action cannot be undone.')) {
-        return;
-    }
-
-    loading.value = true;
-
-    axios
-        .delete(`/api/patients/${props.patientId}/documents/${documentId}`)
-        .then((response) => {
-            message.value = response.data.message;
-            loadDocuments();
-            loadPatient(); // Refresh counts
-        })
-        .catch((err) => {
-            console.error('Error deleting document:', err);
-            error.value = 'Failed to delete document';
-        })
-        .finally(() => {
-            loading.value = false;
-        });
-}
-
-// Download document
-function downloadDocument(documentId: string) {
-    window.open(`/api/patients/${props.patientId}/documents/${documentId}/download`, '_blank');
-}
-
-// File input handling
-function handleFileChange(event: Event) {
-    const target = event.target as HTMLInputElement;
-    if (target.files && target.files[0]) {
-        newDocument.file = target.files[0];
-    }
 }
 
 // Utility functions
@@ -302,12 +148,6 @@ function formatSusNumber(susNumber: string | undefined): string {
     return susNumber.replace(/(\d{3})(\d{4})(\d{4})(\d{4})/, '$1 $2 $3 $4');
 }
 
-function getFileIcon(document: PatientDocument): string {
-    if (document.is_image) return '🖼️';
-    if (document.is_pdf) return '📄';
-    return '📎';
-}
-
 // Computed properties
 // Computed properties for future use
 // const activeEntries = computed(() => entries.value.filter((entry) => !entry.completed));
@@ -316,8 +156,6 @@ function getFileIcon(document: PatientDocument): string {
 // Initialize
 onMounted(() => {
     loadPatient();
-    loadDocuments();
-    loadDocumentTypes();
 });
 </script>
 
@@ -346,7 +184,7 @@ onMounted(() => {
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ patient?.name }}</h1>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">Patient information and documents</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Patient information and entries</p>
                     </div>
 
                     <div class="flex gap-2">
@@ -394,71 +232,6 @@ onMounted(() => {
                                         <Button type="submit" :disabled="loading">
                                             <span v-if="loading">Updating...</span>
                                             <span v-else>Update Patient</span>
-                                        </Button>
-                                    </DialogFooter>
-                                </form>
-                            </DialogContent>
-                        </Dialog>
-
-                        <!-- Upload Document Modal -->
-                        <Dialog v-model:open="isDocumentModalOpen">
-                            <DialogTrigger as-child>
-                                <Button>
-                                    <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="2"
-                                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                                        />
-                                    </svg>
-                                    Upload Document
-                                </Button>
-                            </DialogTrigger>
-
-                            <DialogContent class="sm:max-w-md">
-                                <DialogHeader>
-                                    <DialogTitle>Upload Patient Document</DialogTitle>
-                                </DialogHeader>
-
-                                <form @submit.prevent="uploadDocument" class="grid gap-4 py-4">
-                                    <div>
-                                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Document Type *</label>
-                                        <Select v-model="newDocument.document_type" class="mt-1" required placeholder="Select document type">
-                                            <option v-for="(label, key) in documentTypes" :key="key" :value="key">
-                                                {{ label }}
-                                            </option>
-                                        </Select>
-                                    </div>
-                                    <div>
-                                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">File *</label>
-                                        <input
-                                            type="file"
-                                            @change="handleFileChange"
-                                            class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100"
-                                            accept="image/*,application/pdf,.doc,.docx,.txt"
-                                            required
-                                        />
-                                        <p class="mt-1 text-xs text-gray-500">Max file size: 10MB. Supported: Images, PDF, DOC, TXT</p>
-                                    </div>
-                                    <div>
-                                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
-                                        <Input type="text" v-model="newDocument.description" placeholder="Optional description" class="mt-1" />
-                                    </div>
-
-                                    <!-- Upload Progress -->
-                                    <div v-if="uploadProgress > 0" class="h-2.5 w-full rounded-full bg-gray-200">
-                                        <div
-                                            class="h-2.5 rounded-full bg-blue-600 transition-all duration-300"
-                                            :style="`width: ${uploadProgress}%`"
-                                        ></div>
-                                    </div>
-
-                                    <DialogFooter>
-                                        <Button type="button" variant="outline" @click="isDocumentModalOpen = false">Cancel</Button>
-                                        <Button type="submit" :disabled="loading || uploadProgress > 0">
-                                            <span v-if="loading">Uploading...</span>
-                                            <span v-else>Upload Document</span>
                                         </Button>
                                     </DialogFooter>
                                 </form>
@@ -537,10 +310,6 @@ onMounted(() => {
                                     <span class="text-sm text-gray-500 dark:text-gray-400">Completed Entries</span>
                                     <span class="font-medium text-green-600">{{ summary.completed_entries }}</span>
                                 </div>
-                                <div class="flex justify-between">
-                                    <span class="text-sm text-gray-500 dark:text-gray-400">Documents</span>
-                                    <span class="font-medium">{{ summary.total_documents }}</span>
-                                </div>
                             </div>
                         </CardContent>
                     </Card>
@@ -591,17 +360,13 @@ onMounted(() => {
                     </Card>
                 </div>
 
-                <!-- Documents Section -->
+                <!-- Documents Section - Disabled -->
                 <Card>
                     <CardHeader>
-                        <CardTitle>Documents ({{ documents.length }})</CardTitle>
+                        <CardTitle>Documents</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div v-if="documentsLoading" class="flex items-center justify-center py-8">
-                            <div class="h-6 w-6 animate-spin rounded-full border-b-2 border-gray-900 dark:border-white"></div>
-                        </div>
-
-                        <div v-else-if="documents.length === 0" class="py-8 text-center text-gray-500 dark:text-gray-400">
+                        <div class="py-8 text-center text-gray-500 dark:text-gray-400">
                             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path
                                     stroke-linecap="round"
@@ -610,57 +375,10 @@ onMounted(() => {
                                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                 />
                             </svg>
-                            <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No documents uploaded</h3>
-                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by uploading the first document.</p>
-                        </div>
-
-                        <div v-else class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                            <div v-for="document in documents" :key="document.id" class="rounded-lg border border-gray-200 p-4 dark:border-gray-600">
-                                <div class="flex items-start justify-between">
-                                    <div class="min-w-0 flex-1">
-                                        <div class="flex items-center">
-                                            <span class="mr-2 text-2xl">{{ getFileIcon(document) }}</span>
-                                            <div class="flex-1">
-                                                <p class="truncate text-sm font-medium text-gray-900 dark:text-white">
-                                                    {{ document.original_name }}
-                                                </p>
-                                                <p class="text-xs text-gray-500 dark:text-gray-400">
-                                                    {{ document.document_type_label }}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                                            <p>{{ document.formatted_file_size }}</p>
-                                            <p>{{ formatDate(document.created_at) }}</p>
-                                            <p v-if="document.description" class="mt-1 italic">{{ document.description }}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="mt-3 flex gap-2">
-                                    <Button size="sm" variant="outline" @click="downloadDocument(document.id)">
-                                        <svg class="mr-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="2"
-                                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                            />
-                                        </svg>
-                                        Download
-                                    </Button>
-                                    <Button size="sm" variant="destructive" @click="deleteDocument(document.id)">
-                                        <svg class="mr-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="2"
-                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                            />
-                                        </svg>
-                                        Delete
-                                    </Button>
-                                </div>
-                            </div>
+                            <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">Patient Documents Disabled</h3>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                Patient-level documents are no longer supported. Please use entry-level documents instead.
+                            </p>
                         </div>
                     </CardContent>
                 </Card>

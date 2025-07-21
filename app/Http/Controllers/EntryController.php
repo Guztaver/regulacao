@@ -68,7 +68,7 @@ class EntryController extends Controller
             'date_to' => 'nullable|date|after_or_equal:date_from',
             'patient_name' => 'nullable|string|max:255',
             'entry_id' => 'nullable|string|exists:entries,id',
-            'limit' => 'nullable|integer|min:1|max:100',
+            'limit' => 'nullable|integer|min:1|max:1000',
             'active_only' => 'nullable|boolean',
             'scheduled_only' => 'nullable|boolean',
         ]);
@@ -154,7 +154,7 @@ class EntryController extends Controller
             'date_to' => 'nullable|date|after_or_equal:date_from',
             'patient_name' => 'nullable|string|max:255',
             'entry_id' => 'nullable|string|exists:entries,id',
-            'limit' => 'nullable|integer|min:1|max:100',
+            'limit' => 'nullable|integer|min:1|max:1000',
         ]);
 
         $completedStatus = EntryStatus::findBySlug(EntryStatus::COMPLETED);
@@ -367,7 +367,7 @@ class EntryController extends Controller
             'date_to' => 'nullable|date|after_or_equal:date_from',
             'patient_name' => 'nullable|string|max:255',
             'entry_id' => 'nullable|string|exists:entries,id',
-            'limit' => 'nullable|integer|min:1|max:100',
+            'limit' => 'nullable|integer|min:1|max:1000',
         ]);
 
         $nonFinalStatuses = EntryStatus::where('is_final', false)->pluck('id');
@@ -415,7 +415,7 @@ class EntryController extends Controller
             'date_to' => 'nullable|date|after_or_equal:date_from',
             'patient_name' => 'nullable|string|max:255',
             'entry_id' => 'nullable|string|exists:entries,id',
-            'limit' => 'nullable|integer|min:1|max:100',
+            'limit' => 'nullable|integer|min:1|max:1000',
         ]);
 
         $query = Entry::with(['patient', 'createdBy', 'currentStatus', 'statusTransitions.fromStatus', 'statusTransitions.toStatus', 'statusTransitions.user'])

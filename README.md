@@ -130,12 +130,12 @@ All entry endpoints support these query parameters:
 - `date_to` - End date filter (YYYY-MM-DD)
 - `patient_name` - Search by patient name (partial match)
 - `entry_id` - Find specific entry by ID
-- `limit` - Number of results (1-100, default: 10)
+- `limit` - Number of results (1-1000, default: 10)
 
 ### Patient Filter Parameters
 Patient endpoints support these query parameters:
 - `search` - Search by name, email, or SUS number (partial match)
-- `limit` - Number of results (1-100, default: 50)
+- `limit` - Number of results (1-1000, default: 50)
 
 ### Document Upload Parameters
 Document upload requires:

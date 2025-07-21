@@ -218,60 +218,39 @@ export function useEntryApi() {
  * API endpoints for patient documents
  */
 export function useDocumentApi() {
-    const api = useApi();
-
     return {
         /**
-         * Get all documents for a patient
+         * DISABLED: Patient document functions are no longer supported
+         * Use entry document functions instead
          */
-        getPatientDocuments: (patientId: string) => api.get(`/api/patients/${patientId}/documents`),
-
-        /**
-         * Get a specific document
-         */
-        getDocument: (patientId: string, documentId: string) => api.get(`/api/patients/${patientId}/documents/${documentId}`),
-
-        /**
-         * Upload a new document for a patient
-         */
-        uploadDocument: async (patientId: string, file: File, documentType: string, description?: string) => {
-            await initializeCsrf();
-
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('document_type', documentType);
-            if (description) {
-                formData.append('description', description);
-            }
-
-            const response = await axios.post(`/api/patients/${patientId}/documents`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
-            return response.data;
+        getPatientDocuments: () => {
+            console.warn('Patient document API is disabled. Use entry documents instead.');
+            return Promise.reject(new Error('Patient documents are no longer supported'));
         },
 
-        /**
-         * Delete a document
-         */
-        deleteDocument: (patientId: string, documentId: string) => api.delete(`/api/patients/${patientId}/documents/${documentId}`),
+        getDocument: () => {
+            console.warn('Patient document API is disabled. Use entry documents instead.');
+            return Promise.reject(new Error('Patient documents are no longer supported'));
+        },
 
-        /**
-         * Get document types
-         */
-        getDocumentTypes: () => api.get('/api/document-types'),
+        uploadDocument: async () => {
+            console.warn('Patient document API is disabled. Use entry documents instead.');
+            throw new Error('Patient documents are no longer supported');
+        },
 
-        /**
-         * Download a document
-         */
-        downloadDocument: async (patientId: string, documentId: string) => {
-            await initializeCsrf();
+        deleteDocument: () => {
+            console.warn('Patient document API is disabled. Use entry documents instead.');
+            return Promise.reject(new Error('Patient documents are no longer supported'));
+        },
 
-            const response = await axios.get(`/api/patients/${patientId}/documents/${documentId}/download`, {
-                responseType: 'blob',
-            });
-            return response;
+        getDocumentTypes: () => {
+            console.warn('Patient document types API is disabled. Use entry document types instead.');
+            return Promise.reject(new Error('Patient documents are no longer supported'));
+        },
+
+        downloadDocument: async () => {
+            console.warn('Patient document API is disabled. Use entry documents instead.');
+            throw new Error('Patient documents are no longer supported');
         },
     };
 }

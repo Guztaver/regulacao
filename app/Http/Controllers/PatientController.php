@@ -32,7 +32,7 @@ class PatientController extends Controller
 
         $validatedData = $request->validate([
             'search' => 'nullable|string|max:255',
-            'limit' => 'nullable|integer|min:1|max:100',
+            'limit' => 'nullable|integer|min:1|max:1000',
         ]);
 
         $query = Patient::query();
@@ -49,7 +49,6 @@ class PatientController extends Controller
 
         $limit = $validatedData['limit'] ?? 50;
         $patients = $query->with('createdBy')
-                         ->withCount('documents')
                          ->withCount('entries')
                          ->latest('created_at')
                          ->limit($limit)
@@ -78,14 +77,13 @@ class PatientController extends Controller
             return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
-        $patient = Patient::with(['documents', 'entries.patient', 'createdBy'])
-                          ->withCount(['documents', 'entries'])
+        $patient = Patient::with(['entries.patient', 'createdBy'])
+                          ->withCount(['entries'])
                           ->findOrFail($id);
 
         return response()->json([
             'patient' => $patient,
             'summary' => [
-                'total_documents' => $patient->documents_count,
                 'total_entries' => $patient->entries_count,
                 'active_entries' => $patient->entries->where('completed', false)->count(),
                 'completed_entries' => $patient->entries->where('completed', true)->count(),

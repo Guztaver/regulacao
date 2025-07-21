@@ -41,6 +41,7 @@ class EntryDocumentController extends Controller
             'file_size' => $file->getSize(),
             'document_type' => $validatedData['document_type'],
             'description' => $validatedData['description'],
+            'uploaded_by' => Auth::id(),
         ]);
 
         return response()->json([
@@ -59,6 +60,7 @@ class EntryDocumentController extends Controller
         $entry = Entry::findOrFail($entryId);
 
         $documents = $entry->documents()
+            ->with('uploadedBy')
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(fn ($document) =>
@@ -75,6 +77,7 @@ class EntryDocumentController extends Controller
                     'url' => $document->url,
                     'is_image' => $document->isImage(),
                     'is_pdf' => $document->isPdf(),
+                    'uploaded_by' => $document->uploadedBy?->name,
                     'created_at' => $document->created_at,
                 ]);
 
@@ -92,7 +95,7 @@ class EntryDocumentController extends Controller
         }
 
         $entry = Entry::findOrFail($entryId);
-        $document = $entry->documents()->findOrFail($documentId);
+        $document = $entry->documents()->with('uploadedBy')->findOrFail($documentId);
 
         return response()->json([
             'document' => [
@@ -108,6 +111,7 @@ class EntryDocumentController extends Controller
                 'url' => $document->url,
                 'is_image' => $document->isImage(),
                 'is_pdf' => $document->isPdf(),
+                'uploaded_by' => $document->uploadedBy?->name,
                 'created_at' => $document->created_at,
             ],
             'entry' => $entry

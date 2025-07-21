@@ -109,6 +109,7 @@ export interface EntryDocument {
     url: string;
     is_image: boolean;
     is_pdf: boolean;
+    uploaded_by?: string;
     created_at: string;
     updated_at: string;
     entry?: Entry;

@@ -574,10 +574,12 @@ class EntryController extends Controller
             'statusTransitions.fromStatus',
             'statusTransitions.toStatus',
             'statusTransitions.user',
-            'documents',
+            'documents.uploadedBy',
             'timeline'
         ])->findOrFail($id);
 
-        return view('entries.print', compact('entry'));
+        $currentUser = Auth::user();
+
+        return view('entries.print', compact('entry', 'currentUser'));
     }
 }

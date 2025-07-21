@@ -587,11 +587,9 @@ function getCancellationReason(): string {
                                     <!-- Document Info -->
                                     <div class="min-w-0 flex-1">
                                         <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                            {{ document.original_name }}
+                                            {{ document.document_type_label }}
                                         </p>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400">
-                                            {{ document.document_type_label }} • {{ document.formatted_file_size }}
-                                        </p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Adicionado por: {{ document.uploaded_by || 'N/A' }}</p>
                                         <p v-if="document.description" class="mt-1 text-xs text-gray-600 dark:text-gray-300">
                                             {{ document.description }}
                                         </p>

@@ -6,6 +6,7 @@
     <div class="header">
         <h1>FICHA DE ENTRADA</h1>
         <p>Sistema de Regulação - Documento de Impressão</p>
+        <p style="margin-top: 10px; font-size: 12px; color: #666;">Documento gerado por: {{ $currentUser->name ?? 'N/A' }}</p>
     </div>
 
     <!-- Entry Basic Information -->
@@ -161,13 +162,12 @@
             @foreach($entry->documents as $document)
             <div class="document-item">
                 <div class="document-info">
-                    <div class="document-name">{{ $document->original_name }}</div>
+                    <div class="document-name">{{ $document->document_type_label }}</div>
                     <div class="document-meta">
-                        <strong>Tipo:</strong> {{ $document->document_type_label }}<br>
+                        <strong>Adicionado por:</strong> {{ $document->uploadedBy->name ?? 'N/A' }}<br>
                         @if($document->description)
                             <strong>Descrição:</strong> {{ $document->description }}<br>
                         @endif
-                        <strong>Tamanho:</strong> {{ number_format($document->file_size / 1024, 2) }} KB<br>
                         <strong>Enviado em:</strong> {{ $document->created_at->format('d/m/Y H:i') }}
                     </div>
                 </div>
@@ -279,6 +279,7 @@
     <!-- Footer -->
     <div class="footer">
         <p>Documento gerado automaticamente em {{ now()->format('d/m/Y H:i') }}</p>
+        <p>Adicionado por: {{ $currentUser->name ?? 'N/A' }}</p>
         <p>Sistema de Regulação - Ficha de Entrada #{{ $entry->id }}</p>
     </div>
 @endsection

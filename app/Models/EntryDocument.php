@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Storage;
  * @property int $file_size
  * @property string|null $document_type
  * @property string|null $description
+ * @property int|null $uploaded_by
  */
 class EntryDocument extends Model
 {
@@ -37,6 +38,7 @@ class EntryDocument extends Model
         'file_size',
         'document_type',
         'description',
+        'uploaded_by',
     ];
 
     /**
@@ -53,6 +55,7 @@ class EntryDocument extends Model
             'file_size' => 'required|integer|min:1',
             'document_type' => 'nullable|string|in:' . implode(',', array_keys(self::DOCUMENT_TYPES)),
             'description' => 'nullable|string|max:500',
+            'uploaded_by' => 'nullable|exists:users,id',
         ];
     }
 
@@ -73,6 +76,14 @@ class EntryDocument extends Model
     public function entry(): BelongsTo
     {
         return $this->belongsTo(Entry::class);
+    }
+
+    /**
+     * Get the user who uploaded the document.
+     */
+    public function uploadedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'uploaded_by');
     }
 
     /**

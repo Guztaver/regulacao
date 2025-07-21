@@ -2,6 +2,7 @@
     <div class="status-transition-dropdown relative inline-block">
         <!-- Trigger Button -->
         <button
+            ref="dropdownButton"
             @click="openDropdown"
             :disabled="props.disabled || isLoading"
             :class="[
@@ -29,23 +30,33 @@
         </button>
 
         <!-- Dropdown Menu -->
-        <div
-            v-if="isOpen"
-            class="ring-opacity-5 absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black focus:outline-none"
-        >
-            <div v-if="nextStatuses.length === 0 && !isLoading" class="px-4 py-2 text-sm text-gray-500">Nenhuma transição de status disponível</div>
-            <ul v-else class="py-1">
-                <li v-for="status in nextStatuses" :key="status.id">
-                    <button
-                        @click="selectStatus(status.id)"
-                        :class="['group flex w-full items-center px-4 py-2 text-sm transition-colors duration-200', getStatusColorClass(status)]"
-                    >
-                        <span class="mr-3 h-3 w-3 flex-shrink-0 rounded-full" :style="{ backgroundColor: status.color }"></span>
-                        <span class="flex-1 text-left">{{ status.name }}</span>
-                    </button>
-                </li>
-            </ul>
-        </div>
+        <Teleport to="body">
+            <div
+                v-if="isOpen"
+                :style="dropdownStyle"
+                class="fixed z-[9999] w-56 rounded-md border border-gray-200 bg-white shadow-lg focus:outline-none"
+            >
+                <div v-if="allStatuses.length === 0 && !isLoading" class="px-4 py-2 text-sm text-gray-500">Nenhum status disponível</div>
+                <ul v-else class="py-1" data-dropdown-menu>
+                    <li v-for="status in allStatuses" :key="status.id">
+                        <button
+                            @click="selectStatus(status.id)"
+                            :disabled="status.id === props.entry.current_status_id"
+                            :class="[
+                                'group flex w-full items-center px-4 py-2 text-sm transition-colors duration-200',
+                                status.id === props.entry.current_status_id
+                                    ? 'cursor-not-allowed bg-gray-100 text-gray-400'
+                                    : getStatusColorClass(status),
+                            ]"
+                        >
+                            <span class="mr-3 h-3 w-3 flex-shrink-0 rounded-full" :style="{ backgroundColor: status.color }"></span>
+                            <span class="flex-1 text-left">{{ status.name }}</span>
+                            <span v-if="status.id === props.entry.current_status_id" class="ml-2 text-xs text-gray-400">(atual)</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </Teleport>
     </div>
 </template>
 
@@ -53,7 +64,7 @@
 import { handleApiError, useEntryApi } from '@/composables/useApi';
 import { useTranslations } from '@/composables/useTranslations';
 import type { Entry, EntryStatus } from '@/types';
-import { computed, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, ref } from 'vue';
 
 interface Props {
     entry: Entry;
@@ -74,7 +85,9 @@ const emit = defineEmits<Emits>();
 
 const isOpen = ref(false);
 const isLoading = ref(false);
-const nextStatuses = ref<EntryStatus[]>([]);
+const allStatuses = ref<EntryStatus[]>([]);
+const dropdownButton = ref<HTMLElement>();
+const dropdownStyle = ref({});
 
 const entryApi = useEntryApi();
 const { t } = useTranslations();
@@ -101,12 +114,11 @@ const iconSize = computed(() => {
     }
 });
 
-async function loadNextStatuses() {
-    if (!props.entry.id) return;
+async function loadAllStatuses() {
     isLoading.value = true;
     try {
-        const response = await entryApi.getNextStatuses(props.entry.id);
-        nextStatuses.value = response.next_statuses || [];
+        const response = await entryApi.getStatuses();
+        allStatuses.value = response.statuses || [];
     } catch (err: any) {
         emit('error', handleApiError(err));
     } finally {
@@ -115,10 +127,10 @@ async function loadNextStatuses() {
 }
 
 async function transitionToStatus(statusId: number) {
-    if (!props.entry.id) return;
+    if (!props.entry.id || statusId === props.entry.current_status_id) return;
     isLoading.value = true;
     try {
-        const target = nextStatuses.value.find((s) => s.id === statusId);
+        const target = allStatuses.value.find((s) => s.id === statusId);
         await entryApi.transitionStatus(props.entry.id, statusId);
         const updated = { ...props.entry };
         if (target) {
@@ -134,10 +146,45 @@ async function transitionToStatus(statusId: number) {
     }
 }
 
-function openDropdown() {
+async function openDropdown() {
     if (props.disabled) return;
     isOpen.value = true;
-    loadNextStatuses();
+    if (allStatuses.value.length === 0) {
+        loadAllStatuses();
+    }
+
+    await nextTick();
+    calculateDropdownPosition();
+}
+
+function calculateDropdownPosition() {
+    if (!dropdownButton.value) return;
+
+    const rect = dropdownButton.value.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const dropdownHeight = 300; // Approximate max height
+
+    // Determine if dropdown should appear above or below
+    const spaceBelow = viewportHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    const shouldShowAbove = spaceBelow < dropdownHeight && spaceAbove > spaceBelow;
+
+    let top: number;
+    if (shouldShowAbove) {
+        top = rect.top - Math.min(dropdownHeight, spaceAbove) + window.scrollY;
+    } else {
+        top = rect.bottom + 8 + window.scrollY; // 8px gap
+    }
+
+    const left = rect.right - 224 + window.scrollX; // 224px = 14rem (w-56)
+
+    dropdownStyle.value = {
+        position: 'absolute',
+        top: `${top}px`,
+        left: `${left}px`,
+        maxHeight: shouldShowAbove ? `${Math.min(dropdownHeight, spaceAbove - 8)}px` : `${Math.min(dropdownHeight, spaceBelow - 8)}px`,
+        overflowY: 'auto',
+    };
 }
 
 function closeDropdown() {
@@ -145,16 +192,38 @@ function closeDropdown() {
 }
 
 function selectStatus(id: number) {
-    transitionToStatus(id);
+    if (id !== props.entry.current_status_id) {
+        transitionToStatus(id);
+    }
 }
 
 onMounted(() => {
+    // Load all statuses on mount for better UX
+    loadAllStatuses();
+
     document.addEventListener('click', (e: MouseEvent) => {
         const el = e.target as HTMLElement;
-        if (!el.closest('.status-transition-dropdown')) {
+        if (!el.closest('.status-transition-dropdown') && !el.closest('[data-dropdown-menu]')) {
             closeDropdown();
         }
     });
+
+    // Recalculate position on window resize/scroll
+    window.addEventListener('resize', () => {
+        if (isOpen.value) {
+            calculateDropdownPosition();
+        }
+    });
+
+    window.addEventListener(
+        'scroll',
+        () => {
+            if (isOpen.value) {
+                calculateDropdownPosition();
+            }
+        },
+        true,
+    );
 });
 
 function getStatusColorClass(status: EntryStatus): string {

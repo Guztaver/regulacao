@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # =============================================================================
-# Build stage for Node.js assets - Optimized for caching
+# Build stage for Node.js assets
 # =============================================================================
 FROM node:20-alpine AS node-builder
 
@@ -24,9 +24,9 @@ COPY tsconfig.json ./
 RUN npm run build
 
 # =============================================================================
-# PHP base stage with optimized dependency installation
+# PHP production stage
 # =============================================================================
-FROM php:8.4-fpm-alpine AS php-base
+FROM php:8.4-fpm-alpine AS production
 
 # Install system dependencies in single layer with cache mount
 RUN --mount=type=cache,target=/var/cache/apk \
@@ -46,9 +46,10 @@ RUN --mount=type=cache,target=/var/cache/apk \
     mysql-client \
     redis \
     nginx \
-    supervisor
+    supervisor \
+    bash
 
-# Configure and install PHP extensions in parallel
+# Configure and install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
     pdo \
@@ -67,11 +68,6 @@ COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# =============================================================================
-# Composer dependencies stage - Separate for better caching
-# =============================================================================
-FROM php-base AS composer-deps
-
 # Copy composer files first for better layer caching
 COPY composer.json composer.lock ./
 
@@ -85,69 +81,33 @@ RUN --mount=type=cache,target=/root/.composer/cache \
     --prefer-dist \
     --optimize-autoloader
 
-# =============================================================================
-# Development stage - Lightweight for local development
-# =============================================================================
-FROM composer-deps AS development
-
-# Install dev dependencies
-RUN --mount=type=cache,target=/root/.composer/cache \
-    composer install --optimize-autoloader --no-interaction
-
 # Copy application code
 COPY . .
 
 # Copy built assets from node-builder
 COPY --from=node-builder /app/public/build ./public/build
 
-# Generate optimized autoloader
-RUN composer dump-autoload --optimize
-
-# Create storage directories and set permissions in single layer
-RUN mkdir -p storage/{app,logs,framework/{cache,sessions,views}} bootstrap/cache \
-    && chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 storage bootstrap/cache
-
-# Copy entrypoint script
-COPY docker/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-EXPOSE 8000
-
-ENTRYPOINT ["/entrypoint.sh"]
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
-
-# =============================================================================
-# Production stage - Optimized for deployment
-# =============================================================================
-FROM composer-deps AS production
-
-# Copy application code
-COPY . .
-
-# Copy built assets from node-builder
-COPY --from=node-builder /app/public/build ./public/build
-
-# Copy configuration files
-COPY fly/nginx.conf /etc/nginx/nginx.conf
-COPY fly/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+# Copy entrypoint script and make it executable
 COPY fly/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 # Generate optimized autoloader and discover packages
 RUN composer dump-autoload --optimize \
-    && php artisan package:discover --ansi
+    && php artisan package:discover --ansi || true
 
-# Create directories, set permissions, and configure PHP in single layer
+# Create directories, set permissions, and configure PHP
 RUN mkdir -p \
     /var/log/{supervisor,nginx} \
     /var/run/nginx \
     storage/{app,logs,framework/{cache,sessions,views}} \
     bootstrap/cache \
-    && touch storage/database.sqlite \
+    && touch storage/app/database.sqlite \
     && chown -R www-data:www-data /var/www/html \
     && chmod -R 755 storage bootstrap/cache \
-    && chmod +x /entrypoint.sh \
-    && { \
+    && chmod 664 storage/app/database.sqlite
+
+# Configure PHP for production
+RUN { \
     echo "memory_limit = 512M"; \
     echo "upload_max_filesize = 100M"; \
     echo "post_max_size = 100M"; \
@@ -159,18 +119,21 @@ RUN mkdir -p \
     echo "opcache.interned_strings_buffer = 16"; \
     } > /usr/local/etc/php/conf.d/laravel.ini
 
-# Create .env from example if needed
-RUN [ ! -f .env ] && cp .env.example .env || true
+# Create .env from example and set production values
+RUN [ ! -f .env ] && cp .env.example .env || true \
+    && sed -i 's/APP_ENV=local/APP_ENV=production/' .env \
+    && sed -i 's/APP_DEBUG=true/APP_DEBUG=false/' .env \
+    && sed -i 's|APP_URL=http://localhost|APP_URL=https://regulacao-list-br.fly.dev|' .env \
+    && sed -i 's/DB_CONNECTION=sqlite/DB_CONNECTION=sqlite/' .env \
+    && sed -i 's|# DB_DATABASE=database/laravel.sqlite|DB_DATABASE=/var/www/html/storage/app/database.sqlite|' .env
 
-# Expose ports
-EXPOSE 80 8080
+# Expose port
+EXPOSE 8080
 
-# Health check with faster timeout
+# Health check
 HEALTHCHECK --interval=20s --timeout=5s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:8080/health || curl -f http://localhost:80/health || exit 1
+    CMD curl -f http://localhost:8080/health || exit 1
 
+# Set entrypoint and default command
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
-
-# Default to production stage
-FROM production
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8080"]

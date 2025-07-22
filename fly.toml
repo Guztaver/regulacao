@@ -10,7 +10,7 @@ primary_region = 'gru'
 auto_rollback = true
 
 [build]
-image = 'ghcr.io/guztaver/regulacao:latest'
+dockerfile = 'Dockerfile'
 
 [deploy]
 # release_command = 'php artisan migrate --force'
@@ -18,17 +18,18 @@ image = 'ghcr.io/guztaver/regulacao:latest'
 [env]
 APP_DEBUG = 'false'
 APP_ENV = 'production'
-CACHE_DRIVER = 'database'
-DB_CONNECTION = 'mysql'
+CACHE_DRIVER = 'file'
+DB_CONNECTION = 'sqlite'
+DB_DATABASE = '/var/www/html/storage/app/database.sqlite'
 LOG_CHANNEL = 'stderr'
 LOG_STDERR_FORMATTER = 'Monolog\Formatter\JsonFormatter'
 QUEUE_CONNECTION = 'database'
-SESSION_DRIVER = 'database'
+SESSION_DRIVER = 'file'
 SESSION_SECURE_COOKIE = 'true'
 TRUSTED_PROXIES = '*'
 
 [processes]
-app = '/usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf'
+app = 'php artisan serve --host=0.0.0.0 --port=8080'
 worker = 'php artisan queue:work --sleep=3 --tries=3 --max-time=3600'
 
 [[mounts]]
@@ -65,7 +66,7 @@ interval = '10s'
 timeout = '2s'
 grace_period = '5s'
 method = 'get'
-path = '/health'
+path = '/up'
 protocol = 'http'
 tls_skip_verify = false
 

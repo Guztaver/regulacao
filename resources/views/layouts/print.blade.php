@@ -29,10 +29,22 @@
         }
 
         .header {
+            position: relative;
             text-align: center;
             margin-bottom: 30px;
             padding-bottom: 20px;
+            padding-left: 80px;
             border-bottom: 2px solid #333;
+        }
+
+        .header-logo {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            border-radius: 6px;
         }
 
         .header h1 {
@@ -243,6 +255,13 @@
 
             .timeline-item {
                 page-break-inside: avoid;
+            }
+
+            .header-logo {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                width: 50px;
+                height: 50px;
             }
         }
 

@@ -341,9 +341,9 @@ function getCancellationReason(): string {
                         <!-- Right Column -->
                         <div class="space-y-6">
                             <!-- Entry Title -->
-                            <div class="rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
-                                <h4 class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">{{ t.title }}</h4>
-                                <p class="text-sm leading-relaxed text-gray-900 dark:text-gray-100">
+                            <div class="rounded-lg bg-muted/50 p-4">
+                                <h4 class="mb-3 text-sm font-medium text-muted-foreground">{{ t.title }}</h4>
+                                <p class="text-sm leading-relaxed text-foreground">
                                     {{ entry.title }}
                                 </p>
                             </div>
@@ -381,10 +381,7 @@ function getCancellationReason(): string {
                             <div>
                                 <span class="text-xs text-gray-600 dark:text-gray-400">{{ t.name }}:</span>
                                 <p class="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
-                                    <a
-                                        :href="`/patients/${entry.patient?.id}`"
-                                        class="text-blue-600 hover:text-blue-800 hover:underline dark:text-blue-400 dark:hover:text-blue-200"
-                                    >
+                                    <a :href="`/patients/${entry.patient?.id}`" class="text-primary hover:text-primary/80 hover:underline">
                                         {{ entry.patient?.name || t.unknownPatient }}
                                     </a>
                                 </p>
@@ -476,7 +473,7 @@ function getCancellationReason(): string {
                                 <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"> Tipo de Documento </label>
                                 <select
                                     v-model="documentType"
-                                    class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
                                 >
                                     <option value="">Selecione um tipo</option>
                                     <option v-for="(label, value) in documentTypes" :key="value" :value="value">
@@ -555,7 +552,7 @@ function getCancellationReason(): string {
                                         </svg>
                                         <svg
                                             v-else-if="document.is_image"
-                                            class="h-5 w-5 text-blue-600"
+                                            class="h-5 w-5 text-primary"
                                             fill="none"
                                             stroke="currentColor"
                                             viewBox="0 0 24 24"

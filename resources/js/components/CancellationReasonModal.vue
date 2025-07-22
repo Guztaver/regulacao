@@ -18,7 +18,7 @@
                         id="reason"
                         v-model="reason"
                         :disabled="isLoading"
-                        class="w-full min-h-[100px] rounded-md border border-gray-300 px-3 py-2 text-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+                        class="min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                         placeholder="Digite o motivo do cancelamento..."
                         required
                     />
@@ -26,23 +26,15 @@
                 </div>
 
                 <div class="flex justify-end gap-3">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        @click="handleClose"
-                        :disabled="isLoading"
-                    >
-                        Cancelar
-                    </Button>
-                    <Button
-                        type="submit"
-                        variant="destructive"
-                        :disabled="isLoading || !reason.trim()"
-                        class="min-w-[100px]"
-                    >
+                    <Button type="button" variant="outline" @click="handleClose" :disabled="isLoading"> Cancelar </Button>
+                    <Button type="submit" variant="destructive" :disabled="isLoading || !reason.trim()" class="min-w-[100px]">
                         <svg v-if="isLoading" class="mr-2 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            <path
+                                class="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
                         </svg>
                         {{ isLoading ? 'Cancelando...' : 'Confirmar Cancelamento' }}
                     </Button>
@@ -53,12 +45,12 @@
 </template>
 
 <script setup lang="ts">
-import { AlertTriangleIcon } from 'lucide-vue-next';
-import { ref, watch } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import type { Entry } from '@/types';
+import { AlertTriangleIcon } from 'lucide-vue-next';
+import { ref, watch } from 'vue';
 
 interface Props {
     open: boolean;
@@ -67,7 +59,7 @@ interface Props {
 
 interface Emits {
     'update:open': [value: boolean];
-    'confirm': [reason: string];
+    confirm: [reason: string];
 }
 
 const props = defineProps<Props>();
@@ -78,13 +70,16 @@ const reason = ref('');
 const isLoading = ref(false);
 
 // Watch for prop changes
-watch(() => props.open, (newValue) => {
-    isOpen.value = newValue;
-    if (newValue) {
-        reason.value = '';
-        isLoading.value = false;
-    }
-});
+watch(
+    () => props.open,
+    (newValue) => {
+        isOpen.value = newValue;
+        if (newValue) {
+            reason.value = '';
+            isLoading.value = false;
+        }
+    },
+);
 
 // Watch for internal changes and emit
 watch(isOpen, (newValue) => {

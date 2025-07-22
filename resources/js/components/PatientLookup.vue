@@ -112,12 +112,12 @@ const resetSearch = () => {
 
 const getStatusColor = (color: string) => {
     const colorMap: Record<string, string> = {
-        blue: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+        blue: 'bg-accent text-accent-foreground',
         green: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
         yellow: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-        red: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+        red: 'bg-destructive/10 text-destructive',
         purple: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-        gray: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
+        gray: 'bg-muted text-muted-foreground',
     };
     return colorMap[color] || colorMap['gray'];
 };
@@ -128,7 +128,7 @@ const getStatusColor = (color: string) => {
         <!-- Search Form -->
         <div class="mb-6 rounded-xl bg-white p-6 shadow-lg dark:bg-gray-800">
             <div class="mb-4 flex items-center space-x-3">
-                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300">
+                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                     <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
@@ -151,17 +151,17 @@ const getStatusColor = (color: string) => {
                         @input="handleSusInput"
                         placeholder="000.0000.000.0000"
                         maxlength="18"
-                        class="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+                        class="w-full rounded-lg border border-input bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-transparent focus:ring-2 focus:ring-ring"
                         :disabled="form.processing"
                     />
-                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Formato: 15 dígitos (exemplo: 123.4567.890.1234)</p>
+                    <p class="mt-1 text-xs text-muted-foreground">Formato: 15 dígitos (exemplo: 123.4567.890.1234)</p>
                 </div>
 
                 <div class="flex space-x-3">
                     <button
                         type="submit"
                         :disabled="form.processing || !form.sus_number"
-                        class="flex-1 rounded-lg bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        class="flex-1 rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <span v-if="form.processing" class="flex items-center justify-center">
                             <svg
@@ -186,7 +186,7 @@ const getStatusColor = (color: string) => {
                         v-if="showResults"
                         type="button"
                         @click="resetSearch"
-                        class="rounded-lg border border-gray-300 px-6 py-3 text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                        class="rounded-lg border border-border px-6 py-3 text-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus:ring-2 focus:ring-ring focus:ring-offset-2"
                     >
                         Nova Busca
                     </button>
@@ -194,41 +194,41 @@ const getStatusColor = (color: string) => {
             </form>
 
             <!-- Error Message -->
-            <div v-if="error" class="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
+            <div v-if="error" class="mt-4 rounded-lg border border-destructive/20 bg-destructive/10 p-4">
                 <div class="flex">
                     <svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <div class="ml-3">
-                        <p class="text-sm text-red-800 dark:text-red-200">{{ error }}</p>
+                        <p class="text-sm text-destructive">{{ error }}</p>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Search Results -->
-        <div v-if="showResults && searchResult" class="rounded-xl bg-white p-6 shadow-lg dark:bg-gray-800">
+        <div v-if="showResults && searchResult" class="rounded-xl bg-card p-6 shadow-lg">
             <!-- Patient Info -->
-            <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
-                <h3 class="mb-2 text-lg font-semibold text-gray-900 dark:text-white">Informações do Paciente</h3>
+            <div class="mb-6 border-b border-border pb-4">
+                <h3 class="mb-2 text-lg font-semibold text-card-foreground">Informações do Paciente</h3>
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">Nome</p>
-                        <p class="font-medium text-gray-900 dark:text-white">{{ searchResult.patient.name }}</p>
+                        <p class="text-sm text-muted-foreground">Nome</p>
+                        <p class="font-medium text-card-foreground">{{ searchResult.patient.name }}</p>
                     </div>
                     <div>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">Total de Procedimentos</p>
-                        <p class="font-medium text-gray-900 dark:text-white">{{ searchResult.patient.entries_count }}</p>
+                        <p class="text-sm text-muted-foreground">Total de Procedimentos</p>
+                        <p class="font-medium text-card-foreground">{{ searchResult.patient.entries_count }}</p>
                     </div>
                 </div>
             </div>
 
             <!-- Entries List -->
             <div>
-                <h4 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Seus Procedimentos</h4>
+                <h4 class="mb-4 text-lg font-semibold text-card-foreground">Seus Procedimentos</h4>
 
                 <div v-if="searchResult.entries.length === 0" class="py-8 text-center">
-                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="mx-auto h-12 w-12 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path
                             stroke-linecap="round"
                             stroke-linejoin="round"
@@ -236,15 +236,15 @@ const getStatusColor = (color: string) => {
                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                         />
                     </svg>
-                    <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Nenhum procedimento encontrado.</p>
+                    <p class="mt-2 text-sm text-muted-foreground">Nenhum procedimento encontrado.</p>
                 </div>
 
                 <div v-else class="space-y-4">
-                    <div v-for="entry in searchResult.entries" :key="entry.id" class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+                    <div v-for="entry in searchResult.entries" :key="entry.id" class="rounded-lg border border-border bg-card p-4">
                         <div class="mb-3 flex items-start justify-between">
                             <div class="flex-1">
-                                <h5 class="font-medium text-gray-900 dark:text-white">{{ entry.title }}</h5>
-                                <p class="text-sm text-gray-600 dark:text-gray-400">Criado em {{ entry.created_at }}</p>
+                                <h5 class="font-medium text-card-foreground">{{ entry.title }}</h5>
+                                <p class="text-sm text-muted-foreground">Criado em {{ entry.created_at }}</p>
                             </div>
                             <span
                                 :class="getStatusColor(entry.current_status.color)"
@@ -254,8 +254,8 @@ const getStatusColor = (color: string) => {
                             </span>
                         </div>
 
-                        <div v-if="entry.scheduled_exam_date" class="mb-3 rounded-lg bg-blue-50 p-2 dark:bg-blue-900/20">
-                            <div class="flex items-center text-sm text-blue-800 dark:text-blue-200">
+                        <div v-if="entry.scheduled_exam_date" class="mb-3 rounded-lg bg-muted/50 p-2">
+                            <div class="flex items-center text-sm text-foreground">
                                 <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path
                                         stroke-linecap="round"
@@ -269,19 +269,17 @@ const getStatusColor = (color: string) => {
                         </div>
 
                         <!-- Recent Transitions -->
-                        <div v-if="entry.recent_transitions.length > 0" class="border-t border-gray-200 pt-3 dark:border-gray-700">
-                            <p class="mb-2 text-sm font-medium text-gray-900 dark:text-white">Histórico Recente:</p>
+                        <div v-if="entry.recent_transitions.length > 0" class="border-t border-border pt-3">
+                            <p class="mb-2 text-sm font-medium text-card-foreground">Histórico Recente:</p>
                             <div class="space-y-2">
                                 <div v-for="transition in entry.recent_transitions" :key="`${entry.id}-${transition.performed_at}`" class="text-sm">
                                     <div class="flex items-center justify-between">
-                                        <span class="text-gray-600 dark:text-gray-400">
+                                        <span class="text-muted-foreground">
                                             <span v-if="transition.from_status">{{ transition.from_status }} → </span>{{ transition.to_status }}
                                         </span>
-                                        <span class="text-xs text-gray-500 dark:text-gray-500">{{
-                                            transition.performed_at || 'Data não disponível'
-                                        }}</span>
+                                        <span class="text-xs text-muted-foreground">{{ transition.performed_at || 'Data não disponível' }}</span>
                                     </div>
-                                    <p v-if="transition.reason" class="mt-1 text-xs text-gray-500 dark:text-gray-500">{{ transition.reason }}</p>
+                                    <p v-if="transition.reason" class="mt-1 text-xs text-muted-foreground">{{ transition.reason }}</p>
                                 </div>
                             </div>
                         </div>
@@ -291,9 +289,9 @@ const getStatusColor = (color: string) => {
         </div>
 
         <!-- Info Notice -->
-        <div class="mt-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-900/20">
+        <div class="mt-6 rounded-lg border border-border bg-muted/30 p-4">
             <div class="flex">
-                <svg class="h-5 w-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="h-5 w-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                         stroke-linecap="round"
                         stroke-linejoin="round"
@@ -302,7 +300,7 @@ const getStatusColor = (color: string) => {
                     />
                 </svg>
                 <div class="ml-3">
-                    <p class="text-sm text-yellow-800 dark:text-yellow-200">
+                    <p class="text-sm text-foreground">
                         <strong>Importante:</strong> Se você não encontrar seus dados ou tiver dúvidas sobre algum procedimento, entre em contato com
                         a unidade de saúde responsável pelo seu atendimento.
                     </p>

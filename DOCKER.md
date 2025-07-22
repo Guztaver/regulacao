@@ -1,6 +1,8 @@
 # Docker Setup Guide
 
-This guide covers how to use Docker with the Regulação List application for both development and production environments.
+This guide covers how to use Docker with the Lista da regulação application for both development and production environments.
+
+Made with ❤️ by [Gustavo M.](https://github.com/guztaver)
 
 ## Prerequisites
 
@@ -409,4 +411,8 @@ make migrate
 make migrate-fresh
 ```
 
-This Docker setup provides a robust, scalable, and maintainable environment for the Regulação List application, suitable for both development and production use.
+This Docker setup provides a robust, scalable, and maintainable environment for the Lista da regulação application, suitable for both development and production use.
+
+---
+
+Made with ❤️ by [Gustavo M.](https://github.com/guztaver)

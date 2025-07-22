@@ -4,7 +4,7 @@ import { Head, Link } from '@inertiajs/vue3';
 </script>
 
 <template>
-    <Head title="Regulação List - Sistema de Gestão Médica">
+    <Head title="Lista da regulação - Sistema de Gestão Médica">
         <link rel="preconnect" href="https://rsms.me/" />
         <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
     </Head>
@@ -14,17 +14,10 @@ import { Head, Link } from '@inertiajs/vue3';
         <header class="mb-6 w-full max-w-[335px] text-sm lg:max-w-6xl">
             <nav class="flex items-center justify-between">
                 <div class="flex items-center space-x-2">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-white">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                            />
-                        </svg>
+                    <div class="flex h-10 w-10 items-center justify-center rounded-md">
+                        <img src="/images/logo-prefeitura.png" alt="Lista da regulação Logo" class="h-10 w-10 rounded-md object-contain" />
                     </div>
-                    <span class="text-xl font-bold text-gray-900 dark:text-white">Regulação List</span>
+                    <span class="text-xl font-bold text-gray-900 dark:text-white">Lista da regulação</span>
                 </div>
                 <div class="flex items-center justify-end gap-4">
                     <Link
@@ -288,7 +281,12 @@ import { Head, Link } from '@inertiajs/vue3';
         >
             <div class="flex flex-col items-center justify-between space-y-4 lg:flex-row lg:space-y-0">
                 <div>
-                    <p>&copy; 2025 Regulação List. Sistema de gestão médica para organização de pacientes e procedimentos.</p>
+                    <p>
+                        &copy; 2025 Lista da regulação. Made with ❤️ by
+                        <a href="https://github.com/guztaver" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                            >Gustavo M.</a
+                        >
+                    </p>
                 </div>
                 <div class="flex items-center space-x-6">
                     <a href="#" class="hover:text-gray-900 dark:hover:text-gray-300">Documentação</a>

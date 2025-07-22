@@ -1,6 +1,8 @@
-# Regulação List
+# Lista da regulação
 
 A comprehensive Laravel + Vue.js application for managing patients, medical entries, and entry document attachments with advanced filtering capabilities and SUS integration.
+
+Made with ❤️ by [Gustavo M.](https://github.com/guztaver)
 
 ## Features
 
@@ -334,3 +336,7 @@ Standard LAMP/LEMP stack deployment:
 ## License
 
 This project is open-sourced software licensed under the MIT license.
+
+---
+
+Made with ❤️ by [Gustavo M.](https://github.com/guztaver)

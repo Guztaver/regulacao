@@ -1,6 +1,8 @@
 # Railway Deployment Guide
 
-This guide covers deploying the Regulação List Laravel application to Railway using Nixpacks.
+This guide covers deploying the Lista da regulação Laravel application to Railway using Nixpacks.
+
+Made with ❤️ by [Gustavo M.](https://github.com/guztaver)
 
 ## What is Railway?
 

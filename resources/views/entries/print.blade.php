@@ -4,8 +4,9 @@
 
 @section('content')
     <div class="header">
+        <img src="/images/logo-prefeitura.png?v=2" alt="Lista da regulação Logo" class="header-logo">
         <h1>FICHA DE ENTRADA</h1>
-        <p>Sistema de Regulação - Documento de Impressão</p>
+        <p>Lista da regulação - Documento de Impressão</p>
         <p style="margin-top: 10px; font-size: 12px; color: #666;">Documento gerado por: {{ $currentUser->name ?? 'N/A' }}</p>
     </div>
 
@@ -277,6 +278,7 @@
     <div class="footer">
         <p>Documento gerado automaticamente em {{ now()->format('d/m/Y H:i') }}</p>
         <p>Adicionado por: {{ $currentUser->name ?? 'N/A' }}</p>
-        <p>Sistema de Regulação - Ficha de Entrada #{{ $entry->id }}</p>
+        <p>Lista da regulação - Ficha de Entrada #{{ $entry->id }}</p>
+        <p>Made with ❤️ by Gustavo M. (https://github.com/guztaver)</p>
     </div>
 @endsection

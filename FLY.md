@@ -1,6 +1,8 @@
 # Fly.io Deployment Guide
 
-This guide covers deploying the Regulação List Laravel application to Fly.io with global edge deployment capabilities.
+This guide covers deploying the Lista da regulação Laravel application to Fly.io with global edge deployment capabilities.
+
+Made with ❤️ by [Gustavo M.](https://github.com/guztaver)
 
 ## What is Fly.io?
 

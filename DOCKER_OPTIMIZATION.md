@@ -1,6 +1,8 @@
 # Docker Build Optimization Guide
 
-This guide explains how we've optimized the Docker build process for the Regulação List application to reduce build times from **30+ minutes to 5-8 minutes**.
+This guide explains how we've optimized the Docker build process for the Lista da regulação application to reduce build times from **30+ minutes to 5-8 minutes**.
+
+Made with ❤️ by [Gustavo M.](https://github.com/guztaver)
 
 ## 🚀 Quick Start
 

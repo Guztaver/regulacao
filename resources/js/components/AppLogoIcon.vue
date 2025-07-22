@@ -13,5 +13,5 @@ defineProps<Props>();
 </script>
 
 <template>
-    <img src="/images/logo-prefeitura.png" alt="Lista da regulação Logo" :class="className" v-bind="$attrs" class="object-contain" />
+    <img src="/images/logo-prefeitura.png" alt="Lista da regulação Logo" :class="className" v-bind="$attrs" class="rounded-md object-contain" />
 </template>

@@ -1,6 +1,8 @@
 # Support
 
-Welcome to Regulação List support! We're here to help you get the most out of this healthcare management system. 🏥
+Welcome to Lista da regulação support! We're here to help you get the most out of this healthcare management system. 🏥
+
+Made with ❤️ by [Gustavo M.](https://github.com/guztaver)
 
 ## Getting Help
 
@@ -244,8 +246,8 @@ Help us improve our support:
 ### Secondary Channels
 
 - **Twitter**: @regulacao_list (if available)
-- **LinkedIn**: Regulação List Project (if available)
-- **Email**: support@regulacao-list.com (if available)
+- **LinkedIn**: Lista da regulação Project (if available)
+- **Email**: support@lista-da-regulacao.com (if available)
 
 ### Emergency Contact
 
@@ -280,4 +282,8 @@ Special thanks to our support contributors:
 
 ---
 
-*Regulação List - Improving Healthcare Management Through Technology* 🏥
+*Lista da regulação - Improving Healthcare Management Through Technology* 🏥
+
+---
+
+Made with ❤️ by [Gustavo M.](https://github.com/guztaver)

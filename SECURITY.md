@@ -2,7 +2,9 @@
 
 ## Reporting Security Vulnerabilities
 
-We take security seriously. If you discover a security vulnerability in Regulação List, please report it to us as described below.
+We take security seriously. If you discover a security vulnerability in Lista da regulação, please report it to us as described below.
+
+Made with ❤️ by [Gustavo M.](https://github.com/guztaver)
 
 ## Supported Versions
 
@@ -182,4 +184,8 @@ We appreciate the security research community and will acknowledge contributors 
 **Last Updated**: January 2025
 **Next Review**: Every 6 months or after major releases
 
-Thank you for helping keep Regulação List secure! 🔒
+Thank you for helping keep Lista da regulação secure! 🔒
+
+---
+
+Made with ❤️ by [Gustavo M.](https://github.com/guztaver)

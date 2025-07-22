@@ -77,14 +77,14 @@
 
                                 <!-- Metadata -->
                                 <div v-if="transition.metadata && Object.keys(transition.metadata).length > 0" class="mt-2">
-                                    <div class="rounded-md border border-blue-200 bg-blue-50 p-3">
+                                    <div class="rounded-md border border-border bg-muted/50 p-3">
                                         <div class="flex items-start gap-2">
-                                            <InfoIcon class="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-400" />
+                                            <InfoIcon class="mt-0.5 h-4 w-4 flex-shrink-0 text-muted-foreground" />
                                             <div class="space-y-1">
-                                                <p class="mb-1 text-xs font-medium text-blue-700">Informações adicionais:</p>
+                                                <p class="mb-1 text-xs font-medium text-foreground">Informações adicionais:</p>
                                                 <div v-for="(value, key) in transition.metadata" :key="key" class="text-sm">
-                                                    <span class="font-medium text-blue-900">{{ formatMetadataKey(key) }}:</span>
-                                                    <span class="ml-1 text-blue-800">{{ formatMetadataValue(value) }}</span>
+                                                    <span class="font-medium text-foreground">{{ formatMetadataKey(key) }}:</span>
+                                                    <span class="ml-1 text-muted-foreground">{{ formatMetadataValue(value) }}</span>
                                                 </div>
                                             </div>
                                         </div>

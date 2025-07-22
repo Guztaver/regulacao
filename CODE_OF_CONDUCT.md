@@ -1,5 +1,7 @@
 # Contributor Covenant Code of Conduct
 
+Made with ❤️ by [Gustavo M.](https://github.com/guztaver)
+
 ## Our Pledge
 
 We as members, contributors, and leaders pledge to make participation in our
@@ -193,6 +195,8 @@ We understand that some situations may require anonymous reporting. You can:
 * Use temporary or anonymous email addresses
 
 ## Attribution
+
+Made with ❤️ by [Gustavo M.](https://github.com/guztaver)
 
 This Code of Conduct is adapted from the [Contributor Covenant][homepage],
 version 2.1, available at

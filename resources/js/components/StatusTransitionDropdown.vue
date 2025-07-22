@@ -6,9 +6,8 @@
             @click="openDropdown"
             :disabled="props.disabled || isLoading"
             :class="[
-                'inline-flex items-center justify-center rounded-md border border-gray-300 bg-white transition-colors duration-200',
-                'hover:bg-gray-50 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none',
-                'dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700',
+                'inline-flex items-center justify-center rounded-md border border-input bg-background transition-colors duration-200',
+                'hover:bg-accent hover:text-accent-foreground focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none',
                 'font-medium whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-50',
                 dropdownClasses,
             ]"
@@ -336,7 +335,7 @@ function getStatusColorClass(status: EntryStatus): string {
         case '#10b981':
             return 'text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20';
         case '#3b82f6':
-            return 'text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20';
+            return 'text-primary hover:bg-accent hover:text-accent-foreground';
         case '#8b5cf6':
             return 'text-purple-700 hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/20';
         case '#f59e0b':

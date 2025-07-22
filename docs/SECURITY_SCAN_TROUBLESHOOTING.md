@@ -1,6 +1,8 @@
 # Security Scan Troubleshooting Guide
 
-This guide helps troubleshoot common issues with the Trivy security scanning workflows in the Regulação List project.
+This guide helps troubleshoot common issues with the Trivy security scanning workflows in the Lista da regulação project.
+
+Made with ❤️ by [Gustavo M.](https://github.com/guztaver)
 
 ## Common Issues and Solutions
 
@@ -353,3 +355,7 @@ security-check:
 **Last Updated**: January 2025
 
 For the most current troubleshooting information, check the GitHub repository and recent issues.
+
+---
+
+Made with ❤️ by [Gustavo M.](https://github.com/guztaver)

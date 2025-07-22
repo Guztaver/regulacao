@@ -1,8 +1,10 @@
-# Regulação List - Project Roadmap
+# Lista da regulação - Project Roadmap
+
+Made with ❤️ by [Gustavo M.](https://github.com/guztaver)
 
 ## Overview
 
-This roadmap outlines the planned development direction for Regulação List, a comprehensive healthcare management system designed for Brazilian healthcare environments with full LGPD compliance and SUS integration.
+This roadmap outlines the planned development direction for Lista da regulação, a comprehensive healthcare management system designed for Brazilian healthcare environments with full LGPD compliance and SUS integration.
 
 **Mission**: To provide an open-source, secure, and compliant healthcare management platform that improves patient care efficiency while respecting data privacy and Brazilian healthcare regulations.
 
@@ -353,4 +355,8 @@ This roadmap outlines the planned development direction for Regulação List, a 
 
 This roadmap is a living document that evolves based on community feedback, healthcare industry needs, and regulatory changes. We welcome input from all stakeholders to ensure we're building the most valuable healthcare management platform for Brazil.
 
-**Regulação List - Building the Future of Healthcare Technology** 🏥
+**Lista da regulação - Building the Future of Healthcare Technology** 🏥
+
+---
+
+Made with ❤️ by [Gustavo M.](https://github.com/guztaver)

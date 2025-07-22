@@ -406,7 +406,7 @@ watch([message, error, entryMessage, entryError], () => {
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-                        <p class="text-lg text-gray-600 dark:text-gray-400">Visão geral completa do sistema de regulação</p>
+                        <p class="text-lg text-gray-600 dark:text-gray-400">Visão geral completa da lista da regulação</p>
                     </div>
 
                     <div class="flex gap-3">

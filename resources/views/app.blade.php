@@ -31,7 +31,7 @@
             }
         </style>
 
-        <title inertia>{{ config('app.name', 'Laravel') }}</title>
+        <title inertia>{{ config('app.name', 'Lista da regulação') }}</title>
 
         <link rel="icon" href="/images/logo-prefeitura.png" sizes="any">
         <link rel="icon" href="/images/logo-prefeitura.png" type="image/png">

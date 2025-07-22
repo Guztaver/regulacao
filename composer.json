@@ -1,13 +1,24 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/vue-starter-kit",
+    "name": "guztaver/lista-da-regulacao",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "Lista da regulação - Sistema de gestão médica para organização de pacientes e procedimentos. Made with ❤️ by Gustavo M.",
     "keywords": [
         "laravel",
-        "framework"
+        "healthcare",
+        "medical",
+        "regulation",
+        "patients",
+        "vue",
+        "guztaver"
     ],
     "license": "MIT",
+    "authors": [
+        {
+            "name": "Gustavo M.",
+            "homepage": "https://github.com/guztaver"
+        }
+    ],
     "require": {
         "php": "^8.2",
         "inertiajs/inertia-laravel": "^2.0",
@@ -17,8 +28,7 @@
         "tightenco/ziggy": "^2.4"
     },
     "require-dev": {
-        "roave/security-advisories": "dev-latest"
-        ,
+        "roave/security-advisories": "dev-latest",
         "fakerphp/faker": "^1.23",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.18",

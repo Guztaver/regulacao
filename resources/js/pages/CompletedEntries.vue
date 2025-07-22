@@ -225,7 +225,7 @@ onMounted(() => {
                                     />
                                 </svg>
                                 {{ t.filters }}
-                                <span v-if="hasActiveFilters()" class="ml-1 h-2 w-2 rounded-full bg-blue-500"></span>
+                                <span v-if="hasActiveFilters()" class="ml-1 h-2 w-2 rounded-full bg-primary"></span>
                             </Button>
                         </DialogTrigger>
 
@@ -304,31 +304,29 @@ onMounted(() => {
                 <span class="text-sm text-gray-600 dark:text-gray-400">{{ t.activeFilters }}</span>
                 <span
                     v-if="filters.date_from"
-                    class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                    class="inline-flex items-center rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground"
                 >
                     {{ t.from }} {{ filters.date_from }}
                 </span>
                 <span
                     v-if="filters.date_to"
-                    class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                    class="inline-flex items-center rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground"
                 >
                     {{ t.to }} {{ filters.date_to }}
                 </span>
                 <span
                     v-if="filters.patient_name"
-                    class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                    class="inline-flex items-center rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground"
                 >
                     {{ t.patient }}: {{ filters.patient_name }}
                 </span>
                 <span
                     v-if="filters.entry_id"
-                    class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                    class="inline-flex items-center rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground"
                 >
                     {{ t.id }}: {{ filters.entry_id }}
                 </span>
-                <span
-                    class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800 dark:bg-gray-700 dark:text-gray-200"
-                >
+                <span class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
                     {{ t.limit }}: {{ filters.limit }}
                 </span>
             </div>
@@ -340,11 +338,11 @@ onMounted(() => {
                 </CardHeader>
                 <CardContent>
                     <div v-if="loading" class="flex items-center justify-center py-12">
-                        <div class="h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900 dark:border-white"></div>
+                        <div class="h-8 w-8 animate-spin rounded-full border-b-2 border-foreground"></div>
                     </div>
 
-                    <div v-else-if="entries.length === 0" class="py-12 text-center text-gray-500 dark:text-gray-400">
-                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div v-else-if="entries.length === 0" class="py-12 text-center text-muted-foreground">
+                        <svg class="mx-auto h-12 w-12 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
@@ -352,59 +350,59 @@ onMounted(() => {
                                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                             />
                         </svg>
-                        <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">Nenhuma entrada concluída encontrada</h3>
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Ajuste seus filtros para encontrar mais resultados.</p>
+                        <h3 class="mt-2 text-sm font-medium text-foreground">Nenhuma entrada concluída encontrada</h3>
+                        <p class="mt-1 text-sm text-muted-foreground">Ajuste seus filtros para encontrar mais resultados.</p>
                     </div>
 
-                    <div v-else class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
-                            <thead class="bg-gray-50 dark:bg-gray-700">
+                    <div v-else class="overflow-hidden rounded-lg border border-border">
+                        <table class="min-w-full divide-y divide-border">
+                            <thead class="bg-muted/50">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
+                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-muted-foreground uppercase">
                                         {{ t.id }}
                                     </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
+                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-muted-foreground uppercase">
                                         {{ t.patient }}
                                     </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
+                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-muted-foreground uppercase">
                                         {{ t.title }}
                                     </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
+                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-muted-foreground uppercase">
                                         Data de Conclusão
                                     </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
+                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-muted-foreground uppercase">
                                         {{ t.addedBy }}
                                     </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
+                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-muted-foreground uppercase">
                                         {{ t.actions }}
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-600 dark:bg-gray-800">
-                                <tr v-for="entry in entries" :key="entry.id" class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
+                            <tbody class="divide-y divide-border bg-card">
+                                <tr v-for="entry in entries" :key="entry.id" class="hover:bg-muted/30">
+                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-card-foreground">
                                         <button
                                             @click="showEntryInfo(entry)"
-                                            class="cursor-pointer font-mono text-xs text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                            class="cursor-pointer font-mono text-xs text-primary underline hover:text-primary/80"
                                             :title="t.entryDetails"
                                         >
                                             {{ entry.id }}
                                         </button>
                                     </td>
-                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
+                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-card-foreground">
                                         <div class="flex flex-col">
                                             <span class="font-medium">{{ entry.patient?.name || t.unknownPatient }}</span>
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+                                    <td class="px-6 py-4 text-sm text-card-foreground">
                                         <p class="max-w-xs truncate text-left">
                                             {{ entry.title }}
                                         </p>
                                     </td>
-                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
+                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-card-foreground">
                                         {{ formatDate(entry.created_at) }}
                                     </td>
-                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
+                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-card-foreground">
                                         {{ getCreatorName(entry) }}
                                     </td>
                                     <td class="px-6 py-4 text-sm whitespace-nowrap">

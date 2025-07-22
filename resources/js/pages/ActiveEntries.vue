@@ -162,7 +162,7 @@ function getStatusColorClass(entry: Entry): string {
             case '#10b981': // Verde
                 return 'text-green-600 dark:text-green-400';
             case '#3b82f6': // Azul
-                return 'text-blue-600 dark:text-blue-400';
+                return 'text-primary';
             case '#8b5cf6': // Roxo
                 return 'text-purple-600 dark:text-purple-400';
             case '#f59e0b': // Âmbar
@@ -176,9 +176,9 @@ function getStatusColorClass(entry: Entry): string {
 
     // Fallback para sistema legado
     if (entry.completed) return 'text-green-600 dark:text-green-400';
-    if (entry.exam_ready) return 'text-blue-600 dark:text-blue-400';
+    if (entry.exam_ready) return 'text-primary';
     if (entry.exam_scheduled) return 'text-yellow-600 dark:text-yellow-400';
-    return 'text-gray-500 dark:text-gray-400';
+    return 'text-muted-foreground';
 }
 
 function onStatusChanged() {
@@ -237,7 +237,7 @@ watch([message, error], () => {
                                     />
                                 </svg>
                                 Filtros
-                                <span v-if="hasActiveFilters()" class="ml-1 h-2 w-2 rounded-full bg-blue-500"></span>
+                                <span v-if="hasActiveFilters()" class="ml-1 h-2 w-2 rounded-full bg-primary"></span>
                             </Button>
                         </DialogTrigger>
 
@@ -316,31 +316,29 @@ watch([message, error], () => {
                 <span class="text-sm text-gray-600 dark:text-gray-400">Filtros ativos:</span>
                 <span
                     v-if="filters.date_from"
-                    class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                    class="inline-flex items-center rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground"
                 >
                     De: {{ filters.date_from }}
                 </span>
                 <span
                     v-if="filters.date_to"
-                    class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                    class="inline-flex items-center rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground"
                 >
                     Até: {{ filters.date_to }}
                 </span>
                 <span
                     v-if="filters.patient_name"
-                    class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                    class="inline-flex items-center rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground"
                 >
                     Paciente: {{ filters.patient_name }}
                 </span>
                 <span
                     v-if="filters.entry_id"
-                    class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                    class="inline-flex items-center rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground"
                 >
                     ID: {{ filters.entry_id }}
                 </span>
-                <span
-                    class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800 dark:bg-gray-700 dark:text-gray-200"
-                >
+                <span class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
                     Limite: {{ filters.limit }}
                 </span>
             </div>
@@ -352,11 +350,11 @@ watch([message, error], () => {
                 </CardHeader>
                 <CardContent>
                     <div v-if="loading" class="flex items-center justify-center py-12">
-                        <div class="h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900 dark:border-white"></div>
+                        <div class="h-8 w-8 animate-spin rounded-full border-b-2 border-foreground"></div>
                     </div>
 
-                    <div v-else-if="entries.length === 0" class="py-12 text-center text-gray-500 dark:text-gray-400">
-                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div v-else-if="entries.length === 0" class="py-12 text-center text-muted-foreground">
+                        <svg class="mx-auto h-12 w-12 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
@@ -364,76 +362,62 @@ watch([message, error], () => {
                                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                             />
                         </svg>
-                        <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">Nenhuma entrada ativa encontrada</h3>
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                            Todas as entradas foram concluídas ou canceladas, ou ajuste seus filtros.
-                        </p>
+                        <h3 class="mt-2 text-sm font-medium text-foreground">Nenhuma entrada ativa encontrada</h3>
+                        <p class="mt-1 text-sm text-muted-foreground">Todas as entradas foram concluídas ou canceladas, ou ajuste seus filtros.</p>
                     </div>
 
-                    <div v-else class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
-                            <thead class="bg-gray-50 dark:bg-gray-700">
+                    <div v-else class="overflow-hidden rounded-lg border border-border">
+                        <table class="min-w-full divide-y divide-border">
+                            <thead class="bg-muted/50">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
-                                        ID
-                                    </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
-                                        Paciente
-                                    </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
-                                        Título
-                                    </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
+                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-muted-foreground uppercase">ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-muted-foreground uppercase">Paciente</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-muted-foreground uppercase">Título</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-muted-foreground uppercase">
                                         Data de Criação
                                     </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
-                                        Criado Por
-                                    </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
-                                        Status
-                                    </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
-                                        Ações
-                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-muted-foreground uppercase">Criado Por</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-muted-foreground uppercase">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-muted-foreground uppercase">Ações</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-600 dark:bg-gray-800">
-                                <tr v-for="entry in entries" :key="entry.id" class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
+                            <tbody class="divide-y divide-border bg-card">
+                                <tr v-for="entry in entries" :key="entry.id" class="hover:bg-muted/30">
+                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-card-foreground">
                                         <button
                                             @click="showEntryInfo(entry)"
-                                            class="cursor-pointer font-mono text-xs text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                            class="cursor-pointer font-mono text-xs text-primary underline hover:text-primary/80"
                                             :title="'Clique para ver detalhes da entrada'"
                                         >
                                             {{ entry.id }}
                                         </button>
                                     </td>
-                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
+                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-card-foreground">
                                         <div class="flex flex-col">
                                             <span class="font-medium">{{ entry.patient?.name || 'Paciente Desconhecido' }}</span>
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+                                    <td class="px-6 py-4 text-sm text-card-foreground">
                                         <p class="max-w-xs truncate text-left">
                                             {{ entry.title }}
                                         </p>
                                     </td>
-                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
+                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-card-foreground">
                                         {{ formatDate(entry.created_at) }}
                                     </td>
-                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
+                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-card-foreground">
                                         {{
                                             typeof entry.created_by === 'object' && entry.created_by && 'name' in entry.created_by
                                                 ? entry.created_by.name
                                                 : entry.createdBy?.name || 'Desconhecido'
                                         }}
                                     </td>
-                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
+                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-card-foreground">
                                         <div class="flex flex-col gap-1">
                                             <span :class="['text-xs font-medium', getStatusColorClass(entry)]">
                                                 {{ getStatusText(entry) }}
                                             </span>
-                                            <div v-if="entry.scheduled_exam_date" class="text-xs text-gray-500 dark:text-gray-400">
+                                            <div v-if="entry.scheduled_exam_date" class="text-xs text-muted-foreground">
                                                 {{ formatDate(entry.scheduled_exam_date) }}
                                             </div>
                                         </div>

@@ -249,4 +249,6 @@ npm run test
 
 **Estimated Review Time**: <!-- How long should this take to review? --> 
 
-Thank you for contributing to Regulação List! 🏥
+Thank you for contributing to Lista da regulação! 🏥
+
+Made with ❤️ by [Gustavo M.](https://github.com/guztaver)

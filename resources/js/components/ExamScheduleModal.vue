@@ -190,12 +190,9 @@ const timeOptions = computed(() => {
                 </div>
 
                 <!-- Current scheduled date if exists -->
-                <div
-                    v-if="entry.scheduled_exam_date"
-                    class="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-950/20"
-                >
-                    <div class="text-sm font-medium text-blue-900 dark:text-blue-100">Agendamento atual:</div>
-                    <div class="text-sm text-blue-700 dark:text-blue-300">
+                <div v-if="entry.scheduled_exam_date" class="rounded-lg border border-border bg-muted/50 p-3">
+                    <div class="text-sm font-medium text-foreground">Agendamento atual:</div>
+                    <div class="text-sm text-muted-foreground">
                         {{
                             new Date(entry.scheduled_exam_date).toLocaleString('pt-BR', {
                                 weekday: 'long',

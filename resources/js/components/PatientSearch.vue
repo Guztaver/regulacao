@@ -179,7 +179,7 @@ if (typeof document !== 'undefined') {
                 @click="selectPatient(patient)"
                 type="button"
                 class="relative w-full cursor-pointer py-2 pr-9 pl-3 text-left select-none hover:bg-gray-100 focus:bg-gray-100 dark:hover:bg-gray-700 dark:focus:bg-gray-700"
-                :class="{ 'bg-blue-50 dark:bg-blue-900': selectedPatient?.id === patient.id }"
+                :class="{ 'bg-accent text-accent-foreground': selectedPatient?.id === patient.id }"
             >
                 <div class="flex flex-col">
                     <span class="font-medium text-gray-900 dark:text-white">{{ patient.name }}</span>

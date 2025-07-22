@@ -1,6 +1,6 @@
 # MIT License
 
-Copyright (c) 2025 Regulação List Contributors
+Copyright (c) 2025 Gustavo M. (https://github.com/guztaver)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -145,8 +145,10 @@ For questions about licensing in healthcare contexts:
 
 **Last Updated**: January 2025
 
-This license applies to all versions of Regulação List software released under
+This license applies to all versions of Lista da regulação software released under
 the MIT License. For the most current version of this license, please check
 the project repository.
+
+Made with ❤️ by Gustavo M. (https://github.com/guztaver)
 
 **Healthcare Technology • Open Source • MIT Licensed**

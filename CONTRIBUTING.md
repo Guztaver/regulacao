@@ -1,6 +1,8 @@
-# Contributing to Regulação List
+# Contributing to Lista da regulação
 
-Thank you for your interest in contributing to Regulação List! This document provides guidelines and information for contributors to help maintain code quality and ensure a smooth collaboration process.
+Thank you for your interest in contributing to Lista da regulação! This document provides guidelines and information for contributors to help maintain code quality and ensure a smooth collaboration process.
+
+Made with ❤️ by Gustavo M. (https://github.com/guztaver)
 
 ## Table of Contents
 
@@ -778,6 +780,8 @@ If you have questions not covered in this guide:
 3. **Create a discussion** with your question
 4. **Ask in your pull request** if it's related to your contribution
 
-Thank you for contributing to Regulação List! Together, we're building better healthcare technology for Brazil. 🏥
+Thank you for contributing to Lista da regulação! Together, we're building better healthcare technology for Brazil. 🏥
+
+Made with ❤️ by Gustavo M. (https://github.com/guztaver)
 
 **Last Updated**: January 2025

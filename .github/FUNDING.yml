@@ -37,7 +37,7 @@
 
 # Custom funding URLs
 custom:
-  - 'https://pix.me/regulacao-list' # PIX for Brazilian supporters
+  - 'https://https://pixmeacoffee.vercel.app/gustavo' # PIX for Brazilian supporters
   # - "https://paypal.me/regulacao-list"
   # - "https://opencollective.com/regulacao-list"
   # - "https://contribua.org/regulacao-list"

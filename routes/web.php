@@ -16,6 +16,9 @@ Route::get('/health', function () {
     ]);
 });
 
+// Public patient lookup route (no auth required)
+Route::post('/patient-lookup', [App\Http\Controllers\PatientController::class, 'lookupBySusNumber'])->name('patient.lookup');
+
 Route::get('/', static fn () => Inertia::render('Welcome'))->name('home');
 
 Route::get('dashboard', static fn () => Inertia::render('Dashboard'))->middleware(['auth', 'verified'])->name('dashboard');

@@ -113,4 +113,64 @@ class PatientController extends Controller
             'patient' => $patient,
         ], Response::HTTP_OK);
     }
+
+    /**
+     * Lookup patient entries by SUS number (public endpoint, no auth required)
+     */
+    public function lookupBySusNumber(Request $request): JsonResponse
+    {
+        $validatedData = $request->validate([
+            'sus_number' => 'required|string|size:15',
+        ]);
+
+        $patient = Patient::where('sus_number', $validatedData['sus_number'])
+            ->with([
+                'entries.currentStatus',
+                'entries.statusTransitions' => function ($query) {
+                    $query->with(['fromStatus', 'toStatus'])->latest()->limit(5);
+                }
+            ])
+            ->first();
+
+        if (!$patient) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Nenhum paciente encontrado com este número do SUS'
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        // Filter out sensitive information and only return patient-relevant data
+        $publicData = [
+            'success' => true,
+            'patient' => [
+                'name' => $patient->name,
+                'sus_number' => $patient->sus_number,
+                'entries_count' => $patient->entries->count(),
+            ],
+            'entries' => $patient->entries->map(function ($entry) {
+                return [
+                    'id' => $entry->id,
+                    'title' => $entry->title,
+                    'current_status' => [
+                        'name' => $entry->currentStatus?->name ?? 'Status não definido',
+                        'slug' => $entry->currentStatus?->slug ?? 'undefined',
+                        'color' => $entry->currentStatus?->color ?? 'gray',
+                    ],
+                    'created_at' => $entry->created_at ? $entry->created_at->format('d/m/Y H:i') : null,
+                    'scheduled_exam_date' => $entry->scheduled_exam_date ?
+                        \Carbon\Carbon::parse($entry->scheduled_exam_date)->format('d/m/Y') : null,
+                    'recent_transitions' => $entry->statusTransitions->take(3)->map(function ($transition) {
+                        return [
+                            'from_status' => $transition->fromStatus?->name,
+                            'to_status' => $transition->toStatus?->name ?? 'Status não definido',
+                            'performed_at' => $transition->transitioned_at ? $transition->transitioned_at->format('d/m/Y H:i') : null,
+                            'reason' => $transition->reason,
+                        ];
+                    }),
+                ];
+            }),
+        ];
+
+        return response()->json($publicData, Response::HTTP_OK);
+    }
 }

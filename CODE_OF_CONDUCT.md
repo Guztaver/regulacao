@@ -90,10 +90,10 @@ This Code of Conduct also applies to:
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the community leaders responsible for enforcement at
-[INSERT CONTACT EMAIL].
+[contact@gustavoanjos.com].
 
 For healthcare data security violations or LGPD compliance issues, please
-also report to our security team at security@regulacao-list.com (if available)
+also report to our security team at contact@gustavoanjos.com (if available)
 or through our private security advisory process.
 
 All complaints will be reviewed and investigated promptly and fairly.

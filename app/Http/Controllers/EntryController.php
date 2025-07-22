@@ -285,6 +285,15 @@ class EntryController extends Controller
         $entry = Entry::with('currentStatus')->findOrFail($id);
         $newStatus = EntryStatus::findOrFail($validatedData['status_id']);
 
+        // Special validation for exam_scheduled status
+        if ($newStatus->slug === EntryStatus::EXAM_SCHEDULED) {
+            if (empty($validatedData['metadata']['scheduled_date'])) {
+                return response()->json([
+                    'error' => 'Para agendar exame, use o endpoint /api/entries/{id}/schedule-exam ou inclua scheduled_date no metadata'
+                ], JsonResponse::HTTP_BAD_REQUEST);
+            }
+        }
+
         // Debug logging
         Log::info('Status Transition Attempt', [
             'entry_id' => $id,

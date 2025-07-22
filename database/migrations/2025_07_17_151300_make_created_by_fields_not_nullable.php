@@ -45,16 +45,6 @@ return new class extends Migration
             $table->string('title')->nullable(false)->change();
             $table->foreignUuid('patient_id')->nullable(false)->change();
         });
-
-        // Ensure critical fields in patient_documents table are NOT NULL
-        Schema::table('patient_documents', function (Blueprint $table) {
-            $table->foreignUuid('patient_id')->nullable(false)->change();
-            $table->string('original_name')->nullable(false)->change();
-            $table->string('file_name')->nullable(false)->change();
-            $table->string('file_path')->nullable(false)->change();
-            $table->string('mime_type')->nullable(false)->change();
-            $table->unsignedBigInteger('file_size')->nullable(false)->change();
-        });
     }
 
     /**

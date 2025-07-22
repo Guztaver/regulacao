@@ -35,7 +35,7 @@ body:
       options:
         - Patient Management
         - Entry/Record Management
-        - Document Management
+        - Entry Document Management
         - User Authentication & Authorization
         - Reporting & Analytics
         - SUS Integration

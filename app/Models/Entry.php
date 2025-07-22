@@ -132,11 +132,19 @@ class Entry extends Model
             'to_status_id' => $statusId,
             'to_status_slug' => $newStatus?->slug,
             'reason' => $reason,
+            'metadata' => $metadata,
         ]);
 
         if (! $newStatus) {
             Log::error('Status not found', ['status_id' => $statusId]);
             throw new \InvalidArgumentException("Status with ID {$statusId} not found");
+        }
+
+        // Special handling for exam_scheduled status
+        if ($newStatus->slug === EntryStatus::EXAM_SCHEDULED) {
+            if (empty($metadata['scheduled_date'])) {
+                throw new \InvalidArgumentException('scheduled_date is required in metadata when transitioning to exam_scheduled status');
+            }
         }
 
         // Check if transition is allowed
@@ -298,6 +306,7 @@ class Entry extends Model
             ->whereHas('toStatus', function ($query) {
                 $query->where('slug', EntryStatus::EXAM_SCHEDULED);
             })
+            ->latest()
             ->first();
 
         return $examTransition?->scheduled_date;

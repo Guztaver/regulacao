@@ -104,7 +104,6 @@ export interface Translations {
     clickToView: string;
     unknownPatient: string;
     scheduled: string;
-    documentsCount: string;
     entriesCount: string;
 
     // Search
@@ -156,8 +155,6 @@ export interface Translations {
     quickActions: string;
     viewCompleted: string;
     allPatients: string;
-    documentsDisabled: string;
-    documentsDisabledDesc: string;
     recentEntries: string;
     active: string;
     viewAllEntries: string;
@@ -267,7 +264,6 @@ const ptBRTranslations: Translations = {
     clickToView: 'Clique para visualizar',
     unknownPatient: 'Paciente Desconhecido',
     scheduled: 'Agendado',
-    documentsCount: 'Documentos',
     entriesCount: 'Entradas',
 
     // Search
@@ -319,8 +315,6 @@ const ptBRTranslations: Translations = {
     quickActions: 'Ações Rápidas',
     viewCompleted: 'Ver Concluídas',
     allPatients: 'Todos os Pacientes',
-    documentsDisabled: 'Documentos do Paciente Desabilitados',
-    documentsDisabledDesc: 'Documentos em nível de paciente não são mais suportados. Use documentos em nível de entrada.',
     recentEntries: 'Entradas Recentes',
     active: 'Ativo',
     viewAllEntries: 'Ver Todas as Entradas',
@@ -430,7 +424,6 @@ const enTranslations: Translations = {
     clickToView: 'Click to view',
     unknownPatient: 'Unknown Patient',
     scheduled: 'Scheduled',
-    documentsCount: 'Documents',
     entriesCount: 'Entries',
 
     // Search
@@ -481,8 +474,6 @@ const enTranslations: Translations = {
     quickActions: 'Quick Actions',
     viewCompleted: 'View Completed',
     allPatients: 'All Patients',
-    documentsDisabled: 'Patient Documents Disabled',
-    documentsDisabledDesc: 'Patient-level documents are no longer supported. Please use entry-level documents instead.',
     recentEntries: 'Recent Entries',
     active: 'Active',
     viewAllEntries: 'View All Entries',

@@ -63,7 +63,7 @@ body:
       options:
         - Patient Management
         - Entry Management
-        - Document Upload/Management
+        - Entry Document Upload/Management
         - User Authentication
         - Database/Data
         - API/Backend

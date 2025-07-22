@@ -11,6 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
+        Schema::dropIfExists('patient_documents');
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
         Schema::create('patient_documents', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('patient_id')->constrained('patients')->cascadeOnDelete();
@@ -25,13 +33,5 @@ return new class extends Migration
 
             $table->index(['patient_id', 'document_type']);
         });
-    }
-
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::dropIfExists('patient_documents');
     }
 };

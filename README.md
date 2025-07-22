@@ -1,6 +1,6 @@
 # Regulação List
 
-A comprehensive Laravel + Vue.js application for managing patients, medical entries, and document attachments with advanced filtering capabilities and SUS integration.
+A comprehensive Laravel + Vue.js application for managing patients, medical entries, and entry document attachments with advanced filtering capabilities and SUS integration.
 
 ## Features
 
@@ -16,13 +16,12 @@ A comprehensive Laravel + Vue.js application for managing patients, medical entr
 - **Patient List View** - Comprehensive table with search and filtering capabilities
 - **Individual Patient View** - Detailed patient information with statistics and quick actions
 - **Patient Editing** - Update patient information including SUS number
-- **Document Attachment** - Upload and manage patient documents with categorization
 
-### Document Management
-- **File Upload** - Support for images, PDFs, DOC, and text files (max 10MB)
-- **Document Categories** - Identity, CPF, SUS Card, Medical Records, Exam Results, Prescriptions, Insurance, Others
-- **Document Viewing** - Download and preview capabilities
-- **Document Organization** - Description fields and type categorization
+### Entry Document Management
+- **Entry File Upload** - Support for images, PDFs, DOC, and text files (max 10MB) per entry
+- **Entry Document Categories** - Medical Records, Exam Results, Prescriptions, Insurance, Others
+- **Entry Document Viewing** - Download and preview capabilities for entry documents
+- **Entry Document Organization** - Description fields and type categorization per entry
 - **Secure Storage** - Files stored securely with unique naming
 
 ### Completed Entries Management
@@ -93,7 +92,7 @@ make build-fast
 1. Create a user account through registration
 2. Access the dashboard at `/dashboard`
 3. Start by creating patients using the "Add Patient" button (include SUS number if available)
-4. Upload patient documents for better record keeping
+4. Upload entry documents for better record keeping
 5. Create entries for patients using the "Add Entry" button
 
 ### Managing Patients
@@ -101,7 +100,7 @@ make build-fast
 - **Patient Details**: Click "View" on any patient to see detailed information
 - **SUS Integration**: Store and search by SUS (Sistema Único de Saúde) numbers
 - **Document Upload**: Attach identity documents, medical records, exam results, etc.
-- **Patient Statistics**: View entry counts, document counts, and completion statistics
+- **Patient Statistics**: View entry counts and completion statistics
 
 ### Managing Entries
 - **Active Entries**: View and manage ongoing procedures on the Dashboard
@@ -131,13 +130,13 @@ make build-fast
 - `PUT /api/patients/{id}` - Update patient information
 - `DELETE /api/patients/{id}` - Delete patient
 
-### Patient Documents
-- `GET /api/patients/{id}/documents` - List patient documents
-- `POST /api/patients/{id}/documents` - Upload new document
-- `GET /api/patients/{id}/documents/{docId}` - Get document details
-- `GET /api/patients/{id}/documents/{docId}/download` - Download document
-- `DELETE /api/patients/{id}/documents/{docId}` - Delete document
-- `GET /api/document-types` - Get available document types
+### Entry Documents
+- `GET /api/entries/{id}/documents` - List entry documents
+- `POST /api/entries/{id}/documents` - Upload new document to entry
+- `GET /api/entries/{id}/documents/{docId}` - Get entry document details
+- `GET /api/entries/{id}/documents/{docId}/download` - Download entry document
+- `DELETE /api/entries/{id}/documents/{docId}` - Delete entry document
+- `GET /api/entry-document-types` - Get available entry document types
 
 ### Filter Parameters
 ### Entry Filter Parameters
@@ -173,7 +172,7 @@ Document upload requires:
 For development/testing purposes, you can generate sample data:
 
 ```bash
-# Creates demo patients, entries, and documents (optional)
+# Creates demo patients, entries, and entry documents (optional)
 php artisan db:seed --class=CompletedEntriesSeeder
 
 # Creates test user (optional)
@@ -207,7 +206,7 @@ npm run dev -- --watch
 ## Clean Installation State
 
 This application starts with a clean database:
-- No pre-populated patients, entries, or documents
+- No pre-populated patients, entries, or entry documents
 - Ready for production use with SUS integration
 - All test/demo data removed
 - Seeders are optional and clearly marked for development only

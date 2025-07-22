@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { handleApiError, useEntryApi, usePatientApi } from '@/composables/useApi';
+import { useDockerRegistry } from '@/composables/useDockerRegistry';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem, Entry, EntryStatus, Patient } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
@@ -98,6 +99,9 @@ const entryLoading = ref(false);
 
 // Patient search functionality
 const selectedPatient = ref<Patient | null>(null);
+
+// Docker registry functionality
+const { imageInfo, loading: dockerLoading, fetchGhcrImageInfo, formatDate: formatDockerDate } = useDockerRegistry();
 
 const onPatientSelected = (patient: Patient) => {
     selectedPatient.value = patient;
@@ -379,6 +383,8 @@ const clearMessage = (messageRef: any) => {
 // Initialize data
 onMounted(async () => {
     await refreshAllData();
+    // Fetch Docker image info
+    fetchGhcrImageInfo('guztaver', 'regulacao');
 });
 
 // Clear messages automatically
@@ -754,9 +760,32 @@ watch([message, error, entryMessage, entryError], () => {
                                             <AlertCircle class="h-4 w-4 text-yellow-500" />
                                             <span class="text-sm text-gray-700 dark:text-gray-300">Última Atualização</span>
                                         </div>
-                                        <span class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                                        <span v-if="dockerLoading" class="text-sm font-medium text-gray-600 dark:text-gray-400"> Carregando... </span>
+                                        <span v-else-if="imageInfo" class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                                            {{ formatDockerDate(imageInfo.lastUpdated) }}
+                                        </span>
+                                        <span v-else class="text-sm font-medium text-gray-600 dark:text-gray-400">
                                             {{ formatDate(new Date().toISOString()) }}
                                         </span>
+                                    </div>
+                                    <div v-if="imageInfo" class="flex items-center justify-between">
+                                        <div class="flex items-center gap-2">
+                                            <FileText class="h-4 w-4 text-blue-500" />
+                                            <span class="text-sm text-gray-700 dark:text-gray-300">Versão</span>
+                                        </div>
+                                        <Tooltip>
+                                            <TooltipTrigger>
+                                                <span class="cursor-help text-sm font-medium text-gray-600 dark:text-gray-400">
+                                                    {{ imageInfo.version }}
+                                                </span>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <div class="text-xs">
+                                                    <div>Imagem: ghcr.io/guztaver/regulacao</div>
+                                                    <div>Digest: {{ imageInfo.digest }}</div>
+                                                </div>
+                                            </TooltipContent>
+                                        </Tooltip>
                                     </div>
                                 </div>
                             </CardContent>

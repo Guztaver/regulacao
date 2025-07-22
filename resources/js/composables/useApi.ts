@@ -232,47 +232,6 @@ export function useEntryApi() {
 }
 
 /**
- * API endpoints for patient documents
- */
-export function useDocumentApi() {
-    return {
-        /**
-         * DISABLED: Patient document functions are no longer supported
-         * Use entry document functions instead
-         */
-        getPatientDocuments: () => {
-            console.warn('Patient document API is disabled. Use entry documents instead.');
-            return Promise.reject(new Error('Patient documents are no longer supported'));
-        },
-
-        getDocument: () => {
-            console.warn('Patient document API is disabled. Use entry documents instead.');
-            return Promise.reject(new Error('Patient documents are no longer supported'));
-        },
-
-        uploadDocument: async () => {
-            console.warn('Patient document API is disabled. Use entry documents instead.');
-            throw new Error('Patient documents are no longer supported');
-        },
-
-        deleteDocument: () => {
-            console.warn('Patient document API is disabled. Use entry documents instead.');
-            return Promise.reject(new Error('Patient documents are no longer supported'));
-        },
-
-        getDocumentTypes: () => {
-            console.warn('Patient document types API is disabled. Use entry document types instead.');
-            return Promise.reject(new Error('Patient documents are no longer supported'));
-        },
-
-        downloadDocument: async () => {
-            console.warn('Patient document API is disabled. Use entry documents instead.');
-            throw new Error('Patient documents are no longer supported');
-        },
-    };
-}
-
-/**
  * API endpoints for entry documents
  */
 export function useEntryDocumentApi() {

@@ -536,7 +536,7 @@ class PatientController extends Controller
     public function index(Request $request)
     {
         return Patient::query()
-            ->with(['entries:id,patient_id,created_at', 'documents:id,patient_id'])
+            ->with(['entries:id,patient_id,created_at'])
             ->when($request->search, fn($query, $search) => 
                 $query->where('name', 'like', "%{$search}%")
                       ->orWhere('sus_number', 'like', "%{$search}%")
@@ -678,7 +678,7 @@ class PatientPolicy
 
 ```php
 // ✅ Good: Secure file handling
-class DocumentUploadService
+class EntryDocumentUploadService
 {
     private const ALLOWED_TYPES = [
         'image/jpeg', 'image/png', 'image/webp',
@@ -687,7 +687,7 @@ class DocumentUploadService
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     ];
     
-    public function uploadDocument(UploadedFile $file, Patient $patient): Document
+    public function uploadDocument(UploadedFile $file, Entry $entry): EntryDocument
     {
         // Validate file type
         if (!in_array($file->getMimeType(), self::ALLOWED_TYPES)) {
@@ -704,7 +704,7 @@ class DocumentUploadService
         
         // Store in secure location
         $path = $file->storeAs(
-            "documents/patients/{$patient->id}",
+            "documents/entries/{$entry->id}",
             $filename,
             'private'
         );

@@ -88,7 +88,7 @@ Set these in Railway dashboard or CLI:
 
 ```bash
 # Application
-railway variables set APP_NAME="Regulação List"
+railway variables set APP_NAME="Lista da regulação"
 railway variables set APP_ENV=production
 railway variables set APP_DEBUG=false
 railway variables set APP_KEY=$(php artisan key:generate --show)
@@ -497,7 +497,7 @@ railway init
 railway add postgresql
 
 # 5. Set environment variables
-railway variables set APP_NAME="Regulação List"
+railway variables set APP_NAME="Lista da regulação"
 railway variables set APP_ENV=production
 railway variables set APP_DEBUG=false
 railway variables set DB_CONNECTION=pgsql

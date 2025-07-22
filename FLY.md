@@ -158,7 +158,7 @@ Set these via flyctl or the dashboard:
 
 ```bash
 # Application basics
-flyctl secrets set APP_NAME="Regulação List"
+flyctl secrets set APP_NAME="Lista da regulação"
 flyctl secrets set APP_ENV=production
 flyctl secrets set APP_DEBUG=false
 flyctl secrets set APP_KEY=$(openssl rand -base64 32 | base64)

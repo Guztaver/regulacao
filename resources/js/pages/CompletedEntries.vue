@@ -6,11 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
+import { handleApiError, useEntryApi } from '@/composables/useApi';
 import { useTranslations } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type Entry } from '@/types';
 import { Head } from '@inertiajs/vue3';
-import axios from 'axios';
+
 import { onMounted, reactive, ref } from 'vue';
 
 interface CompletedEntry extends Entry {
@@ -26,6 +27,7 @@ interface Filters {
 }
 
 const { t } = useTranslations();
+const entryApi = useEntryApi();
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -69,22 +71,21 @@ function loadCompletedEntries() {
     error.value = '';
     message.value = '';
 
-    const params = new URLSearchParams();
-    if (filters.date_from) params.append('date_from', filters.date_from);
-    if (filters.date_to) params.append('date_to', filters.date_to);
-    if (filters.patient_name) params.append('patient_name', filters.patient_name);
-    if (filters.entry_id) params.append('entry_id', filters.entry_id);
-    if (filters.limit) params.append('limit', filters.limit.toString());
-    params.append('completed', 'true');
+    const params: any = {};
+    if (filters.date_from) params.date_from = filters.date_from;
+    if (filters.date_to) params.date_to = filters.date_to;
+    if (filters.patient_name) params.patient_name = filters.patient_name;
+    if (filters.entry_id) params.entry_id = filters.entry_id;
+    if (filters.limit) params.limit = filters.limit;
 
-    axios
-        .get(`/api/entries/completed?${params.toString()}`)
+    entryApi
+        .getCompletedEntries(params)
         .then((response) => {
-            entries.value = response.data.entries as CompletedEntry[];
+            entries.value = response.entries as CompletedEntry[];
         })
         .catch((err) => {
-            console.error(err);
-            error.value = 'Erro ao carregar entradas concluídas';
+            console.error('Erro ao carregar entradas concluídas:', err);
+            error.value = handleApiError(err);
         })
         .finally(() => {
             loading.value = false;
@@ -114,23 +115,34 @@ function openFilterDialog() {
     isFilterDialogOpen.value = true;
 }
 
-function uncompleteEntry(entryId: string) {
+async function uncompleteEntry(entryId: string) {
     loading.value = true;
     error.value = '';
+    message.value = '';
 
-    axios
-        .patch(`/api/entries/${entryId}`, { completed: false })
-        .then(() => {
-            message.value = 'Entrada marcada como não concluída com sucesso!';
-            loadCompletedEntries();
-        })
-        .catch((err) => {
-            console.error(err);
-            error.value = 'Erro ao alterar status da entrada';
-        })
-        .finally(() => {
-            loading.value = false;
-        });
+    try {
+        // Get all statuses to find the pending status ID
+        const statusesResponse = await entryApi.getStatuses();
+        const statuses = statusesResponse.statuses || [];
+        const pendingStatus = statuses.find((status: any) => status.slug === 'pending');
+
+        if (!pendingStatus) {
+            throw new Error('Status pendente não encontrado');
+        }
+
+        // Transition the entry back to pending status
+        await entryApi.transitionStatus(entryId, pendingStatus.id, 'Entrada restaurada do status concluído');
+
+        message.value = 'Entrada restaurada com sucesso para status pendente!';
+
+        // Reload the completed entries list to remove the restored entry
+        loadCompletedEntries();
+    } catch (err: any) {
+        console.error('Erro ao restaurar entrada:', err);
+        error.value = handleApiError(err);
+    } finally {
+        loading.value = false;
+    }
 }
 
 function deleteEntry(entryId: string) {
@@ -139,15 +151,15 @@ function deleteEntry(entryId: string) {
     loading.value = true;
     error.value = '';
 
-    axios
-        .delete(`/api/entries/${entryId}`)
+    entryApi
+        .deleteEntry(entryId)
         .then(() => {
             message.value = 'Entrada excluída com sucesso!';
             loadCompletedEntries();
         })
         .catch((err) => {
             console.error(err);
-            error.value = 'Erro ao excluir entrada';
+            error.value = handleApiError(err);
         })
         .finally(() => {
             loading.value = false;
@@ -409,7 +421,7 @@ onMounted(() => {
                                                         d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
                                                     />
                                                 </svg>
-                                                Reabrir
+                                                Restaurar
                                             </Button>
 
                                             <Button size="sm" variant="destructive" @click="deleteEntry(entry.id)" :disabled="loading">

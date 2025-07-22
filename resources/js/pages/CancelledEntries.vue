@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
-import { useEntryApi } from '@/composables/useApi';
+import { handleApiError, useEntryApi } from '@/composables/useApi';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type Entry } from '@/types';
 import { Head } from '@inertiajs/vue3';
@@ -107,16 +107,34 @@ function openFilterDialog() {
     isFilterDialogOpen.value = true;
 }
 
-function restoreEntry() {
+async function restoreEntry(entryId: string) {
     loading.value = true;
     error.value = '';
+    message.value = '';
 
-    // Transition back to pending status (you'll need to implement this)
-    // For now, just show a message
-    setTimeout(() => {
-        message.value = 'Funcionalidade de restaurar entrada será implementada em breve!';
+    try {
+        // Get all statuses to find the pending status ID
+        const statusesResponse = await entryApi.getStatuses();
+        const statuses = statusesResponse.statuses || [];
+        const pendingStatus = statuses.find((status: any) => status.slug === 'pending');
+
+        if (!pendingStatus) {
+            throw new Error('Status pendente não encontrado');
+        }
+
+        // Transition the entry back to pending status
+        await entryApi.transitionStatus(entryId, pendingStatus.id, 'Entrada restaurada do status cancelado');
+
+        message.value = 'Entrada restaurada com sucesso para status pendente!';
+
+        // Reload the cancelled entries list to remove the restored entry
+        loadCancelledEntries();
+    } catch (err: any) {
+        console.error('Erro ao restaurar entrada:', err);
+        error.value = handleApiError(err);
+    } finally {
         loading.value = false;
-    }, 1000);
+    }
 }
 
 function deleteEntry(entryId: string) {
@@ -386,7 +404,7 @@ onMounted(() => {
                                             <!-- Print Button -->
                                             <PrintButton :entry="entry" size="sm" :show-text="false" />
 
-                                            <Button size="sm" variant="outline" @click="restoreEntry" :disabled="loading">
+                                            <Button size="sm" variant="outline" @click="() => restoreEntry(entry.id)" :disabled="loading">
                                                 <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path
                                                         stroke-linecap="round"

@@ -8,6 +8,7 @@
             :class="[
                 'inline-flex items-center justify-center rounded-md border border-gray-300 bg-white transition-colors duration-200',
                 'hover:bg-gray-50 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none',
+                'dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700',
                 'font-medium whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-50',
                 dropdownClasses,
             ]"
@@ -34,9 +35,11 @@
             <div
                 v-if="isOpen"
                 :style="dropdownStyle"
-                class="fixed z-[9999] w-56 rounded-md border border-gray-200 bg-white shadow-lg focus:outline-none"
+                class="fixed z-[9999] w-56 rounded-md border border-gray-200 bg-white shadow-lg focus:outline-none dark:border-gray-600 dark:bg-gray-800"
             >
-                <div v-if="allStatuses.length === 0 && !isLoading" class="px-4 py-2 text-sm text-gray-500">Nenhum status disponível</div>
+                <div v-if="allStatuses.length === 0 && !isLoading" class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
+                    Nenhum status disponível
+                </div>
                 <ul v-else class="py-1" data-dropdown-menu>
                     <li v-for="status in allStatuses" :key="status.id">
                         <button
@@ -45,13 +48,15 @@
                             :class="[
                                 'group flex w-full items-center px-4 py-2 text-sm transition-colors duration-200',
                                 status.id === props.entry.current_status_id
-                                    ? 'cursor-not-allowed bg-gray-100 text-gray-400'
+                                    ? 'cursor-not-allowed bg-gray-100 text-gray-400 dark:bg-gray-700 dark:text-gray-500'
                                     : getStatusColorClass(status),
                             ]"
                         >
                             <span class="mr-3 h-3 w-3 flex-shrink-0 rounded-full" :style="{ backgroundColor: status.color }"></span>
                             <span class="flex-1 text-left">{{ status.name }}</span>
-                            <span v-if="status.id === props.entry.current_status_id" class="ml-2 text-xs text-gray-400">(atual)</span>
+                            <span v-if="status.id === props.entry.current_status_id" class="ml-2 text-xs text-gray-400 dark:text-gray-500"
+                                >(atual)</span
+                            >
                         </button>
                     </li>
                 </ul>
@@ -168,27 +173,51 @@ function calculateDropdownPosition() {
 
     const rect = dropdownButton.value.getBoundingClientRect();
     const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+    const dropdownWidth = 224; // 14rem (w-56)
     const dropdownHeight = 300; // Approximate max height
+    const gap = 8; // Gap between button and dropdown
 
     // Determine if dropdown should appear above or below
     const spaceBelow = viewportHeight - rect.bottom;
     const spaceAbove = rect.top;
     const shouldShowAbove = spaceBelow < dropdownHeight && spaceAbove > spaceBelow;
 
+    // Calculate top position
     let top: number;
     if (shouldShowAbove) {
-        top = rect.top - Math.min(dropdownHeight, spaceAbove) + window.scrollY;
+        const availableSpace = spaceAbove - gap;
+        const actualHeight = Math.min(dropdownHeight, availableSpace);
+        top = rect.top - actualHeight - gap + window.scrollY;
     } else {
-        top = rect.bottom + 8 + window.scrollY; // 8px gap
+        top = rect.bottom + gap + window.scrollY;
     }
 
-    const left = rect.right - 224 + window.scrollX; // 224px = 14rem (w-56)
+    // Calculate left position - prefer right-aligned but ensure it stays within viewport
+    let left: number;
+    const preferredLeft = rect.right - dropdownWidth + window.scrollX;
+
+    if (preferredLeft < 0) {
+        // If dropdown would go off left edge, align with left edge of button
+        left = rect.left + window.scrollX;
+    } else if (preferredLeft + dropdownWidth > viewportWidth) {
+        // If dropdown would go off right edge, align with right edge of viewport
+        left = viewportWidth - dropdownWidth + window.scrollX - 16; // 16px margin from edge
+    } else {
+        // Use preferred position (right-aligned with button)
+        left = preferredLeft;
+    }
+
+    // Ensure left position is never negative
+    left = Math.max(0, left);
+
+    const maxHeight = shouldShowAbove ? Math.min(dropdownHeight, spaceAbove - gap) : Math.min(dropdownHeight, spaceBelow - gap);
 
     dropdownStyle.value = {
         position: 'absolute',
         top: `${top}px`,
         left: `${left}px`,
-        maxHeight: shouldShowAbove ? `${Math.min(dropdownHeight, spaceAbove - 8)}px` : `${Math.min(dropdownHeight, spaceBelow - 8)}px`,
+        maxHeight: `${maxHeight}px`,
         overflowY: 'auto',
     };
 }
@@ -251,17 +280,17 @@ onMounted(() => {
 function getStatusColorClass(status: EntryStatus): string {
     switch (status.color.toLowerCase()) {
         case '#10b981':
-            return 'text-green-700 hover:bg-green-50';
+            return 'text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20';
         case '#3b82f6':
-            return 'text-blue-700 hover:bg-blue-50';
+            return 'text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20';
         case '#8b5cf6':
-            return 'text-purple-700 hover:bg-purple-50';
+            return 'text-purple-700 hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/20';
         case '#f59e0b':
-            return 'text-amber-700 hover:bg-amber-50';
+            return 'text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-900/20';
         case '#ef4444':
-            return 'text-red-700 hover:bg-red-50';
+            return 'text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20';
         default:
-            return 'text-gray-700 hover:bg-gray-50';
+            return 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700';
     }
 }
 </script>

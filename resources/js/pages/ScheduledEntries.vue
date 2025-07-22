@@ -13,6 +13,7 @@ import { handleApiError, useEntryApi } from '@/composables/useApi';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem, Entry } from '@/types';
 import { Head } from '@inertiajs/vue3';
+import { Calendar } from 'lucide-vue-next';
 import { onMounted, reactive, ref, watch } from 'vue';
 
 interface Filters {
@@ -405,14 +406,7 @@ watch([message, error], () => {
                     </div>
 
                     <div v-else-if="entries.length === 0" class="py-12 text-center text-gray-500 dark:text-gray-400">
-                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0h6m-6 0l-.5 5m6.5-5l.5 5M12 9v12"
-                            />
-                        </svg>
+                        <Calendar class="mx-auto h-12 w-12 text-gray-400" />
                         <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">Nenhuma entrada agendada encontrada</h3>
                         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Não há entradas com data de agendamento ou ajuste seus filtros.</p>
                     </div>

@@ -147,7 +147,7 @@ class PatientController extends Controller
                 'sus_number' => $patient->sus_number,
                 'entries_count' => $patient->entries->count(),
             ],
-            'entries' => $patient->entries->map(function ($entry) {
+            'entries' => $patient->entries->map(function (\App\Models\Entry $entry) {
                 return [
                     'id' => $entry->id,
                     'title' => $entry->title,
@@ -159,7 +159,7 @@ class PatientController extends Controller
                     'created_at' => $entry->created_at ? $entry->created_at->format('d/m/Y H:i') : null,
                     'scheduled_exam_date' => $entry->scheduled_exam_date ?
                         \Carbon\Carbon::parse($entry->scheduled_exam_date)->format('d/m/Y') : null,
-                    'recent_transitions' => $entry->statusTransitions->take(3)->map(function ($transition) {
+                    'recent_transitions' => $entry->statusTransitions->take(3)->map(function (\App\Models\EntryStatusTransition $transition) {
                         return [
                             'from_status' => $transition->fromStatus?->name,
                             'to_status' => $transition->toStatus?->name ?? 'Status não definido',

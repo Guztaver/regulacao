@@ -7,6 +7,25 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Auth;
 
+/**
+ * @property int $id
+ * @property string $entry_id
+ * @property int|null $from_status_id
+ * @property int $to_status_id
+ * @property int $user_id
+ * @property string|null $reason
+ * @property array|null $metadata
+ * @property \Carbon\Carbon $transitioned_at
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ * @property-read Entry $entry
+ * @property-read User $user
+ * @property-read EntryStatus|null $fromStatus
+ * @property-read EntryStatus $toStatus
+ * @property-read string $description
+ * @property-read string|null $scheduled_date
+ * @property-read string|null $notes
+ */
 class EntryStatusTransition extends Model
 {
     use HasFactory;

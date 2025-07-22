@@ -7,6 +7,21 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $slug
+ * @property string $color
+ * @property string|null $description
+ * @property bool $is_final
+ * @property bool $is_active
+ * @property int $sort_order
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Entry[] $entries
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\EntryStatusTransition[] $transitionsTo
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\EntryStatusTransition[] $transitionsFrom
+ */
 class EntryStatus extends Model
 {
     use HasFactory;

@@ -14,10 +14,26 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 /**
- * @property Uuid $patient_id
+ * @property string $id
+ * @property string $patient_id
  * @property string $title
+ * @property string|null $brought_by
  * @property int $current_status_id
  * @property int $created_by
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ * @property-read \App\Models\Patient $patient
+ * @property-read \App\Models\User $createdBy
+ * @property-read \App\Models\EntryStatus $currentStatus
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\EntryTimeline[] $timeline
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\EntryStatusTransition[] $statusTransitions
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\EntryDocument[] $documents
+ * @property-read \App\Models\EntryStatusTransition|null $latestTransition
+ * @property-read string|null $scheduled_date
+ * @property-read string|null $scheduled_exam_date
+ * @property-read bool $exam_scheduled
+ * @property-read bool $exam_ready
+ * @property-read bool $completed
  */
 class Entry extends Model
 {
@@ -99,12 +115,12 @@ class Entry extends Model
 
     public function timeline(): HasMany
     {
-        return $this->hasMany(EntryTimeline::class)->orderBy('performed_at', 'desc');
+        return $this->hasMany(EntryTimeline::class);
     }
 
     public function statusTransitions(): HasMany
     {
-        return $this->hasMany(EntryStatusTransition::class)->with(['fromStatus', 'toStatus', 'user'])->latest();
+        return $this->hasMany(EntryStatusTransition::class);
     }
 
     public function documents(): HasMany
@@ -114,7 +130,7 @@ class Entry extends Model
 
     public function latestTransition(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
-        return $this->hasOne(EntryStatusTransition::class)->with(['fromStatus', 'toStatus', 'user'])->latest();
+        return $this->hasOne(EntryStatusTransition::class);
     }
 
     /**
@@ -302,6 +318,7 @@ class Entry extends Model
      */
     public function getScheduledExamDate(): ?string
     {
+        /** @var \App\Models\EntryStatusTransition|null $examTransition */
         $examTransition = $this->statusTransitions()
             ->whereHas('toStatus', function ($query) {
                 $query->where('slug', EntryStatus::EXAM_SCHEDULED);
@@ -326,6 +343,38 @@ class Entry extends Model
     public function getScheduledExamDateAttribute(): ?string
     {
         return $this->getScheduledExamDate();
+    }
+
+    /**
+     * Get the scheduled date accessor.
+     */
+    public function getScheduledDateAttribute(): ?string
+    {
+        return $this->getScheduledExamDate();
+    }
+
+    /**
+     * Get the exam scheduled accessor.
+     */
+    public function getExamScheduledAttribute(): bool
+    {
+        return $this->hasExamScheduled();
+    }
+
+    /**
+     * Get the exam ready accessor.
+     */
+    public function getExamReadyAttribute(): bool
+    {
+        return $this->hasStatus(EntryStatus::EXAM_READY);
+    }
+
+    /**
+     * Get the completed accessor.
+     */
+    public function getCompletedAttribute(): bool
+    {
+        return $this->isCompleted();
     }
 
     /**

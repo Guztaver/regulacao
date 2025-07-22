@@ -135,17 +135,6 @@ function formatDate(dateString: string | undefined): string {
     });
 }
 
-function formatScheduledDate(dateString: string | undefined): string {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('pt-BR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
-}
-
 function showEntryInfo(entry: Entry): void {
     selectedEntry.value = entry;
     isEntryInfoModalOpen.value = true;
@@ -191,44 +180,6 @@ function getStatusColorClass(entry: Entry): string {
     if (entry.exam_ready) return 'text-primary';
     if (entry.exam_scheduled) return 'text-yellow-600 dark:text-yellow-400';
     return 'text-muted-foreground';
-}
-
-function getDaysUntilScheduled(dateString: string | undefined): string {
-    if (!dateString) return '';
-
-    const now = new Date();
-    const scheduledDate = new Date(dateString);
-    const diffTime = scheduledDate.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays < 0) {
-        return `${Math.abs(diffDays)} dias atrás`;
-    } else if (diffDays === 0) {
-        return 'Hoje';
-    } else if (diffDays === 1) {
-        return 'Amanhã';
-    } else {
-        return `Em ${diffDays} dias`;
-    }
-}
-
-function getSchedulePriorityClass(dateString: string | undefined): string {
-    if (!dateString) return '';
-
-    const now = new Date();
-    const scheduledDate = new Date(dateString);
-    const diffTime = scheduledDate.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays < 0) {
-        return 'text-red-600 dark:text-red-400 font-semibold'; // Overdue
-    } else if (diffDays === 0) {
-        return 'text-orange-600 dark:text-orange-400 font-semibold'; // Today
-    } else if (diffDays <= 3) {
-        return 'text-yellow-600 dark:text-yellow-400 font-medium'; // Soon
-    } else {
-        return 'text-gray-600 dark:text-gray-400'; // Future
-    }
 }
 
 function onStatusChanged() {

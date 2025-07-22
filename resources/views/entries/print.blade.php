@@ -5,7 +5,7 @@
 @section('content')
     <div class="header">
         <img src="/images/logo-prefeitura.png?v=2" alt="Lista da regulação Logo" class="header-logo">
-        <h1>FICHA DE ENTRADA</h1>
+        <h1>PROTOCOLO DA REGULAÇÃO</h1>
         <p>Lista da regulação - Documento de Impressão</p>
         <p style="margin-top: 10px; font-size: 12px; color: #666;">Documento gerado por: {{ $currentUser->name ?? 'N/A' }}</p>
     </div>

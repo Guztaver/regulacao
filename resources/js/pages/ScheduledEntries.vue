@@ -411,7 +411,7 @@ watch([message, error], () => {
                         <p class="mt-1 text-sm text-muted-foreground">Não há entradas com data de agendamento ou ajuste seus filtros.</p>
                     </div>
 
-                    <div v-else class="overflow-hidden rounded-lg border border-border">
+                    <div v-else class="overflow-x-auto rounded-lg border border-border">
                         <table class="min-w-full divide-y divide-border">
                             <thead class="bg-muted/50">
                                 <tr>

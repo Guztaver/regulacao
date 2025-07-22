@@ -20,7 +20,7 @@ We provide security updates for the following versions:
 Instead, please report them via one of the following methods:
 
 ### Email
-Send an email to: **security@regulacao-list.com** (if available) or the project maintainer directly.
+Send an email to: **contact@gustavoanjos.com** (if available) or the project maintainer directly.
 
 ### Private Security Advisory
 Use GitHub's private vulnerability reporting feature:

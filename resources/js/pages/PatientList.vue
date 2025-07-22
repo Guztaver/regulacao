@@ -94,7 +94,7 @@ function createPatient() {
                 const errors = Object.values(err.response.data.errors).flat();
                 error.value = errors.join(', ');
             } else {
-                error.value = 'Failed to create patient';
+                error.value = t.failedToCreatePatient;
             }
         })
         .finally(() => {
@@ -117,7 +117,7 @@ function loadPatients() {
         })
         .catch((err) => {
             console.error('Error loading patients:', err);
-            error.value = 'Failed to load patients';
+            error.value = t.failedToLoadPatients;
         })
         .finally(() => {
             loading.value = false;
@@ -125,7 +125,7 @@ function loadPatients() {
 }
 
 function deletePatient(id: string) {
-    if (!confirm('Are you sure you want to delete this patient? This action cannot be undone and will also delete all associated entries.')) {
+    if (!confirm(t.deletePatientConfirm)) {
         return;
     }
 
@@ -134,12 +134,12 @@ function deletePatient(id: string) {
     axios
         .delete(`/api/patients/${id}`)
         .then(() => {
-            message.value = 'Patient deleted successfully';
+            message.value = t.patientDeletedSuccess;
             loadPatients();
         })
         .catch((err) => {
             console.error('Error deleting patient:', err);
-            error.value = 'Failed to delete patient';
+            error.value = t.failedToDeletePatient;
         })
         .finally(() => {
             loading.value = false;
@@ -181,7 +181,7 @@ function formatDate(dateString: string | undefined): string {
 }
 
 function formatSusNumber(susNumber: string | undefined): string {
-    if (!susNumber) return 'Não informado';
+    if (!susNumber) return t.notInformed;
     // Format SUS number with spaces for readability
     return susNumber.replace(/(\d{3})(\d{4})(\d{4})(\d{4})/, '$1 $2 $3 $4');
 }
@@ -267,13 +267,7 @@ onMounted(() => {
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div class="max-w-md flex-1">
                     <div class="relative">
-                        <Input
-                            type="text"
-                            v-model="filters.search"
-                            placeholder="Search by name or SUS number..."
-                            class="pl-10"
-                            @input="loadPatients"
-                        />
+                        <Input type="text" v-model="filters.search" :placeholder="t.searchByNameOrSus" class="pl-10" @input="loadPatients" />
                         <svg
                             class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400"
                             fill="none"
@@ -363,7 +357,7 @@ onMounted(() => {
             <!-- Patients Table -->
             <Card>
                 <CardHeader>
-                    <CardTitle>Todos os {{ t.patients }}</CardTitle>
+                    <CardTitle>{{ t.allPatients }} {{ t.patients }}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div v-if="loading" class="flex items-center justify-center py-12">
@@ -389,16 +383,16 @@ onMounted(() => {
                             <thead class="bg-gray-50 dark:bg-gray-700">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
-                                        Informações do Paciente
+                                        {{ t.patientInformation }}
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
                                         {{ t.susNumber }}
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
-                                        Estatísticas
+                                        {{ t.statistics }}
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
-                                        Criado
+                                        {{ t.created }}
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
                                         {{ t.addedBy }}
@@ -418,7 +412,7 @@ onMounted(() => {
                                     </td>
                                     <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
                                         <span v-if="patient.sus_number" class="font-mono text-sm">{{ formatSusNumber(patient.sus_number) }}</span>
-                                        <span v-else class="text-gray-500 italic">Não informado</span>
+                                        <span v-else class="text-gray-500 italic">{{ t.notInformed }}</span>
                                     </td>
                                     <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
                                         <div class="flex flex-col text-xs">

@@ -33,7 +33,7 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/patients',
     },
     {
-        title: 'Detalhes do Paciente',
+        title: t.patientDetails,
         href: `/patients/${props.patientId}`,
     },
 ];
@@ -82,7 +82,7 @@ function loadPatient() {
         })
         .catch((err) => {
             console.error('Error loading patient:', err);
-            error.value = 'Failed to load patient information';
+            error.value = t.failedToLoadPatientInfo;
         })
         .finally(() => {
             loading.value = false;
@@ -108,7 +108,7 @@ function updatePatient() {
                 const errors = Object.values(err.response.data.errors).flat();
                 error.value = errors.join(', ');
             } else {
-                error.value = 'Failed to update patient';
+                error.value = t.failedToUpdatePatient;
             }
         })
         .finally(() => {
@@ -142,7 +142,7 @@ function getPatientCreatorName(patient: Patient | null): string {
 }
 
 function formatSusNumber(susNumber: string | undefined): string {
-    if (!susNumber) return 'Not informed';
+    if (!susNumber) return t.notInformed;
     return susNumber.replace(/(\d{3})(\d{4})(\d{4})(\d{4})/, '$1 $2 $3 $4');
 }
 
@@ -169,10 +169,10 @@ onMounted(() => {
 
             <!-- Patient not found -->
             <div v-else-if="!loading && !patient" class="py-12 text-center text-gray-500 dark:text-gray-400">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Patient not found</h3>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">The patient you're looking for doesn't exist.</p>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">{{ t.patientNotFound }}</h3>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ t.patientNotFoundDesc }}</p>
                 <Button as-child class="mt-4">
-                    <Link href="/patients">Back to Patients</Link>
+                    <Link href="/patients">{{ t.backToPatients }}</Link>
                 </Button>
             </div>
 
@@ -182,7 +182,7 @@ onMounted(() => {
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ patient?.name }}</h1>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">Patient information and entries</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ t.patientInfoAndEntries }}</p>
                     </div>
 
                     <div class="flex gap-2">
@@ -198,35 +198,35 @@ onMounted(() => {
                                             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                                         />
                                     </svg>
-                                    Edit Patient
+                                    {{ t.editPatient }}
                                 </Button>
                             </DialogTrigger>
 
                             <DialogContent class="sm:max-w-md">
                                 <DialogHeader>
-                                    <DialogTitle>Edit Patient Information</DialogTitle>
+                                    <DialogTitle>{{ t.editPatient }}</DialogTitle>
                                 </DialogHeader>
 
                                 <form @submit.prevent="updatePatient" class="grid gap-4 py-4">
                                     <div>
-                                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Name *</label>
+                                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t.name }} *</label>
                                         <Input type="text" v-model="editingPatient.name" class="mt-1" required />
                                     </div>
 
                                     <div>
-                                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Phone</label>
+                                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t.phone }}</label>
                                         <Input type="text" v-model="editingPatient.phone" class="mt-1" />
                                     </div>
                                     <div>
-                                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">SUS Number</label>
+                                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t.susNumber }}</label>
                                         <Input type="text" v-model="editingPatient.sus_number" class="mt-1" maxlength="15" />
                                     </div>
 
                                     <DialogFooter>
-                                        <Button type="button" variant="outline" @click="isEditModalOpen = false">Cancel</Button>
+                                        <Button type="button" variant="outline" @click="isEditModalOpen = false">{{ t.cancel }}</Button>
                                         <Button type="submit" :disabled="loading">
-                                            <span v-if="loading">Updating...</span>
-                                            <span v-else>Update Patient</span>
+                                            <span v-if="loading">{{ t.loading }}</span>
+                                            <span v-else>{{ t.updatePatient }}</span>
                                         </Button>
                                     </DialogFooter>
                                 </form>
@@ -254,29 +254,29 @@ onMounted(() => {
                     <!-- Patient Info Card -->
                     <Card>
                         <CardHeader>
-                            <CardTitle>Patient Information</CardTitle>
+                            <CardTitle>{{ t.patientInformation }}</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div class="space-y-3">
                                 <div>
-                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Name</p>
+                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ t.name }}</p>
                                     <p class="text-lg font-medium">{{ patient?.name }}</p>
                                 </div>
 
                                 <div v-if="patient?.phone">
-                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Phone</p>
+                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ t.phone }}</p>
                                     <p>{{ patient.phone }}</p>
                                 </div>
                                 <div>
-                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">SUS Number</p>
+                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ t.susNumber }}</p>
                                     <p class="font-mono">{{ formatSusNumber(patient?.sus_number) }}</p>
                                 </div>
                                 <div>
-                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Registered</p>
+                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ t.created }}</p>
                                     <p>{{ formatDate(patient?.created_at) }}</p>
                                 </div>
                                 <div>
-                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Added By</p>
+                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ t.addedBy }}</p>
                                     <p>{{ getPatientCreatorName(patient) }}</p>
                                 </div>
                             </div>
@@ -286,20 +286,20 @@ onMounted(() => {
                     <!-- Statistics Card -->
                     <Card>
                         <CardHeader>
-                            <CardTitle>Statistics</CardTitle>
+                            <CardTitle>{{ t.statistics }}</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div class="space-y-3">
                                 <div class="flex justify-between">
-                                    <span class="text-sm text-gray-500 dark:text-gray-400">Total Entries</span>
+                                    <span class="text-sm text-gray-500 dark:text-gray-400">Total {{ t.entries }}</span>
                                     <span class="font-medium">{{ summary.total_entries }}</span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span class="text-sm text-gray-500 dark:text-gray-400">Active Entries</span>
+                                    <span class="text-sm text-gray-500 dark:text-gray-400">{{ t.activeEntries }}</span>
                                     <span class="font-medium text-blue-600">{{ summary.active_entries }}</span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span class="text-sm text-gray-500 dark:text-gray-400">Completed Entries</span>
+                                    <span class="text-sm text-gray-500 dark:text-gray-400">{{ t.completedEntries }}</span>
                                     <span class="font-medium text-green-600">{{ summary.completed_entries }}</span>
                                 </div>
                             </div>
@@ -309,7 +309,7 @@ onMounted(() => {
                     <!-- Quick Actions Card -->
                     <Card>
                         <CardHeader>
-                            <CardTitle>Quick Actions</CardTitle>
+                            <CardTitle>{{ t.quickActions }}</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div class="space-y-2">
@@ -318,7 +318,7 @@ onMounted(() => {
                                         <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                         </svg>
-                                        Create Entry
+                                        {{ t.addEntry }}
                                     </Link>
                                 </Button>
                                 <Button as-child variant="outline" class="w-full justify-start">
@@ -331,7 +331,7 @@ onMounted(() => {
                                                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                                             />
                                         </svg>
-                                        View Completed
+                                        {{ t.viewCompleted }}
                                     </Link>
                                 </Button>
                                 <Button as-child variant="outline" class="w-full justify-start">
@@ -344,7 +344,7 @@ onMounted(() => {
                                                 d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                                             />
                                         </svg>
-                                        All Patients
+                                        {{ t.allPatients }}
                                     </Link>
                                 </Button>
                             </div>
@@ -355,7 +355,7 @@ onMounted(() => {
                 <!-- Documents Section - Disabled -->
                 <Card>
                     <CardHeader>
-                        <CardTitle>Documents</CardTitle>
+                        <CardTitle>Documentos</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div class="py-8 text-center text-gray-500 dark:text-gray-400">
@@ -367,9 +367,9 @@ onMounted(() => {
                                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                 />
                             </svg>
-                            <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">Patient Documents Disabled</h3>
+                            <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">{{ t.documentsDisabled }}</h3>
                             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                Patient-level documents are no longer supported. Please use entry-level documents instead.
+                                {{ t.documentsDisabledDesc }}
                             </p>
                         </div>
                     </CardContent>
@@ -378,7 +378,7 @@ onMounted(() => {
                 <!-- Recent Entries Section -->
                 <Card v-if="entries.length > 0">
                     <CardHeader>
-                        <CardTitle>Recent Entries</CardTitle>
+                        <CardTitle>{{ t.recentEntries }}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div class="space-y-3">
@@ -403,12 +403,12 @@ onMounted(() => {
                                             : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
                                     ]"
                                 >
-                                    {{ entry.completed ? 'Completed' : 'Active' }}
+                                    {{ entry.completed ? t.completed : t.active }}
                                 </span>
                             </div>
                             <div v-if="entries.length > 5" class="text-center">
                                 <Button variant="outline" size="sm" as-child>
-                                    <Link href="/dashboard">View All Entries</Link>
+                                    <Link href="/dashboard">{{ t.viewAllEntries }}</Link>
                                 </Button>
                             </div>
                         </div>

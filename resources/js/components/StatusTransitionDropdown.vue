@@ -38,7 +38,7 @@
                 class="fixed z-[9999] w-56 rounded-md border border-gray-200 bg-white shadow-lg focus:outline-none dark:border-gray-600 dark:bg-gray-800"
             >
                 <div v-if="allStatuses.length === 0 && !isLoading" class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
-                    Nenhum status disponível
+                    Nenhuma transição disponível
                 </div>
                 <ul v-else class="py-1" data-dropdown-menu>
                     <li v-for="status in allStatuses" :key="status.id">
@@ -73,7 +73,7 @@ import CancellationReasonModal from '@/components/CancellationReasonModal.vue';
 import { handleApiError, useEntryApi } from '@/composables/useApi';
 import { useTranslations } from '@/composables/useTranslations';
 import type { Entry, EntryStatus } from '@/types';
-import { computed, nextTick, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 
 interface Props {
     entry: Entry;
@@ -125,11 +125,11 @@ const iconSize = computed(() => {
     }
 });
 
-async function loadAllStatuses() {
+async function loadValidStatuses() {
     isLoading.value = true;
     try {
-        const response = await entryApi.getStatuses();
-        allStatuses.value = response.statuses || [];
+        const response = await entryApi.getNextStatuses(props.entry.id);
+        allStatuses.value = response.next_statuses || [];
     } catch (err: any) {
         emit('error', handleApiError(err));
     } finally {
@@ -161,19 +161,30 @@ async function openDropdown() {
     if (props.disabled) return;
     isOpen.value = true;
     if (allStatuses.value.length === 0) {
-        loadAllStatuses();
+        loadValidStatuses();
     }
 
     await nextTick();
-    calculateDropdownPosition();
+    // Add small delay to ensure DOM is fully rendered
+    setTimeout(() => {
+        calculateDropdownPosition();
+    }, 10);
 }
 
 function calculateDropdownPosition() {
     if (!dropdownButton.value) return;
 
     const rect = dropdownButton.value.getBoundingClientRect();
-    const viewportHeight = window.innerHeight;
-    const viewportWidth = window.innerWidth;
+
+    // Fallback if rect is invalid (button not visible)
+    if (rect.width === 0 && rect.height === 0) {
+        console.warn('StatusTransitionDropdown: Button rect is invalid, skipping positioning');
+        return;
+    }
+
+    // Get actual viewport dimensions, accounting for mobile browsers
+    const viewportHeight = Math.max(document.documentElement.clientHeight, window.innerHeight);
+    const viewportWidth = Math.max(document.documentElement.clientWidth, window.innerWidth);
     const dropdownWidth = 224; // 14rem (w-56)
     const dropdownHeight = 300; // Approximate max height
     const gap = 8; // Gap between button and dropdown
@@ -183,15 +194,19 @@ function calculateDropdownPosition() {
     const spaceAbove = rect.top;
     const shouldShowAbove = spaceBelow < dropdownHeight && spaceAbove > spaceBelow;
 
-    // Calculate top position
+    // Calculate top position with better bounds checking
     let top: number;
     if (shouldShowAbove) {
-        const availableSpace = spaceAbove - gap;
+        const availableSpace = Math.max(0, spaceAbove - gap);
         const actualHeight = Math.min(dropdownHeight, availableSpace);
-        top = rect.top - actualHeight - gap + window.scrollY;
+        top = Math.max(0, rect.top - actualHeight - gap + window.scrollY);
     } else {
         top = rect.bottom + gap + window.scrollY;
     }
+
+    // Ensure top position accounts for any fixed headers or navigation
+    const minTop = window.scrollY + 10; // 10px margin from top of viewport
+    top = Math.max(minTop, top);
 
     // Calculate left position - prefer right-aligned but ensure it stays within viewport
     let left: number;
@@ -199,19 +214,25 @@ function calculateDropdownPosition() {
 
     if (preferredLeft < 0) {
         // If dropdown would go off left edge, align with left edge of button
-        left = rect.left + window.scrollX;
+        left = Math.max(0, rect.left + window.scrollX);
     } else if (preferredLeft + dropdownWidth > viewportWidth) {
         // If dropdown would go off right edge, align with right edge of viewport
-        left = viewportWidth - dropdownWidth + window.scrollX - 16; // 16px margin from edge
+        left = Math.max(0, viewportWidth - dropdownWidth + window.scrollX - 16); // 16px margin from edge
     } else {
         // Use preferred position (right-aligned with button)
         left = preferredLeft;
     }
 
-    // Ensure left position is never negative
-    left = Math.max(0, left);
+    // Additional bounds checking with viewport constraints
+    const maxLeft = window.scrollX + viewportWidth - dropdownWidth - 10; // 10px margin from right
+    left = Math.max(window.scrollX + 10, Math.min(left, maxLeft)); // 10px margin from left
 
-    const maxHeight = shouldShowAbove ? Math.min(dropdownHeight, spaceAbove - gap) : Math.min(dropdownHeight, spaceBelow - gap);
+    const maxTop = window.scrollY + viewportHeight - 50; // Minimum 50px for dropdown visibility
+    top = Math.min(top, maxTop);
+
+    const maxHeight = shouldShowAbove
+        ? Math.min(dropdownHeight, Math.max(50, spaceAbove - gap))
+        : Math.min(dropdownHeight, Math.max(50, spaceBelow - gap));
 
     dropdownStyle.value = {
         position: 'absolute',
@@ -248,9 +269,19 @@ function handleCancellationConfirm(reason: string) {
     showCancellationModal.value = false;
 }
 
+// Watch for entry status changes and reload valid statuses
+watch(
+    () => props.entry.current_status_id,
+    () => {
+        // Clear existing statuses and reload when status changes
+        allStatuses.value = [];
+        loadValidStatuses();
+    },
+);
+
 onMounted(() => {
-    // Load all statuses on mount for better UX
-    loadAllStatuses();
+    // Load valid statuses on mount for better UX
+    loadValidStatuses();
 
     document.addEventListener('click', (e: MouseEvent) => {
         const el = e.target as HTMLElement;
@@ -259,18 +290,41 @@ onMounted(() => {
         }
     });
 
-    // Recalculate position on window resize/scroll
+    // Use IntersectionObserver to close dropdown when button goes out of view
+    if (dropdownButton.value) {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (!entry.isIntersecting && isOpen.value) {
+                        closeDropdown();
+                    }
+                });
+            },
+            { threshold: 0.1 },
+        );
+        observer.observe(dropdownButton.value);
+    }
+
+    // Recalculate position on window resize/scroll with debouncing
+    let resizeTimeout: number;
     window.addEventListener('resize', () => {
         if (isOpen.value) {
-            calculateDropdownPosition();
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                calculateDropdownPosition();
+            }, 50);
         }
     });
 
+    let scrollTimeout: number;
     window.addEventListener(
         'scroll',
         () => {
             if (isOpen.value) {
-                calculateDropdownPosition();
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(() => {
+                    calculateDropdownPosition();
+                }, 10);
             }
         },
         true,

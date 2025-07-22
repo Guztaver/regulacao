@@ -27,7 +27,7 @@ class PatientController extends Controller
     {
         // Ensure user is authenticated
         if (! Auth::check()) {
-            return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
+            return response()->json(['error' => 'Autenticação obrigatória'], Response::HTTP_UNAUTHORIZED);
         }
 
         $validatedData = $request->validate([
@@ -74,7 +74,7 @@ class PatientController extends Controller
     {
         // Ensure user is authenticated
         if (! Auth::check()) {
-            return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
+            return response()->json(['error' => 'Autenticação obrigatória'], Response::HTTP_UNAUTHORIZED);
         }
 
         $patient = Patient::with(['entries.patient', 'createdBy'])
@@ -95,7 +95,7 @@ class PatientController extends Controller
     {
         // Ensure user is authenticated
         if (! Auth::check()) {
-            return response()->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
+            return response()->json(['error' => 'Autenticação obrigatória'], Response::HTTP_UNAUTHORIZED);
         }
 
         $patient = Patient::findOrFail($id);

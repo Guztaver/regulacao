@@ -1,22 +1,5 @@
-import axios, { type AxiosResponse } from 'axios';
-
-// Track if CSRF has been initialized to avoid multiple calls
-let csrfInitialized = false;
-
-/**
- * Initialize CSRF token for SPA authentication
- */
-async function initializeCsrf(): Promise<void> {
-    if (csrfInitialized) return;
-
-    try {
-        await axios.get('/sanctum/csrf-cookie');
-        csrfInitialized = true;
-    } catch (error) {
-        console.error('Failed to initialize CSRF token:', error);
-        throw error;
-    }
-}
+import axiosInstance from '@/lib/axios';
+import type { AxiosResponse } from 'axios';
 
 /**
  * Composable for authenticated API calls
@@ -26,13 +9,10 @@ export function useApi() {
      * Make an authenticated GET request
      */
     async function get<T = any>(url: string, params?: Record<string, any>): Promise<T> {
-        await initializeCsrf();
-
         const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
         const fullUrl = `${url}${queryString}`;
 
-        const response: AxiosResponse<T> = await axios.get(fullUrl);
-
+        const response: AxiosResponse<T> = await axiosInstance.get(fullUrl);
         return response.data;
     }
 
@@ -40,9 +20,7 @@ export function useApi() {
      * Make an authenticated POST request
      */
     async function post<T = any>(url: string, data?: any): Promise<T> {
-        await initializeCsrf();
-
-        const response: AxiosResponse<T> = await axios.post(url, data);
+        const response: AxiosResponse<T> = await axiosInstance.post(url, data);
         return response.data;
     }
 
@@ -50,10 +28,7 @@ export function useApi() {
      * Make an authenticated PUT request
      */
     async function put<T = any>(url: string, data?: any): Promise<T> {
-        await initializeCsrf();
-
-        const response: AxiosResponse<T> = await axios.put(url, data);
-
+        const response: AxiosResponse<T> = await axiosInstance.put(url, data);
         return response.data;
     }
 
@@ -61,9 +36,7 @@ export function useApi() {
      * Make an authenticated DELETE request
      */
     async function del<T = any>(url: string): Promise<T> {
-        await initializeCsrf();
-
-        const response: AxiosResponse<T> = await axios.delete(url);
+        const response: AxiosResponse<T> = await axiosInstance.delete(url);
         return response.data;
     }
 
@@ -71,9 +44,7 @@ export function useApi() {
      * Make an authenticated PATCH request
      */
     async function patch<T = any>(url: string, data?: any): Promise<T> {
-        await initializeCsrf();
-
-        const response: AxiosResponse<T> = await axios.patch(url, data);
+        const response: AxiosResponse<T> = await axiosInstance.patch(url, data);
         return response.data;
     }
 
@@ -252,8 +223,6 @@ export function useEntryDocumentApi() {
          * Upload a new document for an entry
          */
         uploadEntryDocument: async (entryId: string, file: File, documentType: string, description?: string) => {
-            await initializeCsrf();
-
             const formData = new FormData();
             formData.append('file', file);
             formData.append('document_type', documentType);
@@ -261,7 +230,7 @@ export function useEntryDocumentApi() {
                 formData.append('description', description);
             }
 
-            const response = await axios.post(`/api/entries/${entryId}/documents`, formData, {
+            const response = await axiosInstance.post(`/api/entries/${entryId}/documents`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -283,9 +252,7 @@ export function useEntryDocumentApi() {
          * Download an entry document
          */
         downloadEntryDocument: async (entryId: string, documentId: string) => {
-            await initializeCsrf();
-
-            const response = await axios.get(`/api/entries/${entryId}/documents/${documentId}/download`, {
+            const response = await axiosInstance.get(`/api/entries/${entryId}/documents/${documentId}/download`, {
                 responseType: 'blob',
             });
             return response;
@@ -304,11 +271,13 @@ export function handleApiError(error: any): string {
 
         switch (status) {
             case 401:
-                return 'Não autorizado. Faça login novamente.';
+                return 'Sessão expirada. Faça login novamente.';
             case 403:
                 return 'Acesso negado. Você não tem permissão para esta ação.';
             case 404:
                 return 'Recurso não encontrado.';
+            case 419:
+                return 'Token de segurança expirado. A página será recarregada.';
             case 422:
                 // Validation errors
                 if (data.errors) {
@@ -316,8 +285,12 @@ export function handleApiError(error: any): string {
                     return Array.isArray(firstError) ? firstError[0] : String(firstError);
                 }
                 return data.message || 'Dados inválidos.';
+            case 429:
+                return 'Muitas tentativas. Tente novamente em alguns minutos.';
             case 500:
                 return 'Erro interno do servidor. Tente novamente mais tarde.';
+            case 503:
+                return 'Serviço temporariamente indisponível. Tente novamente mais tarde.';
             default:
                 return data.message || `Erro ${status}: ${error.message}`;
         }

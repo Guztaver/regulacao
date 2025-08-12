@@ -23,9 +23,8 @@ const delegatedProps = computed(() => {
   return delegated
 })
 
-// Tornando o objeto reativo antes de passá-lo para useForwardPropsEmits
-const reactiveDelegatedProps = reactive(delegatedProps)
-const forwarded = useForwardPropsEmits(reactiveDelegatedProps, emits)
+// Use the computed delegated props directly since computed returns a reactive object
+const forwarded = useForwardPropsEmits(delegatedProps, emits)
 </script>
 
 <template>

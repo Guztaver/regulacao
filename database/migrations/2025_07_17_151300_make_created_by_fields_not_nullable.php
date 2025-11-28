@@ -43,7 +43,14 @@ return new class extends Migration
         // Ensure critical fields in entries table are NOT NULL
         Schema::table('entries', function (Blueprint $table) {
             $table->string('title')->nullable(false)->change();
-            $table->foreignUuid('patient_id')->nullable(false)->change();
+            
+            // Drop foreign key and column to recreate as UUID
+            $table->dropForeign(['patient_id']);
+            $table->dropColumn('patient_id');
+        });
+
+        Schema::table('entries', function (Blueprint $table) {
+            $table->foreignUuid('patient_id')->constrained('patients')->cascadeOnDelete()->cascadeOnUpdate();
         });
     }
 

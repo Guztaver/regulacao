@@ -77,7 +77,9 @@ start_services() {
             ;;
         *)
             echo "🌐 Starting web server..."
-            exec "$@"
+            # Pipe output to grep to filter health checks, run in background and wait
+            "$@" 2>&1 | grep -v "/health" &
+            wait $!
             ;;
     esac
 }

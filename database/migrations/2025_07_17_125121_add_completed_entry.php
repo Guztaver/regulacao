@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('entries', function (Blueprint $table) {
-            $table->boolean('completed')->default(false);
-        });
+        if (!Schema::hasColumn('entries', 'completed')) {
+            Schema::table('entries', function (Blueprint $table) {
+                $table->boolean('completed')->default(false);
+            });
+        }
     }
 
     /**

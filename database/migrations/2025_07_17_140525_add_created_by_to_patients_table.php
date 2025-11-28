@@ -11,13 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('patients', function (Blueprint $table) {
-            $table->foreignId('created_by')
-                ->nullable()
-                ->constrained('users')
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
-        });
+        if (!Schema::hasColumn('patients', 'created_by')) {
+            Schema::table('patients', function (Blueprint $table) {
+                $table->foreignId('created_by')
+                    ->nullable()
+                    ->constrained('users')
+                    ->cascadeOnDelete()
+                    ->cascadeOnUpdate();
+            });
+        }
     }
 
     /**

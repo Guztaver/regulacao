@@ -12,28 +12,32 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // First, add the current_status_id column
-        Schema::table('entries', function (Blueprint $table) {
-            $table->foreignId('current_status_id')->nullable()->constrained('entry_statuses');
-        });
+        if (!Schema::hasColumn('entries', 'current_status_id')) {
+            // First, add the current_status_id column
+            Schema::table('entries', function (Blueprint $table) {
+                $table->foreignId('current_status_id')->nullable()->constrained('entry_statuses');
+            });
 
-        // Migrate existing data based on boolean fields
-        $this->migrateExistingData();
+            // Migrate existing data based on boolean fields
+            $this->migrateExistingData();
 
-        // Remove the old boolean and date columns
-        Schema::table('entries', function (Blueprint $table) {
-            $table->dropColumn([
-                'completed',
-                'exam_scheduled',
-                'exam_scheduled_date',
-                'exam_ready',
-            ]);
-        });
+            // Make current_status_id non-nullable after migration
+            Schema::table('entries', function (Blueprint $table) {
+                $table->foreignId('current_status_id')->nullable(false)->change();
+            });
+        }
 
-        // Make current_status_id non-nullable after migration
-        Schema::table('entries', function (Blueprint $table) {
-            $table->foreignId('current_status_id')->nullable(false)->change();
-        });
+        if (Schema::hasColumn('entries', 'completed')) {
+            // Remove the old boolean and date columns
+            Schema::table('entries', function (Blueprint $table) {
+                $table->dropColumn([
+                    'completed',
+                    'exam_scheduled',
+                    'exam_scheduled_date',
+                    'exam_ready',
+                ]);
+            });
+        }
     }
 
     /**

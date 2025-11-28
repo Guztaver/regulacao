@@ -2,12 +2,12 @@
 
 set -e
 
-echo "🚁 Fly.io Laravel Application Starting..."
+echo "🚁 Application Starting..."
 echo "=========================================="
 
-# Function to initialize Laravel application (minimal)
-init_laravel() {
-    echo "🔧 Initializing Laravel application..."
+# Function to initialize application (minimal)
+init_app() {
+    echo "🔧 Initializing application..."
 
     # Generate application key if not set
     if [ -z "$APP_KEY" ] || [ "$APP_KEY" = "base64:CHANGEME" ]; then

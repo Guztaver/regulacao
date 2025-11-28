@@ -11,13 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('patients', static function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->timestamps();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->string('phone')->nullable();
-        });
+        if (!Schema::hasTable('patients')) {
+            Schema::create('patients', static function (Blueprint $table) {
+                $table->uuid('id')->primary();
+                $table->timestamps();
+                $table->string('name');
+                $table->string('email')->unique();
+                $table->string('phone')->nullable();
+            });
+        }
     }
 
     /**

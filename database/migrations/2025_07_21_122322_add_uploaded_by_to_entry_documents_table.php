@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('entry_documents', function (Blueprint $table) {
-            $table->foreignId('uploaded_by')->nullable()->constrained('users')->onDelete('set null');
-            $table->index('uploaded_by');
-        });
+        if (!Schema::hasColumn('entry_documents', 'uploaded_by')) {
+            Schema::table('entry_documents', function (Blueprint $table) {
+                $table->foreignId('uploaded_by')->nullable()->constrained('users')->onDelete('set null');
+                $table->index('uploaded_by');
+            });
+        }
     }
 
     /**

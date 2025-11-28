@@ -11,11 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('entries', function (Blueprint $table) {
-            $table->boolean('exam_scheduled')->default(false);
-            $table->dateTime('exam_scheduled_date')->nullable();
-            $table->boolean('exam_ready')->default(false);
-        });
+        if (!Schema::hasColumn('entries', 'exam_scheduled')) {
+            Schema::table('entries', function (Blueprint $table) {
+                $table->boolean('exam_scheduled')->default(false);
+                $table->dateTime('exam_scheduled_date')->nullable();
+                $table->boolean('exam_ready')->default(false);
+            });
+        }
     }
 
     /**

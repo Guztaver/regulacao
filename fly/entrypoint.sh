@@ -23,12 +23,14 @@ init_app() {
     mkdir -p /var/www/html/storage/framework/sessions
     mkdir -p /var/www/html/storage/framework/views
 
-    # Create SQLite database if it doesn't exist
-    echo "🗄️ Setting up SQLite database..."
-    if [ ! -f "/var/www/html/storage/app/database.sqlite" ]; then
-        echo "📁 Creating SQLite database file..."
-        touch /var/www/html/storage/app/database.sqlite
-        chmod 664 /var/www/html/storage/app/database.sqlite
+    # Create SQLite database if it doesn't exist (only for SQLite)
+    if [ "${DB_CONNECTION:-sqlite}" = "sqlite" ]; then
+        echo "🗄️ Setting up SQLite database..."
+        if [ ! -f "/var/www/html/storage/app/database.sqlite" ]; then
+            echo "📁 Creating SQLite database file..."
+            touch /var/www/html/storage/app/database.sqlite
+            chmod 664 /var/www/html/storage/app/database.sqlite
+        fi
     fi
 
     # Create storage link if it doesn't exist

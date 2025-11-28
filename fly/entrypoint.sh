@@ -106,7 +106,7 @@ main() {
 
     # Initialize Laravel application (minimal, no database dependencies)
     if [ "$FLY_PROCESS_GROUP" != "worker" ] && [ "$FLY_PROCESS_GROUP" != "scheduler" ]; then
-        init_laravel
+        init_app
     fi
 
     # Start appropriate services

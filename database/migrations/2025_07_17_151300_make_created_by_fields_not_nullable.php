@@ -43,10 +43,31 @@ return new class extends Migration
         // Ensure critical fields in entries table are NOT NULL
         Schema::table('entries', function (Blueprint $table) {
             $table->string('title')->nullable(false)->change();
-            
-            // Drop foreign key and column to recreate as UUID
-            $table->dropForeign(['patient_id']);
-            $table->dropColumn('patient_id');
+        });
+
+        // Drop foreign key if it exists (using raw SQL for MariaDB compatibility)
+        $databaseName = DB::getDatabaseName();
+        $foreignKeyExists = DB::select(
+            "SELECT CONSTRAINT_NAME 
+             FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
+             WHERE TABLE_SCHEMA = ? 
+             AND TABLE_NAME = 'entries' 
+             AND COLUMN_NAME = 'patient_id' 
+             AND CONSTRAINT_NAME = 'entries_patient_id_foreign'",
+            [$databaseName]
+        );
+
+        if (!empty($foreignKeyExists)) {
+            Schema::table('entries', function (Blueprint $table) {
+                $table->dropForeign(['patient_id']);
+            });
+        }
+
+        // Drop the column if it exists
+        Schema::table('entries', function (Blueprint $table) {
+            if (Schema::hasColumn('entries', 'patient_id')) {
+                $table->dropColumn('patient_id');
+            }
         });
 
         Schema::table('entries', function (Blueprint $table) {
